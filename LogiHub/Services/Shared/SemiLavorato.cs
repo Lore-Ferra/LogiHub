@@ -17,8 +17,6 @@ public class SemiLavorato
 
     public AziendaEsterna? AziendaEsterna { get; set; }
 
-    public User User { get; set; }
-
     public DateTime DataCreazione { get; set; }
 
     public DateTime UltimaModifica { get; set; }
