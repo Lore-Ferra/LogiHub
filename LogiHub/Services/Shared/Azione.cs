@@ -14,8 +14,8 @@ public class Azione
     public SemiLavorato SemiLavorato { get; set; }
 
     public string TipoOperazione { get; set; } = string.Empty;
-
-    [ForeignKey(nameof(User.Id))]
+    public Guid UserId { get; set; }
+    [ForeignKey(nameof(UserId))]
     public User User { get; set; }
 
     public DateTime DataOperazione { get; set; } = DateTime.Now;

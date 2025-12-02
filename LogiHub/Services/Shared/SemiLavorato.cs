@@ -10,9 +10,11 @@ public class SemiLavorato
     public Guid Id { get; set; }
 
     public string Descrizione { get; set; } = string.Empty;
-
+    public Guid? UbicazioneId { get; set; }
+    [ForeignKey(nameof(UbicazioneId))]
     public Ubicazione Ubicazione { get; set; }
-    [ForeignKey(nameof(AziendaEsterna.Id))]
+    public Guid? AziendaEsternaId { get; set; }
+    [ForeignKey(nameof(AziendaEsternaId))]
     public AziendaEsterna? AziendaEsterna { get; set; }
 
     public DateTime DataCreazione { get; set; }
