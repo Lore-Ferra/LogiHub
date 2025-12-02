@@ -15,6 +15,7 @@ public class Azione
 
     public string TipoOperazione { get; set; } = string.Empty;
 
+    [ForeignKey(nameof(User.Id))]
     public User User { get; set; }
 
     public DateTime DataOperazione { get; set; } = DateTime.Now;
