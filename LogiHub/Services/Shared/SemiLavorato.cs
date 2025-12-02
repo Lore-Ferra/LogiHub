@@ -12,7 +12,7 @@ public class SemiLavorato
     public string Descrizione { get; set; } = string.Empty;
 
     public Ubicazione Ubicazione { get; set; }
-
+    [ForeignKey(nameof(AziendaEsterna.Id))]
     public AziendaEsterna? AziendaEsterna { get; set; }
 
     public DateTime DataCreazione { get; set; }
