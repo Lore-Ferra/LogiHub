@@ -7,7 +7,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 public class SemiLavorato
 {
     [Key]
-    public int Id { get; set; }
+    public Guid Id { get; set; }
 
     public string Descrizione { get; set; } = string.Empty;
 

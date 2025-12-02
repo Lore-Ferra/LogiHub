@@ -6,7 +6,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 public class Azione
 {
     [Key]
-    public int Id { get; set; }
+    public Guid Id { get; set; }
 
     public int? SemiLavoratoId { get; set; }
 
