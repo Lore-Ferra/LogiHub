@@ -13,8 +13,6 @@ public class SemiLavorato
 
     public Ubicazione Ubicazione { get; set; }
 
-    public string Reparto { get; set; } = string.Empty;
-
     public AziendaEsterna? AziendaEsterna { get; set; }
 
     public DateTime DataCreazione { get; set; }
