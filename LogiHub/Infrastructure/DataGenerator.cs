@@ -52,10 +52,11 @@ namespace LogiHub.Infrastructure
                     });
             }
 
-            if (!context.Users.Any())
+            if (!context.Ubicazioni.Any())
             {
                 var righe = new[] { "A", "B", "C" };
-                var colonne = 5;
+                int colonne = 5;
+
                 foreach (var riga in righe)
                 {
                     for (int i = 1; i <= colonne; i++)
@@ -74,7 +75,7 @@ namespace LogiHub.Infrastructure
                 context.AziendeEsterne.AddRange(
                     new AziendaEsterna { Id = idAzienda1, Nome = "Azienda Esterna 1", Indirizzo = "Indirizzo 1" },
                     new AziendaEsterna { Id = idAzienda2, Nome = "Azienda Esterna 2", Indirizzo = "Indirizzo 2" }
-                    );
+                );
             }
 
             context.SaveChanges();
@@ -89,7 +90,7 @@ namespace LogiHub.Infrastructure
                         Descrizione = "Sbarra di metallo",
                         DataCreazione = DateTime.Now,
                         UltimaModifica = DateTime.Now.AddDays(-2),
-                        Ubicazione = context.Ubicazioni.FirstOrDefault(x => x.Posizione == "A1")
+                        UbicazioneId = context.Ubicazioni.First(x => x.Posizione == "A1").UbicazioneId
                     },
                     new SemiLavorato
                     {
@@ -98,7 +99,7 @@ namespace LogiHub.Infrastructure
                         Descrizione = "Trave",
                         DataCreazione = DateTime.Now,
                         UltimaModifica = DateTime.Now.AddDays(-3),
-                        Ubicazione = context.Ubicazioni.FirstOrDefault(x => x.Posizione == "B1")
+                        UbicazioneId = context.Ubicazioni.First(x => x.Posizione == "B1").UbicazioneId
                     },
                     new SemiLavorato
                     {
@@ -107,15 +108,15 @@ namespace LogiHub.Infrastructure
                         Descrizione = "Lastra",
                         DataCreazione = DateTime.Now,
                         UltimaModifica = DateTime.Now.AddDays(-4),
-                        Ubicazione = context.Ubicazioni.FirstOrDefault(x => x.Posizione == "C1")
+                        UbicazioneId = context.Ubicazioni.First(x => x.Posizione == "C1").UbicazioneId
                     }
-                    );
+                );
+
+                context.SaveChanges();
             }
 
-            context.SaveChanges();
-
             if (!context.Azioni.Any())
-            { 
+            {
                 context.Azioni.AddRange(
                     new Azione
                     {
@@ -128,13 +129,15 @@ namespace LogiHub.Infrastructure
                     },
                     new Azione
                     {
-                    Id = idAzione2,
+                        Id = idAzione2,
                         Dettagli = "Spostato in verniciatura",
                         SemiLavoratoId = idSemiLavorato1,
                         TipoOperazione = "Spostamento",
                         UserId = Guid.Parse("3de6883f-9a0b-4667-aa53-0fbc52c4d300"),
-                        DataOperazione = DateTime.Now.AddDays(-5),
-                    });
+                        DataOperazione = DateTime.Now.AddDays(-5)
+                    }
+                );
+
                 context.SaveChanges();
             }
         }
