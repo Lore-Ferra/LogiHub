@@ -20,5 +20,23 @@ namespace LogiHub.Services
         public DbSet<SemiLavorato> SemiLavorati { get; set; }
         public DbSet<Ubicazione> Ubicazioni { get; set; }
         public DbSet<Azione> Azioni { get; set; }
+
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            base.OnModelCreating(modelBuilder);
+
+            modelBuilder.Entity<Azione>()
+                .HasOne(a => a.SemiLavorato)
+                .WithMany(s => s.Azioni)
+                .HasForeignKey(a => a.SemiLavoratoId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<SemiLavorato>()
+                .HasIndex(s => s.Id)
+                .IsUnique();
+
+            modelBuilder.Entity<SemiLavorato>()
+               .HasQueryFilter(s => !s.IsDeleted);
+        }
     }
 }
