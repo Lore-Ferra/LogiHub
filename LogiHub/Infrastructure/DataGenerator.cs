@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Linq;
-using System.Linq.Dynamic.Core;
 using LogiHub.Services;
+using LogiHub.Services.Models;
 using LogiHub.Services.Shared;
 
 namespace LogiHub.Infrastructure
