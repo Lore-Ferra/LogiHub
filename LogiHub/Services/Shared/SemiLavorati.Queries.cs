@@ -1,8 +1,10 @@
+using LogiHub.Services;
+using LogiHub.Services.Shared;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.EntityFrameworkCore;
 
 namespace LogiHub.Services.Shared;
 
@@ -17,11 +19,11 @@ public class SemiLavoratiIndexDTO
 {
     public IEnumerable<RigaSemiLavorato> Items { get; set; }
     public int Count { get; set; }
-    
+
     public class RigaSemiLavorato
     {
         //dati da mostrare nella view della tabella SemiLavorati
-        public Guid Id { get; set; }
+        public string Id { get; set; }
         public string Descrizione { get; set; }
         public string CodiceUbicazione { get; set; }
         public DateTime UltimaModifica { get; set; }
@@ -31,12 +33,12 @@ public class SemiLavoratiIndexDTO
 //query per i dettagli del SemiLavorato
 public class SemiLavoratiDetailsQuery
 {
-    public Guid Id { get; set; }
+    public string Id { get; set; }
 }
+
 public class SemiLavoratiDetailsDTO
 {
-    //Dati da mostrare nel offcanvas dei dettagli del SemiLavorato
-    public Guid Id { get; set; }
+    public string Id { get; set; } 
     public string Descrizione { get; set; }
     public string CodiceUbicazione { get; set; }
     public string AziendaEsterna { get; set; }
@@ -47,7 +49,7 @@ public class SemiLavoratiDetailsDTO
     public class AzioniDTO
     {
         public Guid Id { get; set; }
-        public string TipoOperazione{ get; set; }
+        public string TipoOperazione { get; set; }
         public string Utente { get; set; }
         public DateTime DataOperazione { get; set; }
         public string Dettagli { get; set; }
@@ -58,22 +60,29 @@ public partial class SharedService
 {
     public async Task<SemiLavoratiIndexDTO> Query(SemilavoratiIndexQuery qry)
     {
-        var queryable = _dbContext.SemiLavorati.AsNoTracking();
+        var queryable = _dbContext.SemiLavorati
+            .AsNoTracking();
 
         if (!string.IsNullOrWhiteSpace(qry.Filter))
         {
-            queryable = queryable.Where(x => x.Descrizione.Contains(qry.Filter, StringComparison.OrdinalIgnoreCase));
+            queryable = queryable.Where(x =>
+                x.Descrizione.Contains(qry.Filter, StringComparison.OrdinalIgnoreCase) ||
+                x.Id.Contains(qry.Filter, StringComparison.OrdinalIgnoreCase)
+            );
         }
 
         var items = await queryable
-            .Select(x => new SemiLavoratiIndexDTO.RigaSemiLavorato
-            {
-                Id = x.Id,
-                Descrizione = x.Descrizione,
-                CodiceUbicazione = x.Ubicazione != null ? x.Ubicazione.Posizione : "-",
-                UltimaModifica = x.UltimaModifica
-            }).ToListAsync();
-        
+        .Include(s => s.Ubicazione)
+        .Select(x => new SemiLavoratiIndexDTO.RigaSemiLavorato
+        {
+            Id = x.Id,
+            Descrizione = x.Descrizione,
+            CodiceUbicazione = x.Ubicazione != null ? x.Ubicazione.Posizione : "-",
+            UltimaModifica = x.UltimaModifica
+        })
+        .OrderByDescending(x => x.UltimaModifica)
+        .ToListAsync();
+
         return new SemiLavoratiIndexDTO
         {
             Items = items,
@@ -88,9 +97,8 @@ public partial class SharedService
             .Include(x => x.AziendaEsterna)
             .Include(x => x.Azioni)
                 .ThenInclude(a => a.User)
-            .Where(x => x.Id == qry.Id)
-            .FirstOrDefaultAsync();
-        
+            .FirstOrDefaultAsync(x => x.Id == qry.Id);
+
         if (item == null) return null;
 
         return new SemiLavoratiDetailsDTO
@@ -98,19 +106,23 @@ public partial class SharedService
             Id = item.Id,
             Descrizione = item.Descrizione,
             AziendaEsterna = item.AziendaEsterna?.Nome ?? "Interno",
-            CodiceUbicazione = item.Ubicazione.Posizione ?? "-",
+            CodiceUbicazione = item.Ubicazione?.Posizione ?? "-",
             UltimaModifica = item.UltimaModifica,
             DataCreazione = item.DataCreazione,
-            StoricoAzioni = item.Azioni.OrderByDescending(x => x.DataOperazione)
+
+            StoricoAzioni = item.Azioni
+                .OrderByDescending(x => x.DataOperazione)
                 .Select(x => new SemiLavoratiDetailsDTO.AzioniDTO
                 {
                     Id = x.Id,
-                    DataOperazione = x.DataOperazione,
-                    Dettagli = x.Dettagli,
                     TipoOperazione = x.TipoOperazione,
-                    Utente = x.User != null ? $"{x.User.FirstName} {x.User.LastName}" : "System"
-                }).ToList()
+                    Dettagli = x.Dettagli,
+                    DataOperazione = x.DataOperazione,
+                    Utente = x.User != null
+                        ? $"{x.User.FirstName} {x.User.LastName}"
+                        : "System"
+                })
+                .ToList()
         };
     }
-    
 }
