@@ -8,7 +8,7 @@ public class Azione
     [Key]
     public Guid Id { get; set; }
 
-    public Guid? SemiLavoratoId { get; set; }
+    public string? SemiLavoratoId { get; set; }
 
     [ForeignKey(nameof(SemiLavoratoId))]
     public SemiLavorato SemiLavorato { get; set; }

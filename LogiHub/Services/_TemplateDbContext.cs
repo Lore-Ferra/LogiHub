@@ -36,7 +36,7 @@ namespace LogiHub.Services
                 .IsUnique();
 
             modelBuilder.Entity<SemiLavorato>()
-               .HasQueryFilter(s => !s.IsDeleted);
+               .HasQueryFilter(s => !s.Eliminato);
         }
     }
 }

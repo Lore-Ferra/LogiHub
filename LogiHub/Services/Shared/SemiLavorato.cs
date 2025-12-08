@@ -1,3 +1,4 @@
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -6,7 +7,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 public class SemiLavorato
 {
     [Key]
-    public Guid Id { get; set; }
+    public String Id { get; set; }
 
     public string Descrizione { get; set; } = string.Empty;
 
@@ -17,6 +18,8 @@ public class SemiLavorato
     public Guid? AziendaEsternaId { get; set; }
     [ForeignKey(nameof(AziendaEsternaId))]
     public AziendaEsterna? AziendaEsterna { get; set; }
+
+    public bool Eliminato { get; set; } = false;
 
     public DateTime DataCreazione { get; set; }
     public DateTime UltimaModifica { get; set; }
