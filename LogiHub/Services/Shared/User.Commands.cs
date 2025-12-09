@@ -2,6 +2,7 @@
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
+using LogiHub.Models.Shared;
 
 namespace LogiHub.Services.Shared
 {

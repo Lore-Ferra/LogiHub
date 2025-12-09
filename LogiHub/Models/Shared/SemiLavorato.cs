@@ -3,7 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using LogiHub.Services.Models;
+using LogiHub.Models.Shared;
 
 public class SemiLavorato
 {

@@ -1,6 +1,5 @@
 ﻿using LogiHub.Infrastructure;
-using LogiHub.Services.Models;
-using LogiHub.Services.Shared;
+using LogiHub.Models.Shared;
 using Microsoft.EntityFrameworkCore;
 
 namespace LogiHub.Services

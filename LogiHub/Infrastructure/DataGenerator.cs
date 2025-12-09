@@ -1,8 +1,7 @@
 ﻿using System;
 using System.Linq;
 using LogiHub.Services;
-using LogiHub.Services.Models;
-using LogiHub.Services.Shared;
+using LogiHub.Models.Shared;
 
 namespace LogiHub.Infrastructure
 {

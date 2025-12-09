@@ -4,7 +4,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 using System.Security.Cryptography;
 using System.Text;
 
-namespace LogiHub.Services.Shared
+namespace LogiHub.Models.Shared
 {
     public class User
     {

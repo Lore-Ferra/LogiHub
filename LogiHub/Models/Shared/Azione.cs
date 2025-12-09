@@ -1,9 +1,8 @@
 using System;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using LogiHub.Services.Shared;
 
-namespace LogiHub.Services.Models;
+namespace LogiHub.Models.Shared;
 
 public class Azione
 {
