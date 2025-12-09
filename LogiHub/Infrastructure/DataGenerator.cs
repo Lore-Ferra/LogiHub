@@ -17,9 +17,10 @@ namespace LogiHub.Infrastructure
             var idAzienda1 = Guid.NewGuid();
             var idAzienda2 = Guid.NewGuid();
 
-            var idSemiLavorato1 = Guid.NewGuid();
-            var idSemiLavorato2 = Guid.NewGuid();
-            var idSemiLavorato3 = Guid.NewGuid();
+            string idSemiLavorato1 = Guid.NewGuid().ToString();
+            string idSemiLavorato2 = Guid.NewGuid().ToString();
+            string idSemiLavorato3 = Guid.NewGuid().ToString();
+
             if (!context.Users.Any())
             {
                 context.Users.AddRange(
@@ -131,7 +132,7 @@ namespace LogiHub.Infrastructure
                     {
                         Id = idAzione2,
                         Dettagli = "Spostato in verniciatura",
-                        SemiLavoratoId = idSemiLavorato1,
+                        SemiLavoratoId = idSemiLavorato2,
                         TipoOperazione = "Spostamento",
                         UserId = Guid.Parse("3de6883f-9a0b-4667-aa53-0fbc52c4d300"),
                         DataOperazione = DateTime.Now.AddDays(-5)
