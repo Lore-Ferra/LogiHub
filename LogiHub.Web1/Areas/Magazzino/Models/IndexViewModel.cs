@@ -2,7 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 
-namespace LogiHub.Web.Areas.Magazzino
+namespace LogiHub.Web.Areas.Magazzino.Models
 {
     public class IndexViewModel
     {

@@ -1,4 +1,5 @@
 ﻿using LogiHub.Services.Shared;
+using LogiHub.Web.Areas.Magazzino.Models;
 using Microsoft.AspNetCore.Mvc;
 using System.Threading.Tasks;
 
@@ -22,6 +23,18 @@ namespace LogiHub.Web.Areas.Magazzino
             var model = new IndexViewModel();
             model.SetData(dto);
             return View(model);
+        }
+
+        [HttpGet]
+        public virtual async Task<IActionResult> Details(string id)
+        {
+            var query = new SemiLavoratiDetailsQuery { Id = id };
+            var dto = await _queries.Query(query);
+
+            if (dto == null) return NotFound();
+
+            // Restituisce una "Partial View" (solo l'HTML del contenuto, senza layout)
+            return PartialView("Details", dto);
         }
     }
 }
