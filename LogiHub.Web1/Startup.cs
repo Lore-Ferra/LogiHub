@@ -30,6 +30,7 @@ namespace LogiHub.Web1
 
         public void ConfigureServices(IServiceCollection services)
         {
+            services.AddScoped<ISemiLavoratoService, SemiLavoratoService>();
             services.Configure<AppSettings>(Configuration.GetSection("AppSettings"));
 
             services.AddDbContext<TemplateDbContext>(options =>
