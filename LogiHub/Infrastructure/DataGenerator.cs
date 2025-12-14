@@ -10,15 +10,14 @@ namespace LogiHub.Infrastructure
         public static void InitializeUsers(TemplateDbContext context)
         {
             
-            var idAzione1 = Guid.NewGuid();
-            var idAzione2 = Guid.NewGuid();
+            var idAzione1 = Guid.NewGuid(); 
 
             var idAzienda1 = Guid.NewGuid();
             var idAzienda2 = Guid.NewGuid();
 
-            string idSemiLavorato1 = Guid.NewGuid().ToString();
-            string idSemiLavorato2 = Guid.NewGuid().ToString();
-            string idSemiLavorato3 = Guid.NewGuid().ToString();
+            string idSemiLavorato1 = "TELAIO-001";
+            string idSemiLavorato2 = "FERRO-001";
+            string idSemiLavorato3 = "LASTRA-001";
 
             if (!context.Users.Any())
             {
