@@ -1,0 +1,53 @@
+﻿.login-bg {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+}
+
+    .login-bg::before {
+        content: "";
+        position: absolute;
+        inset: -2px;
+        background: #f07f1a;
+        clip-path: polygon( 0 0,
+        100% 0,
+        100% 60%,
+        0 75%
+        );
+    }
+
+
+.login-bg::after {
+    content: "";
+    position: absolute;
+    inset: -2px;
+    background: #f5f6f7;
+    clip-path: polygon(
+        -5% 70%,
+        105% 50%,
+        105% 105%,
+        -5% 105%
+    );
+}
+
+header,
+.login-container {
+    position: relative;
+    z-index: 1;
+}
+
+
+.login-card {
+    background: #fff;
+    border-radius: 6px;
+    box-shadow: 0 10px 30px rgba(0,0,0,.15);
+}
+
+.login-register {
+    font-size: 0.85rem;
+}
+
+    .login-register a {
+        text-decoration: none;
+        font-weight: 600;
+    }
