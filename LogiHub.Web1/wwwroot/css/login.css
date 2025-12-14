@@ -8,27 +8,18 @@
         content: "";
         position: absolute;
         inset: -2px;
-        background: #f07f1a;
-        clip-path: polygon( 0 0,
-        100% 0,
-        100% 60%,
-        0 75%
-        );
+        background: #EA7915;
+        clip-path: polygon( 0 0, 100% 0, 100% 60%, 0 75% );
     }
 
 
-.login-bg::after {
-    content: "";
-    position: absolute;
-    inset: -2px;
-    background: #f5f6f7;
-    clip-path: polygon(
-        -5% 70%,
-        105% 50%,
-        105% 105%,
-        -5% 105%
-    );
-}
+    .login-bg::after {
+        content: "";
+        position: absolute;
+        inset: -2px;
+        background: #EDF0F2;
+        clip-path: polygon( -5% 70%, 105% 50%, 105% 105%, -5% 105% );
+    }
 
 header,
 .login-container {
