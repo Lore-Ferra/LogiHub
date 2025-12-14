@@ -3,34 +3,35 @@
     ViewData["Title"] = "Login";
 }
 <div class="container">
-    <form method="post" role="form" autocomplete="off">
-        <input asp-for="ReturnUrl" type="hidden" />
+    <div class="d-flex justify-content-center align-items-center">
+        <div class="row w-100">
+            <div class="col-12 col-md-4 offset-md-4 p-4 border bg-light text-center">
+                <h1>Accedi a Logihub </h1>
+                <form method="post" role="form" autocomplete="off">
+                    <input asp-for="ReturnUrl" type="hidden" />
+                    <div class="form-floating my-3">
+                        <input asp-for="Email" class="form-control" type="text" placeholder="name@example.com" value="email1@test.it" />
+                        <label asp-for=Email class="onit-label-required">Indirizzo email</label>
+                        <span asp-validation-for="Email" class="text-danger"></span>
+                    </div>
 
-        <div class="form-group">
-            <label asp-for=Email class="onit-label-required"></label>
-            <div class="input-group onit-input-group-union">
-                <input asp-for="Email" class="form-control" type="text" />
+
+                    <div class="form-floating my-3">
+                        <input asp-for="Password" class="form-control" type="password" placeholder="Password" value="Prova" />
+                        <label asp-for=Password class="onit-label-required"></label>
+                        <span asp-validation-for="Password" class="text-danger"></span>
+                    </div>
+
+
+                    <div class="d-flex justify-content-start mb-3">
+                        <div class="form-check form-switch">
+                            <input asp-for="RememberMe" class="form-check-input" role="switch">
+                            <label asp-for="RememberMe" class="form-check-label">Rimani Connesso</label>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-primary mt-4">Accedi</button>
+                </form>
             </div>
-            <span asp-validation-for="Email" class="text-danger"></span>
         </div>
-
-        <div class="form-group">
-            <label asp-for=Password class="onit-label-required"></label>
-            <div class="input-group onit-input-group-union">
-                <input asp-for="Password" class="form-control" type="password" />
-            </div>
-            <span asp-validation-for="Password" class="text-danger"></span>
-        </div>
-
-        <div class="form-group">
-            <div class="form-check form-switch">
-                <input asp-for="RememberMe" class="form-check-input" role="switch">
-                <label asp-for="RememberMe" class="form-check-label">Rimani Connesso</label>
-            </div>
-        </div>
-
-        <div class="form-group text-center mt-4">
-            <button type="submit" class="btn btn-primary">Accedi</button>
-        </div>
-    </form>
+    </div>
 </div>
