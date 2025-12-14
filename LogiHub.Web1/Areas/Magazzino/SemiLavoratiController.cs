@@ -16,7 +16,7 @@ namespace LogiHub.Web.Areas.Magazzino
         }
 
         [HttpGet]
-        public async Task<IActionResult> Index(SemilavoratiIndexQuery query)
+        public virtual async Task<IActionResult> Index(SemilavoratiIndexQuery query)
         {
             var dto = await _queries.Query(query);
             var model = new IndexViewModel();
