@@ -1,0 +1,119 @@
+﻿@model LogiHub.Web.Areas.Magazzino.Models.IndexViewModel
+
+@{
+    ViewData["Title"] = "Gestione Semilavorati";
+}
+@* per vedere questa view andare al percorso /Magazzino/SemiLavorati
+temporaneamente fatto cosi *@
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="h3 mb-0 text-gray-800">📦 Magazzino Semilavorati</h1>
+    <a asp-action="Create" class="btn btn-primary">
+        <i class="fa-solid fa-plus"></i> Aggiungi
+    </a>
+</div>
+
+<div class="card shadow mb-4">
+    <div class="card-body">
+        <form method="get" class="row g-3">
+            <div class="col-md-10">
+                <div class="input-group">
+                    <span class="input-group-text bg-light border-0"><i class="fas fa-search text-muted"></i></span>
+                    <input asp-for="Filter" class="form-control border-0 bg-light" placeholder="Cerca per descrizione, codice o reparto..." />
+                </div>
+            </div>
+            <div class="col-md-2 d-grid">
+                <button type="submit" class="btn btn-primary">Cerca</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="card shadow">
+    <div class="card-body p-1">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="bg-light">
+                    <tr>
+                        <th class ="ps-4">ID Oggetto</th>
+                        <th>Descrizione</th>
+                        <th>Ubicazione</th>
+                        <th>Ultima Modifica</th>
+                        <th>Azioni</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model.SemiLavorati)
+                    {
+                        <tr style="cursor: pointer;" onclick="apriDettagli('@item.Id')">
+                            <td class="ps-4 fw-bold text-primary">
+                                <div class="small text-muted">ID: @item.Id</div>
+                            </td>
+                            <td>@item.Descrizione</td>
+                            <td>
+                                <span class="badge bg-secondary">@item.CodiceUbicazione</span>
+                            </td>
+                            <td>@item.UltimaModifica.ToString("dd/MM/yyyy")</td>
+                            <td class="text-end pe-4">
+                                <i class="fas fa-chevron-right text-muted"></i>
+                            </td>
+                        </tr>
+                    }
+
+                    @if (!Model.SemiLavorati.Any())
+                    {
+                        <tr>
+                            <td colspan="6" class="text-center py-5 text-muted">
+                                <i class="fas fa-box-open fa-3x mb-3"></i>
+                                <p>Nessun semilavorato trovato.</p>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div class="offcanvas offcanvas-end shadow" tabindex="-1" id="offcanvasDettagli" aria-labelledby="offcanvasLabel" style="width: 500px;">
+    <div class="offcanvas-header bg-primary text-white">
+        <h5 class="offcanvas-title" id="offcanvasLabel">Dettaglio Semilavorato</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+    </div>
+
+    <div class="offcanvas-body p-0" id="offcanvasContent">
+        <div class="d-flex justify-content-center align-items-center h-100">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Caricamento...</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function apriDettagli(id) {
+            var offcanvasEl = document.getElementById('offcanvasDettagli');
+            var offcanvas = new bootstrap.Offcanvas(offcanvasEl);
+            offcanvas.show();
+
+            var contentDiv = document.getElementById('offcanvasContent');
+            contentDiv.innerHTML = `
+                <div class="d-flex flex-column justify-content-center align-items-center h-100 mt-5">
+                    <div class="spinner-border text-primary" role="status"></div>
+                    <p class="mt-2 text-muted">Caricamento dati...</p>
+                </div>`;
+
+            fetch(`/Magazzino/SemiLavorati/Details?id=${id}`)
+                .then(response => {
+                    if (!response.ok) throw new Error("Errore nel caricamento");
+                    return response.text();
+                })
+                .then(html => {
+                    contentDiv.innerHTML = html;
+                })
+                .catch(error => {
+                    contentDiv.innerHTML = `<div class="alert alert-danger m-3">Errore: ${error.message}</div>`;
+                });
+        }
+    </script>
+}
