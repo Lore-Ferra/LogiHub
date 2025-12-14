@@ -1,5 +1,4 @@
 ﻿using LogiHub.Services;
-using LogiHub.Services.Models;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;

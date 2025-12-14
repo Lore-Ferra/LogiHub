@@ -10,7 +10,8 @@ namespace LogiHub.Infrastructure
         public static void InitializeUsers(TemplateDbContext context)
         {
             
-            var idAzione1 = Guid.NewGuid(); 
+            var idAzione1 = Guid.NewGuid();
+            var idAzione2 = Guid.NewGuid();
 
             var idAzienda1 = Guid.NewGuid();
             var idAzienda2 = Guid.NewGuid();
