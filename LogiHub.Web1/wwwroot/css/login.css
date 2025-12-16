@@ -1,25 +1,19 @@
-﻿.login-bg {
+﻿body::before {
+    content: "";
     position: absolute;
     inset: 0;
-    z-index: 0;
+    background: #EA7915;
+    clip-path: polygon( 0 0, 100% 0, 100% 60%, 0 75% );
 }
 
-    .login-bg::before {
-        content: "";
-        position: absolute;
-        inset: -2px;
-        background: #EA7915;
-        clip-path: polygon( 0 0, 100% 0, 100% 60%, 0 75% );
-    }
 
-
-    .login-bg::after {
-        content: "";
-        position: absolute;
-        inset: -2px;
-        background: #EDF0F2;
-        clip-path: polygon( -5% 70%, 105% 50%, 105% 105%, -5% 105% );
-    }
+body::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: #EDF0F2;
+    clip-path: polygon( -5% 70%, 105% 50%, 105% 105%, -5% 105% );
+}
 
 header,
 .login-container {
