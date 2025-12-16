@@ -112,18 +112,10 @@ namespace LogiHub.Web1
             {
                 // ROUTING PER HUB
                 endpoints.MapHub<TemplateHub>("/templateHub");
-
+                
+                endpoints.MapAreaControllerRoute("Magazzino", "Magazzino", "Magazzino/{controller=SemiLavorati}/{action=Index}/{id?}");
                 endpoints.MapAreaControllerRoute("Example", "Example", "Example/{controller=Users}/{action=Index}/{id?}");
                 endpoints.MapControllerRoute("default", "{controller=Login}/{action=Login}");
-
-                endpoints.MapControllerRoute(
-                    name: "areas",
-                    pattern: "{area:exists}/{controller=Home}/{action=Index}/{id?}");
-
-                // 2. POI QUESTA: Configurazione standard (Home/Index)
-                endpoints.MapControllerRoute(
-                    name: "default",
-                    pattern: "{controller=Home}/{action=Index}/{id?}");
             });
         }
     }
