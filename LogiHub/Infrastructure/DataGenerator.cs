@@ -2,6 +2,7 @@
 using System.Linq;
 using LogiHub.Services;
 using LogiHub.Models.Shared;
+using System.Collections.Generic;
 
 namespace LogiHub.Infrastructure
 {
@@ -9,43 +10,42 @@ namespace LogiHub.Infrastructure
     {
         public static void InitializeUsers(TemplateDbContext context)
         {
+            const int NumeroAziende = 4;
+            const int NumeroSemilavorati = 20;
+            const int NumeroAzioniExtra = 100;
             
-            var idAzione1 = Guid.NewGuid();
-            var idAzione2 = Guid.NewGuid();
-
-            var idAzienda1 = Guid.NewGuid();
-            var idAzienda2 = Guid.NewGuid();
-
-            string idSemiLavorato1 = "TELAIO-001";
-            string idSemiLavorato2 = "FERRO-001";
-            string idSemiLavorato3 = "LASTRA-001";
+            var user1Id = Guid.Parse("3de6883f-9a0b-4667-aa53-0fbc52c4d300");
+            var user2Id = Guid.Parse("a030ee81-31c7-47d0-9309-408cb5ac0ac7");
+            var user3Id = Guid.Parse("bfdef48b-c7ea-4227-8333-c635af267354");
+            var allUserIds = new[] { user1Id, user2Id, user3Id };
+            var random = new Random();
 
             if (!context.Users.Any())
             {
                 context.Users.AddRange(
                     new User
                     {
-                        Id = Guid.Parse("3de6883f-9a0b-4667-aa53-0fbc52c4d300"), // Forced to specific Guid for tests
+                        Id = user1Id,
                         Email = "email1@test.it",
-                        Password = "M0Cuk9OsrcS/rTLGf5SY6DUPqU2rGc1wwV2IL88GVGo=", // SHA-256 of text "Prova"
+                        Password = "M0Cuk9OsrcS/rTLGf5SY6DUPqU2rGc1wwV2IL88GVGo=",
                         FirstName = "Nome1",
                         LastName = "Cognome1",
                         NickName = "Nickname1"
                     },
                     new User
                     {
-                        Id = Guid.Parse("a030ee81-31c7-47d0-9309-408cb5ac0ac7"), // Forced to specific Guid for tests
+                        Id = user2Id,
                         Email = "email2@test.it",
-                        Password = "Uy6qvZV0iA2/drm4zACDLCCm7BE9aCKZVQ16bg80XiU=", // SHA-256 of text "Test"
+                        Password = "Uy6qvZV0iA2/drm4zACDLCCm7BE9aCKZVQ16bg80XiU=",
                         FirstName = "Nome2",
                         LastName = "Cognome2",
                         NickName = "Nickname2"
                     },
                     new User
                     {
-                        Id = Guid.Parse("bfdef48b-c7ea-4227-8333-c635af267354"), // Forced to specific Guid for tests
+                        Id = user3Id,
                         Email = "email3@test.it",
-                        Password = "Uy6qvZV0iA2/drm4zACDLCCm7BE9aCKZVQ16bg80XiU=", // SHA-256 of text "Test"
+                        Password = "Uy6qvZV0iA2/drm4zACDLCCm7BE9aCKZVQ16bg80XiU=",
                         FirstName = "Nome3",
                         LastName = "Cognome3",
                         NickName = "Nickname3"
@@ -54,8 +54,8 @@ namespace LogiHub.Infrastructure
 
             if (!context.Ubicazioni.Any())
             {
-                var righe = new[] { "A", "B", "C" };
-                int colonne = 5;
+                var righe = new[] { "A", "B", "C", "D", "E" };
+                int colonne = 10;
 
                 foreach (var riga in righe)
                 {
@@ -70,73 +70,91 @@ namespace LogiHub.Infrastructure
                 }
             }
 
+            List<Guid> aziendeIds = new List<Guid>();
             if (!context.AziendeEsterne.Any())
             {
-                context.AziendeEsterne.AddRange(
-                    new AziendaEsterna { Id = idAzienda1, Nome = "Azienda Esterna 1", Indirizzo = "Indirizzo 1" },
-                    new AziendaEsterna { Id = idAzienda2, Nome = "Azienda Esterna 2", Indirizzo = "Indirizzo 2" }
-                );
+                for (int i = 1; i <= NumeroAziende; i++)
+                {
+                    var id = Guid.NewGuid();
+                    aziendeIds.Add(id);
+                    context.AziendeEsterne.Add(
+                        new AziendaEsterna 
+                        { 
+                            Id = id, 
+                            Nome = $"Fornitore S.p.A. {i:00}",
+                            Indirizzo = $"Via delle Industrie {i}" 
+                        }
+                    );
+                }
+            }
+            else
+            {
+                aziendeIds = context.AziendeEsterne.Select(a => a.Id).ToList();
             }
 
             context.SaveChanges();
 
+            var ubicazioni = context.Ubicazioni.ToList(); 
+            Guid GetRandomUbicazioneId() => ubicazioni[random.Next(ubicazioni.Count)].UbicazioneId;
+            Guid GetRandomAziendaId() => aziendeIds[random.Next(aziendeIds.Count)];
+
+            List<string> semiLavoratiIds = new List<string>();
             if (!context.SemiLavorati.Any())
             {
-                context.SemiLavorati.AddRange(
-                    new SemiLavorato
-                    {
-                        Id = idSemiLavorato1,
-                        AziendaEsternaId = idAzienda1,
-                        Descrizione = "Sbarra di metallo",
-                        DataCreazione = DateTime.Now,
-                        UltimaModifica = DateTime.Now.AddDays(-2),
-                        UbicazioneId = context.Ubicazioni.First(x => x.Posizione == "A1").UbicazioneId
-                    },
-                    new SemiLavorato
-                    {
-                        Id = idSemiLavorato2,
-                        AziendaEsternaId = idAzienda2,
-                        Descrizione = "Trave",
-                        DataCreazione = DateTime.Now,
-                        UltimaModifica = DateTime.Now.AddDays(-3),
-                        UbicazioneId = context.Ubicazioni.First(x => x.Posizione == "B1").UbicazioneId
-                    },
-                    new SemiLavorato
-                    {
-                        Id = idSemiLavorato3,
-                        AziendaEsternaId = idAzienda1,
-                        Descrizione = "Lastra",
-                        DataCreazione = DateTime.Now,
-                        UltimaModifica = DateTime.Now.AddDays(-4),
-                        UbicazioneId = context.Ubicazioni.First(x => x.Posizione == "C1").UbicazioneId
-                    }
-                );
+                for (int i = 1; i <= NumeroSemilavorati; i++)
+                {
+                    string codiceId = $"PZ-{i:D4}";
+                    semiLavoratiIds.Add(codiceId);
+
+                    string[] descrizioni = { "Telaio metallico", "Lastra in alluminio", "Trave in acciaio", "Componente elettronico" };
+                    
+                    context.SemiLavorati.Add(
+                        new SemiLavorato
+                        {
+                            Id = codiceId,
+                            AziendaEsternaId = GetRandomAziendaId(),
+                            Descrizione = $"{descrizioni[random.Next(descrizioni.Length)]} (Mod. {i})",
+                            // Date casuali tra 1 anno fa e oggi
+                            DataCreazione = DateTime.Now.AddDays(-random.Next(1, 365)),
+                            UltimaModifica = DateTime.Now.AddDays(-random.Next(0, 30)),
+                            UbicazioneId = GetRandomUbicazioneId()
+                        }
+                    );
+                }
 
                 context.SaveChanges();
             }
-
+            else
+            {
+                 semiLavoratiIds = context.SemiLavorati.Select(sl => sl.Id).ToList();
+            }
+            
             if (!context.Azioni.Any())
             {
-                context.Azioni.AddRange(
-                    new Azione
-                    {
-                        Id = idAzione1,
-                        Dettagli = "Arrivo Merce da fornitore",
-                        SemiLavoratoId = idSemiLavorato1,
-                        TipoOperazione = "Spostamento",
-                        UserId = Guid.Parse("3de6883f-9a0b-4667-aa53-0fbc52c4d300"),
-                        DataOperazione = DateTime.Now.AddDays(-10)
-                    },
-                    new Azione
-                    {
-                        Id = idAzione2,
-                        Dettagli = "Spostato in verniciatura",
-                        SemiLavoratoId = idSemiLavorato2,
-                        TipoOperazione = "Spostamento",
-                        UserId = Guid.Parse("3de6883f-9a0b-4667-aa53-0fbc52c4d300"),
-                        DataOperazione = DateTime.Now.AddDays(-5)
-                    }
-                );
+                string[] tipiOperazione = { "Spostamento", "Carico", "Scarico", "Controllo Qualità", "Manutenzione", "Inventario", "Prelievo" };
+                
+                for (int i = 0; i < NumeroAzioniExtra; i++)
+                {
+                    string randomSemiLavoratoId = semiLavoratiIds[random.Next(semiLavoratiIds.Count)];
+                    
+                    Guid randomUserId = allUserIds[random.Next(allUserIds.Length)];
+
+                    string randomTipo = tipiOperazione[random.Next(tipiOperazione.Length)];
+                    
+                    var randomDate = DateTime.Now.AddDays(-random.Next(1, 365)).AddHours(random.Next(0, 24));
+
+                    context.Azioni.Add(
+                        new Azione
+                        {
+                            Id = Guid.NewGuid(),
+                            Dettagli = $"{randomTipo} effettuato (Operazione {i + 1})",
+                            SemiLavoratoId = randomSemiLavoratoId,
+                            TipoOperazione = randomTipo,
+                            UserId = randomUserId,
+                            DataOperazione = randomDate
+                        }
+                    );
+                }
 
                 context.SaveChanges();
             }
