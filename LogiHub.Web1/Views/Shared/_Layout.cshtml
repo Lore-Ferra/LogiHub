@@ -12,7 +12,7 @@
 @section styles{
     @RenderSection("styles", false)
 }
-<div id="pageId" class="onit-page">
+<div id="pageId">
     <div class="onit-page-sticky-top" id="onit-page-sticky-top">
         <nav class="navbar navbar-expand-md bg-primary" data-bs-theme="light">
             <div class="container-fluid">
@@ -24,10 +24,10 @@
 
                     <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
                         <li class="nav-item">
-                            <a class="nav-link active" aria-current="page" href="#">Home</a>
+                            <a class="nav-link active" aria-current="page" href="#">Magazzino</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="#">Link</a>
+                            <a class="nav-link" href="#">Inventario</a>
                         </li>
                         <li class="nav-item dropdown">
                         </li>
@@ -59,7 +59,7 @@
         @RenderSection("pageTitle", false)
     </div>
     @RenderSection("pageSubtitle", false)
-    @RenderBody()
+    <div class="m-5 p-5">@RenderBody()</div>
 </div>
 @section googlehead{
     @*<script async src="https://www.googletagmanager.com/gtag/js?id=UA-"></script>
