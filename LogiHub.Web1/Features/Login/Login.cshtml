@@ -24,7 +24,9 @@
                         <div class="form-floating mb-3">
                             <input asp-for="Email"
                                    class="form-control"
-                                   placeholder="email" />
+                                   placeholder="email"
+                                   value="email1@test.it"
+                                   />
                             <label asp-for="Email">Indirizzo email</label>
                             <span asp-validation-for="Email" class="text-danger"></span>
                         </div>
@@ -33,7 +35,8 @@
                             <input asp-for="Password"
                                    class="form-control"
                                    type="password"
-                                   placeholder="password" />
+                                   placeholder="password" 
+                                   value="Prova" />
                             <label asp-for="Password">Password</label>
                             <span asp-validation-for="Password" class="text-danger"></span>
                         </div>
