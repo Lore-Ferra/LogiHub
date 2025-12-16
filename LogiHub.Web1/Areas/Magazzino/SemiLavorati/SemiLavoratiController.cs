@@ -2,11 +2,12 @@
 using LogiHub.Web.Areas.Magazzino.Models;
 using Microsoft.AspNetCore.Mvc;
 using System.Threading.Tasks;
+using LogiHub.Web1.Areas;
 
 namespace LogiHub.Web.Areas.Magazzino
 {
     [Area("Magazzino")]
-    public partial class SemiLavoratiController : Controller
+    public partial class SemiLavoratiController : AuthenticatedBaseController
     {
         private readonly SharedService _queries;
         private readonly ISemiLavoratoService _service;
