@@ -33,7 +33,6 @@ namespace LogiHub.Web.Areas.Magazzino
 
             if (dto == null) return NotFound();
 
-            // Restituisce una "Partial View" (solo l'HTML del contenuto, senza layout)
             return PartialView("Details", dto);
         }
     }
