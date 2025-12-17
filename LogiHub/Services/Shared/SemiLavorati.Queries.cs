@@ -1,5 +1,3 @@
-using LogiHub.Services;
-using LogiHub.Services.Shared;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
@@ -67,7 +65,8 @@ public partial class SharedService
         {
             queryable = queryable.Where(x =>
                 x.Descrizione.Contains(qry.Filter, StringComparison.OrdinalIgnoreCase) ||
-                x.Id.Contains(qry.Filter, StringComparison.OrdinalIgnoreCase)
+                x.Id.Contains(qry.Filter, StringComparison.OrdinalIgnoreCase) ||
+                x.Ubicazione.Posizione.Contains(qry.Filter, StringComparison.OrdinalIgnoreCase)
             );
         }
 
