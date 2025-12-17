@@ -8,7 +8,7 @@
 }
 @* per vedere questa view andare al percorso /Magazzino/SemiLavorati
 temporaneamente fatto cosi *@
-<div class="px-4 px-md-0">
+<div class="px-4 px-md-0 pt-4 pt-md-0">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h1 class="h3 mb-0 text-gray-800">📦 Magazzino Semilavorati</h1>
         <a asp-action="Aggiungi" class="btn btn-primary d-none d-md-inline-flex">
@@ -148,20 +148,20 @@ temporaneamente fatto cosi *@
     <i class="fa-solid fa-plus"></i>
 </a>
 
-<div class="offcanvas offcanvas-end shadow" data-bs-scroll="true" tabindex="-1" id="offcanvasDettagli" aria-labelledby="offcanvasLabel" style="width: 500px;">
-    <div class="offcanvas-header bg-primary text-white">
-        <h5 class="offcanvas-title" id="offcanvasLabel">Dettagli semi lavorato</h5>
-        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas" aria-label="Close"></button>
-    </div>
+    <div class="offcanvas offcanvas-end shadow" data-bs-scroll="true" tabindex="-1" id="offcanvasDettagli" aria-labelledby="offcanvasLabel" style="width: 500px;">
+        <div class="offcanvas-header bg-primary text-white">
+            <h5 class="offcanvas-title" id="offcanvasLabel">Dettagli semi lavorato</h5>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+        </div>
 
-    <div class="offcanvas-body p-0" id="offcanvasContent">
-        <div class="d-flex justify-content-center align-items-center h-100">
-            <div class="spinner-border text-primary" role="status">
-                <span class="visually-hidden">Caricamento...</span>
+        <div class="offcanvas-body p-0" id="offcanvasContent">
+            <div class="d-flex justify-content-center align-items-center h-100">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Caricamento...</span>
+                </div>
             </div>
         </div>
     </div>
-</div>
 
 @section Scripts {
     <script>
@@ -189,5 +189,19 @@ temporaneamente fatto cosi *@
                     contentDiv.innerHTML = `<div class="alert alert-danger m-3">Errore: ${error.message}</div>`;
                 });
         }
+    </script>
+
+    <script>
+        const offcanvasEl = document.getElementById('offcanvasDettagli');
+
+        offcanvasEl.addEventListener('shown.bs.offcanvas', function () {
+            if (window.innerWidth < 768) {
+                document.body.classList.add('offcanvas-open-mobile');
+            }
+        });
+
+        offcanvasEl.addEventListener('hidden.bs.offcanvas', function () {
+            document.body.classList.remove('offcanvas-open-mobile');
+        });
     </script>
 }
