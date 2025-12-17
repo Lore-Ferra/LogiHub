@@ -3,32 +3,94 @@
 @{
     ViewData["Title"] = "Gestione Semilavorati";
 }
+@section Styles {
+    <link rel="stylesheet" href="~/css/magazzinosemilavorati.css" />
+}
 @* per vedere questa view andare al percorso /Magazzino/SemiLavorati
 temporaneamente fatto cosi *@
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <h1 class="h3 mb-0 text-gray-800">📦 Magazzino Semilavorati</h1>
-    <a asp-action="Create" class="btn btn-primary">
-        <i class="fa-solid fa-plus"></i> Aggiungi
-    </a>
-</div>
-
-<div class="card shadow mb-4">
-    <div class="card-body">
-        <form method="get" class="row g-3">
-            <div class="col-md-10">
-                <div class="input-group">
-                    <span class="input-group-text bg-light border-0"><i class="fas fa-search text-muted"></i></span>
-                    <input asp-for="Filter" class="form-control border-0 bg-light" placeholder="Cerca per descrizione, codice o reparto..." />
+<div class="px-4 px-md-0 pt-4 pt-md-0">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0 text-gray-800">📦 Magazzino Semilavorati</h1>
+        <a asp-action="Aggiungi" class="btn btn-primary d-none d-md-inline-flex">
+            <i class="fa-solid fa-plus"></i> Aggiungi
+        </a>
+    </div>
+    <div class="card shadow mb-4">
+        <div class="card-body">
+            <form method="get" class="row g-3">
+                <div class="col-8 col-md-10">
+                    <div class="input-group">
+                        <span class="input-group-text bg-light border-0">
+                            <i class="fas fa-search text-muted"></i>
+                        </span>
+                        <input asp-for="Filter"
+                               class="form-control border-0 bg-light"
+                               placeholder="Cerca…" />
+                    </div>
                 </div>
-            </div>
-            <div class="col-md-2 d-grid">
-                <button type="submit" class="btn btn-primary">Cerca</button>
-            </div>
-        </form>
+                <div class="col-4 col-md-2">
+                        <div class="dropdown">
+                            <button class="btn btn-outline-primary dropdown-toggle w-100"
+                                    type="button"
+                                    data-bs-toggle="dropdown"
+                                    aria-expanded="false">
+                                <i class="fa-solid fa-filter"></i> Filtri
+                            </button>
+
+                            <div class="dropdown-menu p-3">
+                                <span class="text-muted small">Filtri in arrivo…</span>
+                            </div>
+                        </div>
+                </div>
+            </form>
+        </div>
     </div>
 </div>
 
-<div class="card shadow">
+<div class="d-block d-md-none px-4 pb-3">
+@foreach (var item in Model.SemiLavorati)
+{
+        <div class="card semilavorato-card mb-2"
+             onclick="apriDettagli('@item.Id')">
+            <div class="card-body">
+                <div class="fw-bold fs-5 mb-2">
+                    #@item.Id
+                </div>
+                <hr class="my-2" />
+                <div class="d-flex justify-content-between align-items-start">
+                    <div class="flex-grow-1 pe-3">
+                        <div class="small text-muted mb-1">
+                            <strong>Ubicazione:</strong>
+                            <span class="badge bg-secondary">@item.CodiceUbicazione</span>
+                        </div>
+                        <div class="small text-muted mb-1">
+                            <strong>Descrizione:</strong> @item.Descrizione
+                        </div>
+                        <div class="small text-muted">
+                            <strong>Ultima mov.:</strong>
+                            @item.UltimaModifica.ToString("dd/MM/yyyy")
+                        </div>
+                    </div>
+                    <div class="d-flex gap-3 align-items-center">
+                        <i class="bi bi-pen text-secondary"
+                           onclick="event.stopPropagation(); modificare('@item.Id')"></i>
+                        <i class="bi bi-trash3 text-secondary"
+                           onclick="event.stopPropagation(); eliminare('@item.Id')"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+}
+@if (!Model.SemiLavorati.Any())
+{
+        <div class="text-center py-5 text-muted">
+            <i class="fas fa-box-open fa-3x mb-3"></i>
+            <p>Nessun semilavorato trovato.</p>
+        </div>
+}
+</div>
+
+<div class="card shadow d-none d-md-block">
     <div class="card-body p-1">
         <div class="table-responsive">
             <table class="table table-hover align-middle mb-0 text-center">
@@ -80,20 +142,26 @@ temporaneamente fatto cosi *@
     </div>
 </div>
 
-<div class="offcanvas offcanvas-end shadow" data-bs-scroll="true" tabindex="-1" id="offcanvasDettagli" aria-labelledby="offcanvasLabel" style="width: 500px;">
-    <div class="offcanvas-header bg-primary text-white">
-        <h5 class="offcanvas-title" id="offcanvasLabel">Dettagli semi lavorato</h5>
-        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas" aria-label="Close"></button>
-    </div>
+<a asp-action="Create"
+   class="fab d-md-none"
+   title="Aggiungi semilavorato">
+    <i class="fa-solid fa-plus"></i>
+</a>
 
-    <div class="offcanvas-body p-0" id="offcanvasContent">
-        <div class="d-flex justify-content-center align-items-center h-100">
-            <div class="spinner-border text-primary" role="status">
-                <span class="visually-hidden">Caricamento...</span>
+    <div class="offcanvas offcanvas-end shadow" data-bs-scroll="true" tabindex="-1" id="offcanvasDettagli" aria-labelledby="offcanvasLabel" style="width: 500px;">
+        <div class="offcanvas-header bg-primary text-white">
+            <h5 class="offcanvas-title" id="offcanvasLabel">Dettagli semi lavorato</h5>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+        </div>
+
+        <div class="offcanvas-body p-0" id="offcanvasContent">
+            <div class="d-flex justify-content-center align-items-center h-100">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Caricamento...</span>
+                </div>
             </div>
         </div>
     </div>
-</div>
 
 @section Scripts {
     <script>
@@ -121,5 +189,19 @@ temporaneamente fatto cosi *@
                     contentDiv.innerHTML = `<div class="alert alert-danger m-3">Errore: ${error.message}</div>`;
                 });
         }
+    </script>
+
+    <script>
+        const offcanvasEl = document.getElementById('offcanvasDettagli');
+
+        offcanvasEl.addEventListener('shown.bs.offcanvas', function () {
+            if (window.innerWidth < 768) {
+                document.body.classList.add('offcanvas-open-mobile');
+            }
+        });
+
+        offcanvasEl.addEventListener('hidden.bs.offcanvas', function () {
+            document.body.classList.remove('offcanvas-open-mobile');
+        });
     </script>
 }
