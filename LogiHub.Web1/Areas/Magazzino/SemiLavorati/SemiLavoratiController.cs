@@ -3,6 +3,7 @@ using LogiHub.Web.Areas.Magazzino.Models;
 using Microsoft.AspNetCore.Mvc;
 using System.Threading.Tasks;
 using LogiHub.Web1.Areas;
+using LogiHub.Web1.Infrastructure;
 
 namespace LogiHub.Web.Areas.Magazzino
 {
@@ -18,11 +19,21 @@ namespace LogiHub.Web.Areas.Magazzino
         }
 
         [HttpGet]
-        public virtual async Task<IActionResult> Index(SemilavoratiIndexQuery query)
+        public virtual async Task<IActionResult> Index(SemilavoratiIndexQuery query, int? pageNumer, int? pageSize)
         {
+            int actualPageSize = pageSize ?? 5; 
             var dto = await _queries.Query(query);
+            
+            var paginatedItems = PaginatedList<SemiLavoratiIndexDTO.RigaSemiLavorato>.Create(dto.Items, pageNumer ?? 1, actualPageSize);
+
             var model = new IndexViewModel();
-            model.SetData(dto);
+            model.Filter = query.Filter;
+            model.SemiLavorati = paginatedItems;
+            model.PageIndex = paginatedItems.PageIndex;
+            model.TotalPages = paginatedItems.TotalPages;
+            model.TotalItems = paginatedItems.TotalCount;
+            model.PageSize = actualPageSize;
+            
             return View(model);
         }
 

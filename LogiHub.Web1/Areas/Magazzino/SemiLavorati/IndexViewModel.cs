@@ -8,10 +8,15 @@ namespace LogiHub.Web.Areas.Magazzino.Models
     {
         public IEnumerable<SemiLavoratiIndexDTO.RigaSemiLavorato> SemiLavorati { get; set; } = new List<SemiLavoratiIndexDTO.RigaSemiLavorato>();
         public string Filter { get; set; }
-        public void SetData(SemiLavoratiIndexDTO dto)
-        {
-            SemiLavorati = dto.Items;
-        }
+        
+        // Proprietà per la paginazione
+        public int PageIndex { get; set; }
+        public int TotalPages { get; set; }
+        public int TotalItems { get; set; }
+        public int PageSize { get; set; }
+        public bool HasPreviousPage => PageIndex > 1;
+        public bool HasNextPage => PageIndex < TotalPages;
+        
         public SemilavoratiIndexQuery ToQuery()
         {
             return new SemilavoratiIndexQuery
