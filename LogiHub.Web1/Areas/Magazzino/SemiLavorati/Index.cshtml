@@ -5,6 +5,7 @@
 }
 @section Styles {
     <link rel="stylesheet" href="~/css/magazzinosemilavorati.css" />
+    <link rel="stylesheet" href="~/css/offcanvas.css" />
 }
 @* per vedere questa view andare al percorso /Magazzino/SemiLavorati
 temporaneamente fatto cosi *@
@@ -55,7 +56,7 @@ temporaneamente fatto cosi *@
 @foreach (var item in Model.SemiLavorati)
 {
         <div class="card semilavorato-card mb-2"
-             onclick="apriDettagli('@item.Id')">
+             onclick="OffcanvasManager.open('offcanvasDettagli','/Magazzino/SemiLavorati/Details?id=@item.Id')">
             <div class="card-body">
                 <div class="fw-bold fs-5 mb-2">
                     #@item.Id
@@ -110,7 +111,7 @@ temporaneamente fatto cosi *@
                 <tbody>
                     @foreach (var item in Model.SemiLavorati)
                     {
-                        <tr style="cursor: pointer;" onclick="apriDettagli('@item.Id')">
+                        <tr style="cursor: pointer;"onclick="OffcanvasManager.open('offcanvasDettagli','/Magazzino/SemiLavorati/Details?id=@item.Id')">
                             <td class="ps-4 fw-bold text-primary">
                                 <div class="small text-muted">ID: @item.Id</div>
                             </td>
@@ -152,60 +153,16 @@ temporaneamente fatto cosi *@
     <i class="fa-solid fa-plus"></i>
 </a>
 
-    <div class="offcanvas offcanvas-end shadow" data-bs-scroll="true" tabindex="-1" id="offcanvasDettagli" aria-labelledby="offcanvasLabel" style="width: 500px;">
-        <div class="offcanvas-header bg-primary text-white">
-            <h5 class="offcanvas-title" id="offcanvasLabel">Dettagli semi lavorato</h5>
-            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas" aria-label="Close"></button>
-        </div>
-
-        <div class="offcanvas-body p-0" id="offcanvasContent">
-            <div class="d-flex justify-content-center align-items-center h-100">
-                <div class="spinner-border text-primary" role="status">
-                    <span class="visually-hidden">Caricamento...</span>
-                </div>
-            </div>
-        </div>
-    </div>
+@await Html.PartialAsync(
+"_Offcanvas",
+    new LogiHub.Web.Features.Offcanvas.OffcanvasViewModel
+    {
+        Id = "offcanvasDettagli",
+        Title = "Dettagli semi lavorato",
+        Width = "500px"
+    }
+)
 
 @section Scripts {
-    <script>
-        function apriDettagli(id) {
-            var offcanvasEl = document.getElementById('offcanvasDettagli');
-            var offcanvas = new bootstrap.Offcanvas(offcanvasEl);
-            offcanvas.show();
-
-            var contentDiv = document.getElementById('offcanvasContent');
-            contentDiv.innerHTML = `
-                <div class="d-flex flex-column justify-content-center align-items-center h-100 mt-5">
-                    <div class="spinner-border text-primary" role="status"></div>
-                    <p class="mt-2 text-muted">Caricamento dati...</p>
-                </div>`;
-
-            fetch(`/Magazzino/SemiLavorati/Details?id=${id}`)
-                .then(response => {
-                    if (!response.ok) throw new Error("Errore nel caricamento");
-                    return response.text();
-                })
-                .then(html => {
-                    contentDiv.innerHTML = html;
-                })
-                .catch(error => {
-                    contentDiv.innerHTML = `<div class="alert alert-danger m-3">Errore: ${error.message}</div>`;
-                });
-        }
-    </script>
-
-    <script>
-        const offcanvasEl = document.getElementById('offcanvasDettagli');
-
-        offcanvasEl.addEventListener('shown.bs.offcanvas', function () {
-            if (window.innerWidth < 768) {
-                document.body.classList.add('offcanvas-open-mobile');
-            }
-        });
-
-        offcanvasEl.addEventListener('hidden.bs.offcanvas', function () {
-            document.body.classList.remove('offcanvas-open-mobile');
-        });
-    </script>
+    <script src="~/js/features/offcanvas/offcanvas.js"></script>
 }

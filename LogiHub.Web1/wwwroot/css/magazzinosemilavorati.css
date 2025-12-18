@@ -17,24 +17,6 @@
 }
 
 @media (max-width: 767.98px) {
-    #offcanvasDettagli {
-        border-top-left-radius: 24px;
-        border-top-right-radius: 24px;
-        top: 56px;
-        height: calc(100vh - 56px);
-        width: 100%;
-        overflow: hidden;
-    }
-
-        #offcanvasDettagli.show {
-            transform: translateY(0);
-        }
-
-    body:has(#offcanvasDettagli.show) .fab {
-        opacity: 0;
-        pointer-events: none;
-        transform: scale(0.9);
-    }
 
     .semilavorato-card {
         border-radius: 16px;
@@ -58,15 +40,4 @@
             .semilavorato-card i:active {
                 transform: scale(0.95);
             }
-}
-
-@media (min-width: 768px) {
-    #offcanvasDettagli {
-        width: 500px;
-    }
-}
-
-body.offcanvas-open-mobile {
-    overflow: hidden;
-    touch-action: none;
 }
