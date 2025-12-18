@@ -1,0 +1,17 @@
+﻿.pagination .page-link {
+    border-radius: 8px;
+    min-width: 42px;
+    text-align: center;
+    margin: 0 4px;
+    font-weight: 500;
+}
+
+.pagination .page-item.active .page-link {
+    background-color: #ff7a00;
+    border-color: #ff7a00;
+    color: #fff;
+}
+
+.pagination .page-item.disabled .page-link {
+    opacity: 0.5;
+}

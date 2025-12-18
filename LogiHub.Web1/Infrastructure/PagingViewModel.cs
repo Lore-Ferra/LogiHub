@@ -156,6 +156,14 @@ namespace LogiHub.Web1.Infrastructure
             return url.Action(route);
         }
 
+        public string ChangePageUrl(IUrlHelper url, int page)
+        {
+            var route = GetRoute();
+            var idx = route.GetRouteValueDictionary();
+            idx["Page"] = page;
+            return url.Action(route);
+        }
+
         protected string OrderbyCss<TModel, TProperty>(HttpContext context, Expression<Func<TModel, TProperty>> expression)
         {
             var propertyName = GetModelExpressionProvider(context.RequestServices).GetExpressionText(expression);
