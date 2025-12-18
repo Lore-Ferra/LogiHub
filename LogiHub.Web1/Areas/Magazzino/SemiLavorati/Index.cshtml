@@ -9,14 +9,14 @@
 }
 @* per vedere questa view andare al percorso /Magazzino/SemiLavorati
 temporaneamente fatto cosi *@
-<div class="px-4 px-md-0 pt-4 pt-md-0">
+<div>
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h1 class="h3 mb-0 text-gray-800">📦 Magazzino Semilavorati</h1>
         <a asp-action="Aggiungi" class="btn btn-primary d-none d-md-inline-flex">
             <i class="fa-solid fa-plus"></i> Aggiungi
         </a>
     </div>
-    <div class="card shadow mb-4">
+    <div class="card shadow-sm mb-4">
         <div class="card-body">
             <form method="get" class="row g-3">
                 <input type="hidden" name="Page" value="1" />
@@ -52,10 +52,10 @@ temporaneamente fatto cosi *@
     </div>
 </div>
 
-<div class="d-block d-md-none px-4 pb-3">
+<div class="d-md-none">
 @foreach (var item in Model.SemiLavorati)
 {
-        <div class="card semilavorato-card mb-2"
+        <div class="card shadow-sm semilavorato-card mb-2"
              onclick="OffcanvasManager.open('offcanvasDettagli','/Magazzino/SemiLavorati/Details?id=@item.Id')">
             <div class="card-body">
                 <div class="fw-bold fs-5 mb-2">
