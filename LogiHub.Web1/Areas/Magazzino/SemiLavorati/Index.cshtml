@@ -41,8 +41,11 @@ temporaneamente fatto cosi *@
                             <i class="fa-solid fa-filter"></i> Filtri
                         </button>
 
-                        <div class="dropdown-menu p-3">
-                            <span class="text-muted small">Filtri in arrivo…</span>
+                        <div class="dropdown-menu dropdown-menu-end">
+                            <a class="dropdown-item" href="">
+                                Filtri in arrivo…
+                            </a>
+
                         </div>
                     </div>
                 </div>
@@ -53,8 +56,8 @@ temporaneamente fatto cosi *@
 </div>
 
 <div class="d-md-none">
-@foreach (var item in Model.SemiLavorati)
-{
+    @foreach (var item in Model.SemiLavorati)
+    {
         <div class="card shadow-sm semilavorato-card mb-2"
              onclick="OffcanvasManager.open('offcanvasDettagli','/Magazzino/SemiLavorati/Details?id=@item.Id')">
             <div class="card-body">
@@ -85,14 +88,14 @@ temporaneamente fatto cosi *@
                 </div>
             </div>
         </div>
-}
-@if (!Model.SemiLavorati.Any())
-{
+    }
+    @if (!Model.SemiLavorati.Any())
+    {
         <div class="text-center py-5 text-muted">
             <i class="fas fa-box-open fa-3x mb-3"></i>
             <p>Nessun semilavorato trovato.</p>
         </div>
-}
+    }
 </div>
 
 <div class="card shadow d-none d-md-block">
@@ -101,7 +104,7 @@ temporaneamente fatto cosi *@
             <table class="table table-hover align-middle mb-0 text-center">
                 <thead class="bg-light">
                     <tr>
-                        <th class ="ps-4">ID Oggetto</th>
+                        <th class="ps-4">ID Oggetto</th>
                         <th>Descrizione</th>
                         <th>Ubicazione</th>
                         <th>Ultima Modifica</th>
@@ -111,7 +114,7 @@ temporaneamente fatto cosi *@
                 <tbody>
                     @foreach (var item in Model.SemiLavorati)
                     {
-                        <tr style="cursor: pointer;"onclick="OffcanvasManager.open('offcanvasDettagli','/Magazzino/SemiLavorati/Details?id=@item.Id')">
+                        <tr style="cursor: pointer;" onclick="OffcanvasManager.open('offcanvasDettagli','/Magazzino/SemiLavorati/Details?id=@item.Id')">
                             <td class="ps-4 fw-bold text-primary">
                                 <div class="small text-muted">ID: @item.Id</div>
                             </td>
@@ -121,10 +124,12 @@ temporaneamente fatto cosi *@
                             </td>
                             <td>@item.UltimaModifica.ToString("dd/MM/yyyy")</td>
                             <td>
-                                <button class="btn btn-sm" onclick="event.stopPropagation(); modificare('@item.Id')" title="Modifica"> @*TODO Funzione modifica*@
+                                <button class="btn btn-sm" onclick="event.stopPropagation(); modificare('@item.Id')" title="Modifica">
+                                    @*TODO Funzione modifica*@
                                     <i class="bi bi-pen"></i>
                                 </button>
-                                <button class="btn btn-sm" onclick="event.stopPropagation(); eliminare('@item.Id')" title="Elimina"> @*TODO Funzione elimina*@
+                                <button class="btn btn-sm" onclick="event.stopPropagation(); eliminare('@item.Id')" title="Elimina">
+                                    @*TODO Funzione elimina*@
                                     <i class="bi bi-trash3"></i>
                                 </button>
                             </td>
