@@ -1,22 +1,25 @@
 ﻿using LogiHub.Services.Shared;
+using LogiHub.Web1.Infrastructure;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.RazorPages;
 using System.Collections;
 using System.Collections.Generic;
 
 namespace LogiHub.Web.Areas.Magazzino.Models
 {
-    public class IndexViewModel
+    public class IndexViewModel : PagingViewModel
     {
-        public IEnumerable<SemiLavoratiIndexDTO.RigaSemiLavorato> SemiLavorati { get; set; } = new List<SemiLavoratiIndexDTO.RigaSemiLavorato>();
+        public IEnumerable<SemiLavoratiIndexDTO.RigaSemiLavorato> SemiLavorati { get; set; }
         public string Filter { get; set; }
-        
-        // Proprietà per la paginazione
-        public int PageIndex { get; set; }
-        public int TotalPages { get; set; }
-        public int TotalItems { get; set; }
-        public int PageSize { get; set; }
-        public bool HasPreviousPage => PageIndex > 1;
-        public bool HasNextPage => PageIndex < TotalPages;
-        
+
+        public override IActionResult GetRoute()
+        {
+            return MVC.Magazzino.SemiLavorati
+                .Index(Filter, Page, PageSize)
+                .GetAwaiter()
+                .GetResult();
+        }
+
         public SemilavoratiIndexQuery ToQuery()
         {
             return new SemilavoratiIndexQuery

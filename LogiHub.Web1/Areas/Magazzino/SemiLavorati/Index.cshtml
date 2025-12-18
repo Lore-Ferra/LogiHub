@@ -18,6 +18,9 @@ temporaneamente fatto cosi *@
     <div class="card shadow mb-4">
         <div class="card-body">
             <form method="get" class="row g-3">
+                <input type="hidden" name="Page" value="1" />
+                <input type="hidden" name="PageSize" value="@Model.PageSize" />
+
                 <div class="col-8 col-md-10">
                     <div class="input-group">
                         <span class="input-group-text bg-light border-0">
@@ -28,20 +31,21 @@ temporaneamente fatto cosi *@
                                placeholder="Cerca…" />
                     </div>
                 </div>
-                <div class="col-4 col-md-2">
-                        <div class="dropdown">
-                            <button class="btn btn-outline-primary dropdown-toggle w-100"
-                                    type="button"
-                                    data-bs-toggle="dropdown"
-                                    aria-expanded="false">
-                                <i class="fa-solid fa-filter"></i> Filtri
-                            </button>
 
-                            <div class="dropdown-menu p-3">
-                                <span class="text-muted small">Filtri in arrivo…</span>
-                            </div>
+                <div class="col-4 col-md-2">
+                    <div class="dropdown">
+                        <button class="btn btn-outline-primary dropdown-toggle w-100"
+                                type="button"
+                                data-bs-toggle="dropdown">
+                            <i class="fa-solid fa-filter"></i> Filtri
+                        </button>
+
+                        <div class="dropdown-menu p-3">
+                            <span class="text-muted small">Filtri in arrivo…</span>
                         </div>
+                    </div>
                 </div>
+
             </form>
         </div>
     </div>

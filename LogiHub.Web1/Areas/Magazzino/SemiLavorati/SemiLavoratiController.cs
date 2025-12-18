@@ -1,16 +1,17 @@
-﻿using LogiHub.Services.Shared;
-using LogiHub.Web.Areas.Magazzino.Models;
-using Microsoft.AspNetCore.Mvc;
-using System.Threading.Tasks;
-using LogiHub.Web1.Areas;
-using LogiHub.Web1.Infrastructure;
-
-namespace LogiHub.Web.Areas.Magazzino
+﻿namespace LogiHub.Web.Areas.Magazzino
 {
+    using LogiHub.Services.Shared;
+    using LogiHub.Web.Areas.Magazzino.Models;
+    using LogiHub.Web1.Areas;
+    using Microsoft.AspNetCore.Mvc;
+    using System.Linq;
+    using System.Threading.Tasks;
+
     [Area("Magazzino")]
     public partial class SemiLavoratiController : AuthenticatedBaseController
     {
         private readonly SharedService _queries;
+
         private readonly ISemiLavoratoService _service;
         public SemiLavoratiController(SharedService queries, ISemiLavoratoService service)
         {
@@ -19,21 +20,33 @@ namespace LogiHub.Web.Areas.Magazzino
         }
 
         [HttpGet]
-        public virtual async Task<IActionResult> Index(SemilavoratiIndexQuery query, int? pageNumer, int? pageSize)
+        public virtual async Task<IActionResult> Index(
+            string filter,
+            int page = 1,
+            int pageSize = 25
+        )
         {
-            int actualPageSize = pageSize ?? 5; 
-            var dto = await _queries.Query(query);
-            
-            var paginatedItems = PaginatedList<SemiLavoratiIndexDTO.RigaSemiLavorato>.Create(dto.Items, pageNumer ?? 1, actualPageSize);
+            var query = new SemilavoratiIndexQuery
+            {
+                Filter = filter
+            };
 
-            var model = new IndexViewModel();
-            model.Filter = query.Filter;
-            model.SemiLavorati = paginatedItems;
-            model.PageIndex = paginatedItems.PageIndex;
-            model.TotalPages = paginatedItems.TotalPages;
-            model.TotalItems = paginatedItems.TotalCount;
-            model.PageSize = actualPageSize;
-            
+            var dto = await _queries.Query(query);
+
+            var items = dto.Items
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToList();
+
+            var model = new IndexViewModel
+            {
+                Filter = filter,
+                Page = page,
+                PageSize = pageSize,
+                TotalItems = dto.Items.Count(),
+                SemiLavorati = items
+            };
+
             return View(model);
         }
 

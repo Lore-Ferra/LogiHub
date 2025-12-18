@@ -5,6 +5,8 @@
     var version = System.Reflection.Assembly.GetAssembly(typeof(Startup)).GetName().Version;
 
     var identitaCorrente = (LogiHub.Web1.Areas.IdentitaViewModel)ViewData[LogiHub.Web1.Areas.IdentitaViewModel.VIEWDATA_IDENTITACORRENTE_KEY];
+
+    var paging = Model as LogiHub.Web1.Infrastructure.PagingViewModel;
 }
 @section metas{
     @RenderSection("metas", false)
@@ -58,58 +60,55 @@
     @RenderSection("pageSubtitle", false)
     <div class="m-md-5 p-md-5">
         @RenderBody()
-                <div class="d-flex justify-content-center justify-content-md-between align-items-center pt-3">
+                @if (paging != null)
+                {
+                    <div class="d-flex justify-content-center justify-content-md-between align-items-center pt-3">
 
-                    <div class="d-none d-md-flex align-items-center gap-2">
-                        <span class="small text-muted text-nowrap">Mostra:</span>
-                        <select class="form-select form-select-sm" style="width: auto;" onchange="window.location.href=this.value">
-                            @foreach (var size in new[] { 5, 10, 20, 50 })
-                            {
-                                <option value="@Url.Action("Index", new { pageNumer = 1, Filter = Model.Filter, pageSize = size })"
-                                        selected="@(Model.PageSize == size)">
-                                    @size
-                                </option>
-                            }
-                        </select>
+                        <div class="d-none d-md-flex align-items-center gap-2">
+                            <span class="small text-muted text-nowrap">Mostra:</span>
+                            <select class="form-select form-select-sm"
+                            onchange="location.href = '@paging.ChangePageSizePageUrl(Url, 0)'.replace('0', this.value)">
+                                @foreach (var size in paging.PageSizes)
+                                {
+                                    <option value="@size" selected="@(paging.PageSize == size)">
+                                        @size
+                                    </option>
+                                }
+                            </select>
+                        </div>
+
+                        <nav aria-label="Navigazione pagine">
+                            <ul class="pagination justify-content-center mb-0">
+
+                                <li class="page-item @(paging.Page <= 1 ? "disabled" : "")">
+                                    <a class="page-link" href="@paging.FirstPageUrl(Url)">«</a>
+                                </li>
+
+                                <li class="page-item @(paging.Page <= 1 ? "disabled" : "")">
+                                    <a class="page-link" href="@paging.PrevPageUrl(Url)">‹</a>
+                                </li>
+
+                                <li class="page-item disabled">
+                                    <span class="page-link">
+                                        Pagina @paging.Page di @paging.TotalPages()
+                                        <small>(@paging.TotalItems elementi)</small>
+                                    </span>
+                                </li>
+
+                                <li class="page-item @(paging.Page >= paging.TotalPages() ? "disabled" : "")">
+                                    <a class="page-link" href="@paging.NextPageUrl(Url)">›</a>
+                                </li>
+
+                                <li class="page-item @(paging.Page >= paging.TotalPages() ? "disabled" : "")">
+                                    <a class="page-link" href="@paging.LastPageUrl(Url)">»</a>
+                                </li>
+
+                            </ul>
+                        </nav>
+
+                        <div style="width: 100px;" class="d-none d-md-block"></div>
                     </div>
-
-                    <nav aria-label="Navigazione pagine">
-                        <ul class="pagination justify-content-center mb-0">
-                            @* Pulsante Precedente *@
-                            <li class="page-item @(Model.HasPreviousPage ? "" : "disabled")">
-                                <a class="page-link"
-                                   asp-action="Index"
-                                   asp-route-pageNumer="@(Model.PageIndex - 1)"
-                                   asp-route-pageSize="@Model.PageSize"
-                                   asp-route-Filter="@Model.Filter"
-                                   aria-label="Precedente">
-                                    <span aria-hidden="true">&laquo;</span>
-                                </a>
-                            </li>
-
-                            @* Info Pagina *@
-                            <li class="page-item disabled">
-                                <span class="page-link text-muted">
-                                    Pagina @Model.PageIndex di @Model.TotalPages
-                                    <small>(@Model.TotalItems elementi)</small>
-                                </span>
-                            </li>
-
-                            @* Pulsante Successivo *@
-                            <li class="page-item @(Model.HasNextPage ? "" : "disabled")">
-                                <a class="page-link"
-                                   asp-action="Index"
-                                   asp-route-pageNumer="@(Model.PageIndex + 1)"
-                                   asp-route-pageSize="@Model.PageSize"
-                                   asp-route-Filter="@Model.Filter"
-                                   aria-label="Successivo">
-                                    <span aria-hidden="true">&raquo;</span>
-                                </a>
-                            </li>
-                        </ul>
-                    </nav>
-                    <div style="width: 100px;" class="d-none d-md-block"></div> <!-- Spacer per centrare la paginazione -->
-                </div>
+                }
     </div>
     
 </div>
