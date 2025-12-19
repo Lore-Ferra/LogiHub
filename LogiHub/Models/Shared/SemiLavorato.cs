@@ -21,6 +21,8 @@ public class SemiLavorato
     public AziendaEsterna? AziendaEsterna { get; set; }
 
     public bool Eliminato { get; set; } = false;
+    
+    public bool Uscito {get; set;} = false;
 
     public DateTime DataCreazione { get; set; }
     public DateTime UltimaModifica { get; set; }
