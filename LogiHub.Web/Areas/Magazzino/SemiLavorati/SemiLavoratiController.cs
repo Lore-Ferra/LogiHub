@@ -101,5 +101,13 @@ namespace LogiHub.Web.Areas.Magazzino
 
             return RedirectToAction(nameof(Index));
         }
+        
+        [HttpPost]
+        public virtual async Task<IActionResult> Elimina([FromBody] EliminaSemiLavoratoDTO dto)
+        {
+            dto.UserId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)); 
+            var success = await _service.EliminaAsync(dto);
+            return success ? Ok() : BadRequest();
+        }
     }
 }

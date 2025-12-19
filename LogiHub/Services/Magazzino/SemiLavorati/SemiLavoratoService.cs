@@ -40,7 +40,6 @@ public class SemiLavoratoService : ISemiLavoratoService
             throw new Exception("Errore nella generazione dell'azione di log.");
         }
         await _context.SaveChangesAsync();
-
         return semi;
     }
     public async Task<bool> EliminaAsync(EliminaSemiLavoratoDTO dto)
