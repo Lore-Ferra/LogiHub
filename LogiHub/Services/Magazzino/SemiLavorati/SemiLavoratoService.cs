@@ -1,9 +1,9 @@
-﻿using LogiHub.Services;
-using Microsoft.EntityFrameworkCore;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using LogiHub.Models.Shared;
+using LogiHub.Services;
+using Microsoft.EntityFrameworkCore;
 
 public class SemiLavoratoService : ISemiLavoratoService
 {
@@ -14,24 +14,18 @@ public class SemiLavoratoService : ISemiLavoratoService
         _context = context;
     }
 
-    public async Task<SemiLavorato> CreaSemiLavoratoAsync(
-        string id,
-        string descrizione,
-        Guid? ubicazioneId,
-        Guid? aziendaEsternaId,
-        Guid userId,
-        string dettagli)
+    public async Task<SemiLavorato> CreaSemiLavoratoAsync(CreaSemiLavoratoDto dto)
     {
-        var exists = await _context.SemiLavorati.AnyAsync(x => x.Id == id);
+        var exists = await _context.SemiLavorati.AnyAsync(x => x.Id == dto.Id);
         if (exists)
-            throw new Exception($"Esiste già un semilavorato con ID: {id}");
+            throw new Exception($"Esiste già un semilavorato con ID: {dto.Id}");
 
         var semi = new SemiLavorato
         {
-            Id = id,
-            Descrizione = descrizione,
-            UbicazioneId = ubicazioneId,
-            AziendaEsternaId = aziendaEsternaId,
+            Id = dto.Id,
+            Descrizione = dto.Descrizione,
+            UbicazioneId = dto.UbicazioneId,
+            AziendaEsternaId = dto.AziendaEsternaId,
             Eliminato = false,
             DataCreazione = DateTime.Now,
             UltimaModifica = DateTime.Now
@@ -39,7 +33,7 @@ public class SemiLavoratoService : ISemiLavoratoService
 
         _context.SemiLavorati.Add(semi);
 
-        await RegistraAzioneInterna(id, "Creazione", userId, dettagli ?? "");
+        await RegistraAzioneInterna(dto.Id, "Creazione", dto.UserId, dto.Dettagli ?? "");
         await _context.SaveChangesAsync();
 
         return semi;
@@ -52,14 +46,6 @@ public class SemiLavoratoService : ISemiLavoratoService
             .Include(s => s.AziendaEsterna)
             .Include(s => s.Azioni)
             .FirstOrDefaultAsync(s => s.Id == id);
-    }
-
-    public async Task<IEnumerable<SemiLavorato>> GetAllAsync()
-    {
-        return await _context.SemiLavorati
-            .Include(s => s.Ubicazione)
-            .Include(s => s.AziendaEsterna)
-            .ToListAsync();
     }
 
     public async Task<bool> AggiornaAsync(
@@ -152,6 +138,14 @@ public class SemiLavoratoService : ISemiLavoratoService
         await _context.SaveChangesAsync();
 
         return true;
+    }
+
+    public async Task<IEnumerable<SemiLavorato>> GetAllAsync()
+    {
+        return await _context.SemiLavorati
+            .Include(s => s.Ubicazione)
+            .Include(s => s.AziendaEsterna)
+            .ToListAsync();
     }
 
     private async Task RegistraAzioneInterna(

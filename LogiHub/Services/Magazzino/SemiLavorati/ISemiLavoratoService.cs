@@ -4,15 +4,8 @@ using System.Threading.Tasks;
 
 public interface ISemiLavoratoService
 {
-    Task<SemiLavorato> CreaSemiLavoratoAsync(
-        string id,
-        string descrizione,
-        Guid? ubicazioneId,
-        Guid? aziendaEsternaId,
-        Guid userId,
-        string dettagli
-    );
 
+    Task<SemiLavorato> CreaSemiLavoratoAsync(CreaSemiLavoratoDto dto);
     Task<SemiLavorato?> GetByIdAsync(string id);
     
     Task<bool> AggiornaAsync(
