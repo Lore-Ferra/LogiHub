@@ -1,162 +1,109 @@
 ﻿using System;
 using System.Linq;
-using LogiHub.Services;
 using LogiHub.Models.Shared;
-using System.Collections.Generic;
+using LogiHub.Services;
 
 namespace LogiHub.Infrastructure
 {
     public class DataGenerator
     {
-        public static void InitializeUsers(TemplateDbContext context)
+        private static readonly Random _random = new Random();
+
+        public static void Initialize(TemplateDbContext context)
         {
-            const int NumeroAziende = 4;
-            const int NumeroSemilavorati = 20;
-            const int NumeroAzioniExtra = 100;
-            
-            var user1Id = Guid.Parse("3de6883f-9a0b-4667-aa53-0fbc52c4d300");
-            var user2Id = Guid.Parse("a030ee81-31c7-47d0-9309-408cb5ac0ac7");
-            var user3Id = Guid.Parse("bfdef48b-c7ea-4227-8333-c635af267354");
-            var allUserIds = new[] { user1Id, user2Id, user3Id };
-            var random = new Random();
-
-            if (!context.Users.Any())
-            {
-                context.Users.AddRange(
-                    new User
-                    {
-                        Id = user1Id,
-                        Email = "email1@test.it",
-                        Password = "M0Cuk9OsrcS/rTLGf5SY6DUPqU2rGc1wwV2IL88GVGo=",
-                        FirstName = "Nome1",
-                        LastName = "Cognome1",
-                        NickName = "Nickname1"
-                    },
-                    new User
-                    {
-                        Id = user2Id,
-                        Email = "email2@test.it",
-                        Password = "Uy6qvZV0iA2/drm4zACDLCCm7BE9aCKZVQ16bg80XiU=",
-                        FirstName = "Nome2",
-                        LastName = "Cognome2",
-                        NickName = "Nickname2"
-                    },
-                    new User
-                    {
-                        Id = user3Id,
-                        Email = "email3@test.it",
-                        Password = "Uy6qvZV0iA2/drm4zACDLCCm7BE9aCKZVQ16bg80XiU=",
-                        FirstName = "Nome3",
-                        LastName = "Cognome3",
-                        NickName = "Nickname3"
-                    });
-            }
-
-            if (!context.Ubicazioni.Any())
-            {
-                var righe = new[] { "A", "B", "C", "D", "E" };
-                int colonne = 10;
-
-                foreach (var riga in righe)
-                {
-                    for (int i = 1; i <= colonne; i++)
-                    {
-                        context.Ubicazioni.Add(new Ubicazione
-                        {
-                            UbicazioneId = Guid.NewGuid(),
-                            Posizione = $"{riga}{i}"
-                        });
-                    }
-                }
-            }
-
-            List<Guid> aziendeIds = new List<Guid>();
-            if (!context.AziendeEsterne.Any())
-            {
-                for (int i = 1; i <= NumeroAziende; i++)
-                {
-                    var id = Guid.NewGuid();
-                    aziendeIds.Add(id);
-                    context.AziendeEsterne.Add(
-                        new AziendaEsterna 
-                        { 
-                            Id = id, 
-                            Nome = $"Fornitore S.p.A. {i:00}",
-                            Indirizzo = $"Via delle Industrie {i}" 
-                        }
-                    );
-                }
-            }
-            else
-            {
-                aziendeIds = context.AziendeEsterne.Select(a => a.Id).ToList();
-            }
-
+            // 1. Entità indipendenti
+            SeedUsers(context);
+            SeedUbicazioni(context);
+            SeedAziende(context);
             context.SaveChanges();
 
-            var ubicazioni = context.Ubicazioni.ToList(); 
-            Guid GetRandomUbicazioneId() => ubicazioni[random.Next(ubicazioni.Count)].UbicazioneId;
-            Guid GetRandomAziendaId() => aziendeIds[random.Next(aziendeIds.Count)];
+            // 2. Entità con dipendenze (FK)
+            SeedSemiLavorati(context);
+            context.SaveChanges();
 
-            List<string> semiLavoratiIds = new List<string>();
-            if (!context.SemiLavorati.Any())
+            // 3. Log e storico
+            SeedAzioni(context);
+            context.SaveChanges();
+        }
+
+        private static void SeedUsers(TemplateDbContext context)
+        {
+            if (context.Users.Any()) return;
+
+            context.Users.AddRange(
+                new User { Id = Guid.Parse("3de6883f-9a0b-4667-aa53-0fbc52c4d300"), Email = "email1@test.it", FirstName = "Nome1", LastName = "Cognome1" },
+                new User { Id = Guid.Parse("a030ee81-31c7-47d0-9309-408cb5ac0ac7"), Email = "email2@test.it", FirstName = "Nome2", LastName = "Cognome2" },
+                new User { Id = Guid.Parse("bfdef48b-c7ea-4227-8333-c635af267354"), Email = "email3@test.it", FirstName = "Nome3", LastName = "Cognome3" }
+            );
+        }
+
+        private static void SeedUbicazioni(TemplateDbContext context)
+        {
+            if (context.Ubicazioni.Any()) return;
+
+            var righe = new[] { "A", "B", "C", "D", "E" };
+            foreach (var riga in righe)
             {
-                for (int i = 1; i <= NumeroSemilavorati; i++)
+                for (int i = 1; i <= 10; i++)
                 {
-                    string codiceId = $"PZ-{i:D4}";
-                    semiLavoratiIds.Add(codiceId);
-
-                    string[] descrizioni = { "Telaio metallico", "Lastra in alluminio", "Trave in acciaio", "Componente elettronico" };
-                    
-                    context.SemiLavorati.Add(
-                        new SemiLavorato
-                        {
-                            Id = codiceId,
-                            AziendaEsternaId = GetRandomAziendaId(),
-                            Descrizione = $"{descrizioni[random.Next(descrizioni.Length)]} (Mod. {i})",
-                            // Date casuali tra 1 anno fa e oggi
-                            DataCreazione = DateTime.Now.AddDays(-random.Next(1, 365)),
-                            UltimaModifica = DateTime.Now.AddDays(-random.Next(0, 30)),
-                            UbicazioneId = GetRandomUbicazioneId()
-                        }
-                    );
+                    context.Ubicazioni.Add(new Ubicazione { UbicazioneId = Guid.NewGuid(), Posizione = $"{riga}{i}" });
                 }
-
-                context.SaveChanges();
             }
-            else
+        }
+
+        private static void SeedAziende(TemplateDbContext context)
+        {
+            if (context.AziendeEsterne.Any()) return;
+
+            for (int i = 1; i <= 4; i++)
             {
-                 semiLavoratiIds = context.SemiLavorati.Select(sl => sl.Id).ToList();
+                context.AziendeEsterne.Add(new AziendaEsterna { 
+                    Id = Guid.NewGuid(), 
+                    Nome = $"Fornitore S.p.A. {i:00}", 
+                    Indirizzo = $"Via delle Industrie {i}" 
+                });
             }
-            
-            if (!context.Azioni.Any())
+        }
+
+        private static void SeedSemiLavorati(TemplateDbContext context)
+        {
+            if (context.SemiLavorati.Any()) return;
+
+            var aziendeIds = context.AziendeEsterne.Select(a => a.Id).ToList();
+            var ubicazioniIds = context.Ubicazioni.Select(u => u.UbicazioneId).ToList();
+            string[] descrizioni = { "Telaio metallico", "Lastra in alluminio", "Trave in acciaio", "Componente elettronico" };
+
+            for (int i = 1; i <= 20; i++)
             {
-                string[] tipiOperazione = { "Spostamento", "Carico", "Scarico", "Controllo Qualità", "Manutenzione", "Inventario", "Prelievo" };
-                
-                for (int i = 0; i < NumeroAzioniExtra; i++)
-                {
-                    string randomSemiLavoratoId = semiLavoratiIds[random.Next(semiLavoratiIds.Count)];
-                    
-                    Guid randomUserId = allUserIds[random.Next(allUserIds.Length)];
+                context.SemiLavorati.Add(new SemiLavorato {
+                    Id = $"PZ-{i:D4}",
+                    AziendaEsternaId = aziendeIds[_random.Next(aziendeIds.Count)],
+                    UbicazioneId = ubicazioniIds[_random.Next(ubicazioniIds.Count)],
+                    Descrizione = $"{descrizioni[_random.Next(descrizioni.Length)]} (Mod. {i})",
+                    DataCreazione = DateTime.Now.AddDays(-_random.Next(1, 365)),
+                    UltimaModifica = DateTime.Now.AddDays(-_random.Next(0, 30))
+                });
+            }
+        }
 
-                    string randomTipo = tipiOperazione[random.Next(tipiOperazione.Length)];
-                    
-                    var randomDate = DateTime.Now.AddDays(-random.Next(1, 365)).AddHours(random.Next(0, 24));
+        private static void SeedAzioni(TemplateDbContext context)
+        {
+            if (context.Azioni.Any()) return;
 
-                    context.Azioni.Add(
-                        new Azione
-                        {
-                            Id = Guid.NewGuid(),
-                            Dettagli = $"{randomTipo} effettuato (Operazione {i + 1})",
-                            SemiLavoratoId = randomSemiLavoratoId,
-                            TipoOperazione = randomTipo,
-                            UserId = randomUserId,
-                            DataOperazione = randomDate
-                        }
-                    );
-                }
+            var slIds = context.SemiLavorati.Select(sl => sl.Id).ToList();
+            var userIds = context.Users.Select(u => u.Id).ToList();
+            string[] tipi = { "Spostamento", "Carico", "Scarico", "Controllo Qualità", "Prelievo" };
 
-                context.SaveChanges();
+            for (int i = 0; i < 100; i++)
+            {
+                context.Azioni.Add(new Azione {
+                    Id = Guid.NewGuid(),
+                    SemiLavoratoId = slIds[_random.Next(slIds.Count)],
+                    UserId = userIds[_random.Next(userIds.Count)],
+                    TipoOperazione = tipi[_random.Next(tipi.Length)],
+                    Dettagli = $"Operazione automatica {i + 1}",
+                    DataOperazione = DateTime.Now.AddDays(-_random.Next(1, 365))
+                });
             }
         }
     }
