@@ -62,6 +62,7 @@ namespace LogiHub.Web.Infrastructure
         {
             var idx = route.GetRouteValueDictionary();
             idx["PageSize"] = pageSize;
+            idx["Page"] = 1;
 
             return url.Action(route);
         }
