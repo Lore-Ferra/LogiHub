@@ -12,7 +12,7 @@ namespace LogiHub.Services
 
         public TemplateDbContext(DbContextOptions<TemplateDbContext> options) : base(options)
         {
-            DataGenerator.InitializeUsers(this);
+            DataGenerator.Initialize(this);
         }
 
         public DbSet<User> Users { get; set; }
