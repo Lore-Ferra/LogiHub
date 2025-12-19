@@ -1,4 +1,6 @@
-﻿namespace LogiHub.Web.Areas.Magazzino
+﻿using LogiHub.Services.Shared.SemiLavorati;
+
+namespace LogiHub.Web.Areas.Magazzino
 {
     using LogiHub.Services.Shared;
     using LogiHub.Web.Areas.Magazzino.Models;
@@ -28,23 +30,21 @@
         {
             var query = new SemilavoratiIndexQuery
             {
-                Filter = filter
+                Filter = filter,
+                Page = page,
+                PageSize = pageSize
             };
 
-            var dto = await _queries.Query(query);
-
-            var items = dto.Items
-                .Skip((page - 1) * pageSize)
-                .Take(pageSize)
-                .ToList();
+            var dto = await _queries.GetSemiLavoratiListAsync(query);
+            
 
             var model = new SemiLavoratiIndexViewModel
             {
                 Filter = filter,
                 Page = page,
                 PageSize = pageSize,
-                TotalItems = dto.Items.Count(),
-                SemiLavorati = items
+                TotalItems = dto.TotalCount,
+                SemiLavorati = dto.Items
             };
 
             return View(model);
@@ -54,7 +54,7 @@
         public virtual async Task<IActionResult> Details(string id)
         {
             var query = new SemiLavoratiDetailsQuery { Id = id };
-            var dto = await _queries.Query(query);
+            var dto = await _queries.GetSemiLavoratoDetailsAsync(query);
 
             if (dto == null) return NotFound();
 

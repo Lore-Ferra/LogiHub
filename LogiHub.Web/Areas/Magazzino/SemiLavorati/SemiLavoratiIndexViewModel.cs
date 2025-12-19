@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using System.Collections;
 using System.Collections.Generic;
+using LogiHub.Services.Shared.SemiLavorati;
 
 namespace LogiHub.Web.Areas.Magazzino.Models
 {

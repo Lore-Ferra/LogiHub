@@ -14,9 +14,7 @@ public interface ISemiLavoratoService
     );
 
     Task<SemiLavorato?> GetByIdAsync(string id);
-
-    Task<IEnumerable<SemiLavorato>> GetAllAsync();
-
+    
     Task<bool> AggiornaAsync(
         string id,
         string? nuovaDescrizione,

@@ -1,6 +1,18 @@
-﻿namespace LogiHub.Web.Areas.Inventario;
+﻿using LogiHub.Web.Infrastructure;
+using Microsoft.AspNetCore.Mvc;
 
-public class ListaIndexViewModel
+namespace LogiHub.Web.Areas.Inventario
 {
-    
+    public class ListaIndexViewModel : PagingViewModel
+    {        
+        public string Filter { get; set; }
+        public override IActionResult GetRoute()
+        {
+            return MVC.Magazzino.SemiLavorati
+                .Index(Filter, Page, PageSize)
+                .GetAwaiter()
+                .GetResult();
+        }
+
+    }
 }

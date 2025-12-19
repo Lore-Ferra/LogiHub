@@ -28,7 +28,7 @@ namespace LogiHub.Web.Areas.Example.Users
         [HttpGet]
         public virtual async Task<IActionResult> Index(IndexViewModel model)
         {
-            var users = await _sharedService.Query(model.ToUsersIndexQuery());
+            var users = await _sharedService.GetSemiLavoratiListAsync(model.ToUsersIndexQuery());
             model.SetUsers(users);
 
             return View(model);
@@ -47,7 +47,7 @@ namespace LogiHub.Web.Areas.Example.Users
 
             if (id.HasValue)
             {
-                model.SetUser(await _sharedService.Query(new UserDetailQuery
+                model.SetUser(await _sharedService.GetSemiLavoratiListAsync(new UserDetailQuery
                 {
                     Id = id.Value,
                 }));

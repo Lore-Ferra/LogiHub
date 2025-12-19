@@ -74,7 +74,7 @@ namespace LogiHub.Services.Shared
         /// </summary>
         /// <param name="qry"></param>
         /// <returns></returns>
-        public async Task<UsersSelectDTO> Query(UsersSelectQuery qry)
+        public async Task<UsersSelectDTO> GetSemiLavoratiListAsync(UsersSelectQuery qry)
         {
             var queryable = _dbContext.Users
                 .Where(x => x.Id != qry.IdCurrentUser);
@@ -102,7 +102,7 @@ namespace LogiHub.Services.Shared
         /// </summary>
         /// <param name="qry"></param>
         /// <returns></returns>
-        public async Task<UsersIndexDTO> Query(UsersIndexQuery qry)
+        public async Task<UsersIndexDTO> GetSemiLavoratiListAsync(UsersIndexQuery qry)
         {
             var queryable = _dbContext.Users
                 .Where(x => x.Id != qry.IdCurrentUser);
@@ -133,7 +133,7 @@ namespace LogiHub.Services.Shared
         /// </summary>
         /// <param name="qry"></param>
         /// <returns></returns>
-        public async Task<UserDetailDTO> Query(UserDetailQuery qry)
+        public async Task<UserDetailDTO> GetSemiLavoratiListAsync(UserDetailQuery qry)
         {
             return await _dbContext.Users
                 .Where(x => x.Id == qry.Id)
@@ -154,7 +154,7 @@ namespace LogiHub.Services.Shared
         /// <param name="qry"></param>
         /// <returns>User data if user has been found and credentials are valid</returns>
         /// <exception cref="LoginException">Invalid credentials</exception>
-        public async Task<UserDetailDTO> Query(CheckLoginCredentialsQuery qry)
+        public async Task<UserDetailDTO> GetSemiLavoratiListAsync(CheckLoginCredentialsQuery qry)
         {
             var user = await _dbContext.Users
                 .Where(x => x.Email == qry.Email)

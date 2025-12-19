@@ -75,7 +75,7 @@ namespace LogiHub.Web.Features.Login
             {
                 try
                 {
-                    var utente = await _sharedService.Query(new CheckLoginCredentialsQuery
+                    var utente = await _sharedService.GetSemiLavoratiListAsync(new CheckLoginCredentialsQuery
                     {
                         Email = model.Email,
                         Password = model.Password,
