@@ -1,6 +1,6 @@
 ﻿using System;
 
-public class CreaSemiLavoratoDto
+public class CreaSemiLavoratoDTO
 {
     public string Id { get; set; }
     public string Descrizione { get; set; }

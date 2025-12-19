@@ -14,7 +14,7 @@ public class SemiLavoratoService : ISemiLavoratoService
         _context = context;
     }
 
-    public async Task<SemiLavorato> CreaSemiLavoratoAsync(CreaSemiLavoratoDto dto)
+    public async Task<SemiLavorato> CreaSemiLavoratoAsync(CreaSemiLavoratoDTO dto)
     {
         var exists = await _context.SemiLavorati.AnyAsync(x => x.Id == dto.Id);
         if (exists)

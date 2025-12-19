@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 public interface ISemiLavoratoService
 {
 
-    Task<SemiLavorato> CreaSemiLavoratoAsync(CreaSemiLavoratoDto dto);
+    Task<SemiLavorato> CreaSemiLavoratoAsync(CreaSemiLavoratoDTO dto);
     Task<SemiLavorato?> GetByIdAsync(string id);
     
     Task<bool> AggiornaAsync(
