@@ -110,15 +110,16 @@ namespace LogiHub.Infrastructure
 
             var slIds = context.SemiLavorati.Select(sl => sl.Id).ToList();
             var userIds = context.Users.Select(u => u.Id).ToList();
-            string[] tipi = { "Spostamento", "Carico", "Scarico", "Controllo Qualità", "Prelievo" };
-
+            var tipi = (TipoOperazione[])Enum.GetValues(typeof(TipoOperazione));
+            
             for (int i = 0; i < 100; i++)
             {
+                var tipoCasuale = tipi[_random.Next(tipi.Length)];
                 context.Azioni.Add(new Azione {
                     Id = Guid.NewGuid(),
                     SemiLavoratoId = slIds[_random.Next(slIds.Count)],
                     UserId = userIds[_random.Next(userIds.Count)],
-                    TipoOperazione = tipi[_random.Next(tipi.Length)],
+                    TipoOperazione = tipoCasuale,
                     Dettagli = $"Operazione automatica {i + 1}",
                     DataOperazione = DateTime.Now.AddDays(-_random.Next(1, 365))
                 });

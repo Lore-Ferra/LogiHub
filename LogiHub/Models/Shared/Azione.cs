@@ -3,7 +3,14 @@ using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace LogiHub.Models.Shared;
-
+public enum TipoOperazione
+{
+    Creazione,
+    CambioUbicazione,
+    Uscita,
+    Entrata,
+    Eliminazione,
+}
 public class Azione
 {
     [Key]
@@ -14,7 +21,7 @@ public class Azione
     [ForeignKey(nameof(SemiLavoratoId))]
     public SemiLavorato SemiLavorato { get; set; }
 
-    public string TipoOperazione { get; set; } = string.Empty;
+    public TipoOperazione TipoOperazione { get; set; }
     public Guid UserId { get; set; }
     [ForeignKey(nameof(UserId))]
     public User User { get; set; }

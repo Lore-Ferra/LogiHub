@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using LogiHub.Models.Shared;
 
 namespace LogiHub.Services.Shared.SemiLavorati
 {
@@ -16,7 +17,7 @@ namespace LogiHub.Services.Shared.SemiLavorati
         public class AzioniDTO
         {
             public Guid Id { get; set; }
-            public string TipoOperazione { get; set; }
+            public TipoOperazione TipoOperazione { get; set; }
             public string Utente { get; set; }
             public DateTime DataOperazione { get; set; }
             public string Dettagli { get; set; }

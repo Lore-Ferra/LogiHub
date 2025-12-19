@@ -54,7 +54,7 @@ namespace LogiHub.Services.Shared
                 .Include(x => x.AziendaEsterna)
                 .Include(x => x.Azioni)
                     .ThenInclude(a => a.User)
-                .FirstOrDefaultAsync(x => x.Id == qry.Id);
+                .FirstOrDefaultAsync(x => x.Id == qry.Id && !x.Eliminato);
 
             if (item == null) return null;
 
