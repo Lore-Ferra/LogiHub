@@ -11,8 +11,9 @@
         <div class="d-flex gap-2">
             @foreach (var btn in Model.Buttons)
             {
-                <button class="btn @btn.CssClass" type="@btn.Type"
-                        @(string.IsNullOrEmpty(btn.OnClick) ? "" : $"onclick=\"{btn.OnClick}\"")>
+                <button class="btn d-none d-md-block @btn.CssClass"
+                        type="@(string.IsNullOrWhiteSpace(btn.Type) ? "button" : btn.Type)"
+                        onclick="@btn.OnClick">
                     @if (!string.IsNullOrEmpty(btn.IconClass))
                     {
                         <i class="@btn.IconClass me-1"></i>
