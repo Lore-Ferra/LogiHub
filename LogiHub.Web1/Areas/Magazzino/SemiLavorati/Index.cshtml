@@ -124,10 +124,6 @@ temporaneamente fatto cosi *@
                             </td>
                             <td>@item.UltimaModifica.ToString("dd/MM/yyyy")</td>
                             <td>
-                                <button class="btn btn-sm btn-outline-primary" onclick="event.stopPropagation(); modificare('@item.Id')" title="Modifica">
-                                    @*TODO Funzione modifica*@
-                                    <i class="bi bi-pen"></i>
-                                </button>
                                 <button class="btn btn-sm btn-outline-danger" onclick="event.stopPropagation(); eliminare('@item.Id')" title="Elimina">
                                     @*TODO Funzione elimina*@
                                     <i class="bi bi-trash3"></i>
@@ -164,7 +160,6 @@ temporaneamente fatto cosi *@
     {
         Id = "offcanvasDettagli",
         Title = "Dettagli semi lavorato",
-        Width = "500px"
     }
 )
 

@@ -4,16 +4,17 @@
     <div class="mb-4">
         <small class="text-uppercase text-muted fw-bold">Descrizione</small>
         <h3 class="fw-bold">@Model.Descrizione</h3>
-        <span class="badge bg-primary">@Model.CodiceUbicazione</span>
+        <small class="text-muted d-block">Ubicazione:</small>
+        <span class="badge bg-secondary">@Model.CodiceUbicazione</span>
     </div>
 
     <div class="row mb-4">
         <div class="col-6">
-            <small class="text-muted d-block">ID</small>
+            <small class="text-muted d-block">ID:</small>
             <strong class="fs-5">@Model.Id</strong>
         </div>
         <div class="col-6">
-            <small class="text-muted d-block">In Carico a</small>
+            <small class="text-muted d-block">In Carico a:</small>
             <strong class="fs-5">@Model.AziendaEsterna</strong>
         </div>
     </div>
