@@ -36,7 +36,7 @@ namespace LogiHub.Infrastructure
                     Id = Guid.Parse("3de6883f-9a0b-4667-aa53-0fbc52c4d300"), 
                     Email = "email1@test.it", 
                     Password = "M0Cuk9OsrcS/rTLGf5SY6DUPqU2rGc1wwV2IL88GVGo=", 
-                    FirstName = "Nome1", LastName = "Cognome1" 
+                    FirstName = "Mario", LastName = "Rossi" 
                 },
                 new User 
                 { 
