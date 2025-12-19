@@ -1,8 +1,22 @@
-﻿@* @model LogiHub.Web.Areas.Inventario.Models.IndexViewModel *@
-
+﻿@using LogiHub.Web1.Features.SearchCard
 
 @{
     ViewData["Title"] = "Gestione Semilavorati";
 }
 
-<div> AAAAAAAAAAAA</div>
+<div>
+    @await Html.PartialAsync("~/Features/SearchCard/_SearchCard.cshtml", new SearchCardViewModel
+    {
+        Title = "🗃🧮 Inventario",
+        InputValue = Model.Filter,
+        Buttons = new List<SearchCardButton>
+        {
+            new() { Text = "Aggiungi", CssClass = "btn-primary", Type="button", IconClass="fa-solid fa-plus", OnClick="location.href='/Magazzino/SemiLavorati/Aggiungi'" }
+        },
+        HiddenFields = new Dictionary<string, string>
+        {
+            { "Page", "1" },
+            { "PageSize", Model.PageSize.ToString() }
+        }
+    })
+</div>

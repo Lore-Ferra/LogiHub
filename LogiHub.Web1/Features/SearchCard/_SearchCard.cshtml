@@ -1,0 +1,62 @@
+﻿@model LogiHub.Web1.Features.SearchCard.SearchCardViewModel
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    @if (!string.IsNullOrEmpty(Model.Title))
+    {
+        <h1 class="h3 mb-0 text-gray-800">@Model.Title</h1>
+    }
+
+    @if (Model.Buttons != null && Model.Buttons.Any())
+    {
+        <div class="d-flex gap-2">
+            @foreach (var btn in Model.Buttons)
+            {
+                <button class="btn @btn.CssClass" type="@btn.Type"
+                        @(string.IsNullOrEmpty(btn.OnClick) ? "" : $"onclick=\"{btn.OnClick}\"")>
+                    @if (!string.IsNullOrEmpty(btn.IconClass))
+                    {
+                        <i class="@btn.IconClass me-1"></i>
+                    }
+                    @btn.Text
+                </button>
+            }
+        </div>
+    }
+</div>
+
+<div class="card shadow-sm mb-4">
+    <div class="card-body">
+        <form method="get" class="row g-3">
+            @if (Model.HiddenFields != null)
+            {
+                @foreach (var field in Model.HiddenFields)
+                {
+                    <input type="hidden" name="@field.Key" value="@field.Value" />
+                }
+            }
+
+            <div class="col-8 col-md-10">
+                <div class="input-group">
+                    <span class="input-group-text bg-light border-0">
+                        <i class="fas fa-search text-muted"></i>
+                    </span>
+                    <input name="@Model.InputName"
+                           value="@Model.InputValue"
+                           class="form-control border-0 bg-light"
+                           placeholder="@Model.Placeholder" />
+                </div>
+            </div>
+
+            <div class="col-4 col-md-2">
+                <div class="dropdown">
+                    <button class="btn btn-outline-primary dropdown-toggle w-100" type="button" data-bs-toggle="dropdown">
+                        <i class="fa-solid fa-filter"></i> Filtri
+                    </button>
+                    <div class="dropdown-menu dropdown-menu-end">
+                        <a class="dropdown-item" href="#">Filtri in arrivo…</a>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>

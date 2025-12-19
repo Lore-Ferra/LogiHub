@@ -1,4 +1,5 @@
-﻿@model LogiHub.Web.Areas.Magazzino.Models.SemiLavoratiIndexViewModel
+﻿@using LogiHub.Web1.Features.SearchCard
+@model LogiHub.Web.Areas.Magazzino.Models.SemiLavoratiIndexViewModel
 
 @{
     ViewData["Title"] = "Gestione Semilavorati";
@@ -7,52 +8,21 @@
     <link rel="stylesheet" href="~/css/magazzinosemilavorati.css" />
     <link rel="stylesheet" href="~/css/offcanvas.css" />
 }
-@* per vedere questa view andare al percorso /Magazzino/SemiLavorati
-temporaneamente fatto cosi *@
 <div>
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1 class="h3 mb-0 text-gray-800">📦 Magazzino Semilavorati</h1>
-        <a asp-action="Aggiungi" class="btn btn-primary d-none d-md-inline-block">
-            <i class="fa-solid fa-plus"></i> Aggiungi
-        </a>
-    </div>
-    <div class="card shadow-sm mb-4">
-        <div class="card-body">
-            <form method="get" class="row g-3">
-                <input type="hidden" name="Page" value="1" />
-                <input type="hidden" name="PageSize" value="@Model.PageSize" />
-
-                <div class="col-8 col-md-10">
-                    <div class="input-group">
-                        <span class="input-group-text bg-light border-0">
-                            <i class="fas fa-search text-muted"></i>
-                        </span>
-                        <input asp-for="Filter"
-                               class="form-control border-0 bg-light"
-                               placeholder="Cerca…" />
-                    </div>
-                </div>
-
-                <div class="col-4 col-md-2">
-                    <div class="dropdown">
-                        <button class="btn btn-outline-primary dropdown-toggle w-100"
-                                type="button"
-                                data-bs-toggle="dropdown">
-                            <i class="fa-solid fa-filter"></i> Filtri
-                        </button>
-
-                        <div class="dropdown-menu dropdown-menu-end">
-                            <a class="dropdown-item" href="">
-                                Filtri in arrivo…
-                            </a>
-
-                        </div>
-                    </div>
-                </div>
-
-            </form>
-        </div>
-    </div>
+    @await Html.PartialAsync("~/Features/SearchCard/_SearchCard.cshtml", new SearchCardViewModel
+    {
+        Title = "📦 Magazzino Semilavorati",
+        InputValue = Model.Filter,
+        Buttons = new List<SearchCardButton>
+        {
+            new() { Text = "Aggiungi", CssClass = "btn-primary", Type="button", IconClass="fa-solid fa-plus", OnClick="location.href='/Magazzino/SemiLavorati/Aggiungi'" }
+        },
+        HiddenFields = new Dictionary<string, string>
+        {
+            { "Page", "1" },
+            { "PageSize", Model.PageSize.ToString() }
+        }
+    })
 </div>
 
 <div class="d-md-none">
