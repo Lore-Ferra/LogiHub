@@ -36,7 +36,7 @@
     @foreach (var item in Model.SemiLavorati)
     {
         <div class="card shadow-sm semilavorato-card mb-2"
-             onclick="OffcanvasManager.open('offcanvasDettagli','/Magazzino/SemiLavorati/Details?id=@item.Id')">
+             onclick="apriDettagli(event, '@item.Id')">
             <div class="card-body">
                 <div class="fw-bold fs-5 mb-2">
                     #@item.Id
@@ -88,7 +88,7 @@
                 <tbody>
                     @foreach (var item in Model.SemiLavorati)
                     {
-                        <tr style="cursor: pointer;" onclick="OffcanvasManager.open('offcanvasDettagli','/Magazzino/SemiLavorati/Details?id=@item.Id')">
+                        <tr onclick="apriDettagli(event, '@item.Id')" style="cursor:pointer;">
                             <td class="ps-4 fw-bold text-primary">
                                 <div class="small text-muted">ID: @item.Id</div>
                             </td>
@@ -156,29 +156,42 @@
 
 @section Scripts {
     <script src="~/js/features/offcanvas/offcanvas.js"></script>
+    
+    <script>
+    function apriDettagli(e, id) {
+    
+        if (e.target.closest('.btn-elimina')) {
+            return;
+        }
+    
+        OffcanvasManager.open(
+            'offcanvasDettagli',
+            '/Magazzino/SemiLavorati/Details?id=' + id
+        );
+    }
+    </script>
+
 
     <script>
-        document.addEventListener('click', async function (e) {
-            const btn = e.target.closest('.btn-elimina');
-            if (!btn) return;
-
-            e.stopPropagation();
-            const id = btn.dataset.id;
-
-            if (!confirm(`Sei sicuro di voler eliminare il pezzo ${id}?`)) return;
-
-            const response = await fetch('/Magazzino/SemiLavorati/Elimina', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ semiLavoratoId: id })
-            });
-
-            if (response.ok) {
-                // Rimuove la riga dalla tabella senza ricaricare la pagina
-                btn.closest('tr, .card').remove(); 
-            } else {
-                alert("Errore durante l'eliminazione.");
-            }
+    document.addEventListener('click', async function (e) {
+        const btn = e.target.closest('.btn-elimina');
+        if (!btn) return;
+    
+        const id = btn.dataset.id;
+    
+        if (!confirm(`Sei sicuro di voler eliminare il pezzo ${id}?`)) return;
+    
+        const response = await fetch('/Magazzino/SemiLavorati/Elimina', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ semiLavoratoId: id })
         });
+    
+        if (response.ok) {
+            btn.closest('tr, .card')?.remove();
+        } else {
+            alert("Errore durante l'eliminazione.");
+        }
+            });
     </script>
 }
