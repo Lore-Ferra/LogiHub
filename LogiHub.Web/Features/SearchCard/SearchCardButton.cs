@@ -1,10 +1,13 @@
-﻿namespace LogiHub.Web.Features.SearchCard;
+﻿using System.Collections.Generic;
 
-public class SearchCardButton
+namespace LogiHub.Web.Features.SearchCard
 {
-    public string Text { get; set; }
-    public string CssClass { get; set; } = "btn-primary";
-    public string Type { get; set; } = "submit"; 
-    public string OnClick { get; set; }
-    public string IconClass { get; set; }
+    public class SearchCardButton
+    {
+        public string Text { get; set; }
+        public string CssClass { get; set; } = "btn-primary";
+        public string Type { get; set; } = "button";
+        public string IconClass { get; set; }
+        public Dictionary<string, string> HtmlAttributes { get; set; } = new();
+    }
 }

@@ -11,9 +11,10 @@
         <div class="d-flex gap-2">
             @foreach (var btn in Model.Buttons)
             {
+                var htmlAttrs = string.Join(" ", (btn.HtmlAttributes ?? new Dictionary<string,string>()).Select(a => $"{a.Key}=\"{a.Value}\""));
                 <button class="btn d-none d-md-block @btn.CssClass"
                         type="@(string.IsNullOrWhiteSpace(btn.Type) ? "button" : btn.Type)"
-                        onclick="@btn.OnClick">
+                        @Html.Raw(htmlAttrs)>
                     @if (!string.IsNullOrEmpty(btn.IconClass))
                     {
                         <i class="@btn.IconClass me-1"></i>

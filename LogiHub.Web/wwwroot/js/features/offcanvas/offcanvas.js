@@ -1,56 +1,66 @@
-﻿window.OffcanvasManager = (function () {
-
-    function open(offcanvasId, url) {
-
-        const offcanvasEl = document.getElementById(offcanvasId);
-        if (!offcanvasEl) return;
-
-        const offcanvas = window.bootstrap.Offcanvas.getOrCreateInstance(offcanvasEl);
-        offcanvas.show();
-
-        const contentDiv = offcanvasEl.querySelector('[data-offcanvas-content]');
-        if (!contentDiv) return;
-
-        contentDiv.innerHTML = `
-            <div class="d-flex flex-column justify-content-center align-items-center h-100 mt-5">
-                <div class="spinner-border text-primary"></div>
-                <p class="mt-2 text-muted">Caricamento dati...</p>
-            </div>`;
-
-        fetch(url)
-            .then(r => {
-                if (!r.ok) throw new Error("Errore nel caricamento");
-                return r.text();
-            })
-            .then(html => contentDiv.innerHTML = html)
-            .catch(err => {
-                contentDiv.innerHTML = `
-                    <div class="alert alert-danger m-3">
-                        Errore: ${err.message}
-                    </div>`;
-            });
-    }
-
-    function wireMobileBehavior() {
-        document.querySelectorAll('.offcanvas').forEach(offcanvasEl => {
-
-            offcanvasEl.addEventListener('shown.bs.offcanvas', () => {
-                if (window.innerWidth < 768) {
-                    document.body.classList.add('offcanvas-open-mobile');
-                }
-            });
-
-            offcanvasEl.addEventListener('hidden.bs.offcanvas', () => {
-                document.body.classList.remove('offcanvas-open-mobile');
-            });
-
-        });
-    }
-
-    document.addEventListener('DOMContentLoaded', wireMobileBehavior);
-
-    return {
-        open
-    };
-
-})();
+var Example;
+(function (Example) {
+    var Components;
+    (function (Components) {
+        class OffcanvasComponent {
+            constructor() {
+                this.state = {};
+            }
+            open(options) {
+                const { id, url, title } = options;
+                const offcanvasEl = document.getElementById(id);
+                if (!offcanvasEl)
+                    return;
+                // Aggiorna titolo
+                const header = offcanvasEl.querySelector('.offcanvas-title');
+                if (header)
+                    header.textContent = title || '';
+                // Mostra spinner
+                const body = offcanvasEl.querySelector('[data-offcanvas-content]');
+                if (!body)
+                    return;
+                body.innerHTML = `
+                <div class="d-flex justify-content-center align-items-center h-100">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Caricamento...</span>
+                    </div>
+                </div>
+            `;
+                // Bootstrap Offcanvas
+                const bsInstance = new bootstrap.Offcanvas(offcanvasEl);
+                bsInstance.show();
+                this.state[id] = { isOpen: true };
+                fetch(url)
+                    .then(r => r.text())
+                    .then(html => body.innerHTML = html)
+                    .catch(() => body.innerHTML = '<p class="text-danger text-center p-3">Errore nel caricamento.</p>');
+            }
+            close(id) {
+                const offcanvasEl = document.getElementById(id);
+                if (!offcanvasEl)
+                    return;
+                const bsInstance = bootstrap.Offcanvas.getInstance(offcanvasEl);
+                bsInstance === null || bsInstance === void 0 ? void 0 : bsInstance.hide();
+                if (this.state[id])
+                    this.state[id].isOpen = false;
+            }
+        }
+        Components.OffcanvasComponent = OffcanvasComponent;
+        Components.Offcanvas = new OffcanvasComponent();
+    })(Components = Example.Components || (Example.Components = {}));
+})(Example || (Example = {}));
+document.addEventListener('click', (e) => {
+    const target = e.target;
+    if (!target)
+        return;
+    const btn = target.closest('[data-offcanvas]');
+    if (!btn)
+        return;
+    const id = btn.dataset.id;
+    const url = btn.dataset.url;
+    const title = btn.dataset.title;
+    if (!id || !url)
+        return;
+    Example.Components.Offcanvas.open({ id, url, title });
+});
+//# sourceMappingURL=offcanvas.js.map
