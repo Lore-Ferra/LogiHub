@@ -5,7 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace LogiHub.Web1.Infrastructure
+namespace LogiHub.Web.Infrastructure
 {
     public class SimplePropertyModelUnbinder : IModelUnbinder
     {

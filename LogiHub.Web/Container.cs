@@ -1,8 +1,8 @@
-﻿using LogiHub.Web1.SignalR;
-using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.Extensions.DependencyInjection;
 using LogiHub.Services.Shared;
+using LogiHub.Web.SignalR;
 
-namespace LogiHub.Web1
+namespace LogiHub.Web
 {
     public class Container
     {

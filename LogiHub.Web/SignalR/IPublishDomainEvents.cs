@@ -1,6 +1,6 @@
 ﻿using System.Threading.Tasks;
 
-namespace LogiHub.Web1.SignalR
+namespace LogiHub.Web.SignalR
 {
     public interface IPublishDomainEvents
     {

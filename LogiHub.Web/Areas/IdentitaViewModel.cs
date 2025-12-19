@@ -1,6 +1,6 @@
-﻿using LogiHub.Web1.Infrastructure;
+﻿using LogiHub.Web.Infrastructure;
 
-namespace LogiHub.Web1.Areas
+namespace LogiHub.Web.Areas
 {
     public class IdentitaViewModel
     {

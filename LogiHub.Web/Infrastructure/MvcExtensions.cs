@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using System.Globalization;
 using System.Linq;
 
-namespace LogiHub.Web1.Infrastructure
+namespace LogiHub.Web.Infrastructure
 {
     public static class MvcExtensions
     {

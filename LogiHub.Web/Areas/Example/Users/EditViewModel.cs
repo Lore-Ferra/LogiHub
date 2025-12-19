@@ -1,9 +1,9 @@
-﻿using LogiHub.Web1.Infrastructure;
-using System;
+﻿using System;
 using System.ComponentModel.DataAnnotations;
 using LogiHub.Services.Shared;
+using LogiHub.Web.Infrastructure;
 
-namespace LogiHub.Web1.Areas.Example.Users
+namespace LogiHub.Web.Areas.Example.Users
 {
     [TypeScriptModule("Example.Users.Server")]
     public class EditViewModel

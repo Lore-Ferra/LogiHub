@@ -1,13 +1,13 @@
-using LogiHub.Web1.Infrastructure;
-using LogiHub.Web1.SignalR;
-using LogiHub.Web1.SignalR.Hubs.Events;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Localization;
 using System;
 using System.Threading.Tasks;
 using LogiHub.Services.Shared;
+using LogiHub.Web.Infrastructure;
+using LogiHub.Web.SignalR;
+using LogiHub.Web.SignalR.Hubs.Events;
 
-namespace LogiHub.Web1.Areas.Example.Users
+namespace LogiHub.Web.Areas.Example.Users
 {
     [Area("Example")]
     public partial class UsersController : AuthenticatedBaseController

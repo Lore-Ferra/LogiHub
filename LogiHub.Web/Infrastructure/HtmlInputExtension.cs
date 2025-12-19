@@ -2,7 +2,7 @@
 using System.Diagnostics;
 using System.Globalization;
 
-namespace LogiHub.Web1.Infrastructure
+namespace LogiHub.Web.Infrastructure
 {
     public static class HtmlInputExtension
     {

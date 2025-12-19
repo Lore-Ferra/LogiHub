@@ -2,7 +2,7 @@
 {
     using LogiHub.Services.Shared;
     using LogiHub.Web.Areas.Magazzino.Models;
-    using LogiHub.Web1.Areas;
+    using Web.Areas;
     using Microsoft.AspNetCore.Mvc;
     using System.Linq;
     using System.Threading.Tasks;

@@ -1,7 +1,7 @@
 ﻿using System.Security.Cryptography;
 using System.Text;
 
-namespace LogiHub.Web1.Infrastructure
+namespace LogiHub.Web.Infrastructure
 {
     public static class ToGravatarUrlExtension
     {

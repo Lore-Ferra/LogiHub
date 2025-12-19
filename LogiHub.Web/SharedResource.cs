@@ -1,4 +1,4 @@
-﻿namespace LogiHub.Web1
+﻿namespace LogiHub.Web
 {
     public class SharedResource
     {

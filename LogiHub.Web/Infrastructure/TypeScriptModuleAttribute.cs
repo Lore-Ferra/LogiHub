@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace LogiHub.Web1.Infrastructure
+namespace LogiHub.Web.Infrastructure
 {
     [AttributeUsage(AttributeTargets.Class | AttributeTargets.Enum)]
     public sealed class TypeScriptModuleAttribute : Attribute

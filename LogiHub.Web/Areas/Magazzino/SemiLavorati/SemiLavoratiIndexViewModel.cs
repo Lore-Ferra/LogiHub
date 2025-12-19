@@ -1,5 +1,5 @@
 ﻿using LogiHub.Services.Shared;
-using LogiHub.Web1.Infrastructure;
+using LogiHub.Web.Infrastructure;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using System.Collections;

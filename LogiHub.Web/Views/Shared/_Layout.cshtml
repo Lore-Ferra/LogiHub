@@ -1,12 +1,12 @@
-﻿@inject IHtmlLocalizer<LogiHub.Web1.SharedResource> SharedLocalizer
+﻿@inject IHtmlLocalizer<LogiHub.Web.SharedResource> SharedLocalizer
 @inject Microsoft.Extensions.Options.IOptions<AppSettings> appSettings
 @{
     Layout = "_LayoutHtml";
     var version = System.Reflection.Assembly.GetAssembly(typeof(Startup)).GetName().Version;
 
-    var identitaCorrente = (LogiHub.Web1.Areas.IdentitaViewModel)ViewData[LogiHub.Web1.Areas.IdentitaViewModel.VIEWDATA_IDENTITACORRENTE_KEY];
+    var identitaCorrente = (LogiHub.Web.Areas.IdentitaViewModel)ViewData[LogiHub.Web.Areas.IdentitaViewModel.VIEWDATA_IDENTITACORRENTE_KEY];
 
-    var paging = Model as LogiHub.Web1.Infrastructure.PagingViewModel;
+    var paging = Model as LogiHub.Web.Infrastructure.PagingViewModel;
 }
 @section metas{
     @RenderSection("metas", false)

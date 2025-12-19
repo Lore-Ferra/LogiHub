@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace LogiHub.Web1.Features.Login
+namespace LogiHub.Web.Features.Login
 {
     public class LoginViewModel
     {

@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 
-namespace LogiHub.Web1.Areas.Inventario.Lista;
+namespace LogiHub.Web.Areas.Inventario.Lista;
 
 [Area("Inventario")]
 public partial class ListaController : AuthenticatedBaseController

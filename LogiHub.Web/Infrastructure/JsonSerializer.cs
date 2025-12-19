@@ -1,6 +1,6 @@
 ﻿using Newtonsoft.Json;
 
-namespace LogiHub.Web1.Infrastructure
+namespace LogiHub.Web.Infrastructure
 {
     public static class JsonSerializer
     {

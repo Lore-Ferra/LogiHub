@@ -1,10 +1,10 @@
-﻿using LogiHub.Web1.SignalR.Hubs;
-using LogiHub.Web1.SignalR.Hubs.Events;
-using Microsoft.AspNetCore.SignalR;
+﻿using Microsoft.AspNetCore.SignalR;
 using System;
 using System.Threading.Tasks;
+using LogiHub.Web.SignalR.Hubs;
+using LogiHub.Web.SignalR.Hubs.Events;
 
-namespace LogiHub.Web1.SignalR
+namespace LogiHub.Web.SignalR
 {
     public class SignalrPublishDomainEvents : IPublishDomainEvents
     {

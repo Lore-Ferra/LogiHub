@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
 
-namespace LogiHub.Web1.Infrastructure;
+namespace LogiHub.Web.Infrastructure;
 
 public class PaginatedList<T> : List<T>
 {

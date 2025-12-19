@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Hosting;
 
-namespace LogiHub.Web1
+namespace LogiHub.Web
 {
     public class Program
     {

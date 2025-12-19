@@ -1,13 +1,13 @@
-﻿using LogiHub.Web1.Infrastructure;
-using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using LogiHub.Services.Shared;
+using LogiHub.Web.Infrastructure;
 
-namespace LogiHub.Web1.Areas.Example.Users
+namespace LogiHub.Web.Areas.Example.Users
 {
     public class IndexViewModel : PagingViewModel
     {

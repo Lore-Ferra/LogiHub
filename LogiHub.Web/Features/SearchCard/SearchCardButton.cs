@@ -1,4 +1,4 @@
-﻿namespace LogiHub.Web1.Features.SearchCard;
+﻿namespace LogiHub.Web.Features.SearchCard;
 
 public class SearchCardButton
 {

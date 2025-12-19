@@ -8,7 +8,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
 
-namespace LogiHub.Web1.Infrastructure
+namespace LogiHub.Web.Infrastructure
 {
     public abstract class PagingViewModel
     {
@@ -21,7 +21,7 @@ namespace LogiHub.Web1.Infrastructure
         public bool OrderByDescending { get; set; }
         public int[] PageSizes { get; set; }
 
-        public IEnumerable<SelectListItem> PageSizeListItems // VB: non facciamo proprietà che fanno i conti, meglio un metodo
+        public IEnumerable<SelectListItem> PageSizeListItems // VB: non facciamo proprietï¿½ che fanno i conti, meglio un metodo
         {
             get
             {

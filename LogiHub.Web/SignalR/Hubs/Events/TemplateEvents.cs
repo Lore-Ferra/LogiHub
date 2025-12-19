@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace LogiHub.Web1.SignalR.Hubs.Events
+namespace LogiHub.Web.SignalR.Hubs.Events
 {
     public class NewMessageEvent
     {

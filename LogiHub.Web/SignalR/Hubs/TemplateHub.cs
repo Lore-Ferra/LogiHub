@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.SignalR;
 using System;
 
-namespace LogiHub.Web1.SignalR.Hubs
+namespace LogiHub.Web.SignalR.Hubs
 {
     public interface ITemplateClientEvent
     {

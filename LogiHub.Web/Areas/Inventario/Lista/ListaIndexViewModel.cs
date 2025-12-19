@@ -1,4 +1,4 @@
-﻿namespace LogiHub.Web1.Areas.Inventario;
+﻿namespace LogiHub.Web.Areas.Inventario;
 
 public class ListaIndexViewModel
 {

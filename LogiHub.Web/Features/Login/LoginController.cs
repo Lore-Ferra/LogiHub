@@ -1,4 +1,3 @@
-using LogiHub.Web1.Infrastructure;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Mvc;
@@ -9,8 +8,9 @@ using System.Security.Claims;
 using System.Threading.Tasks;
 using LogiHub.Infrastructure;
 using LogiHub.Services.Shared;
+using LogiHub.Web.Infrastructure;
 
-namespace LogiHub.Web1.Features.Login
+namespace LogiHub.Web.Features.Login
 {
     [ResponseCache(Location = ResponseCacheLocation.None, NoStore = true)]
     [Alerts]

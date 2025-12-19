@@ -1,6 +1,5 @@
 ﻿//using LogiHub.Web1.Hubs;
-using LogiHub.Web1.Infrastructure;
-using LogiHub.Web1.SignalR.Hubs;
+
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -13,8 +12,10 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using LogiHub.Services;
+using LogiHub.Web.Infrastructure;
+using LogiHub.Web.SignalR.Hubs;
 
-namespace LogiHub.Web1
+namespace LogiHub.Web
 {
     public class Startup
     {
