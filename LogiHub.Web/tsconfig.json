@@ -4,6 +4,7 @@
     "noEmitOnError": true,
     "noImplicitAny": false,
     "removeComments": false,
+    "outDir": "./wwwroot/js",
     "sourceMap": true,
     "target": "es2019",
     "module": "none",
