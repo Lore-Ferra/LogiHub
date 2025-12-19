@@ -5,7 +5,7 @@ VisualStudioVersion = 18.1.11304.174
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LogiHub", "LogiHub\LogiHub.csproj", "{0BB0C7E2-15AB-4848-BD58-5CA5C33D4D14}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LogiHub.Web", "LogiHub.Web1\LogiHub.Web.csproj", "{CA099A1A-CC2D-49D4-B712-389B534FDC5D}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LogiHub.Web", "LogiHub.Web\LogiHub.Web.csproj", "{CA099A1A-CC2D-49D4-B712-389B534FDC5D}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
