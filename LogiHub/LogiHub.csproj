@@ -9,4 +9,9 @@
     <PackageReference Include="System.Linq.Dynamic.Core" Version="1.5.0" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Services\Inventario\" />
+    <Folder Include="Services\Magazzino\" />
+  </ItemGroup>
+
 </Project>
