@@ -1,4 +1,7 @@
-﻿using LogiHub.Services.Shared.SemiLavorati;
+﻿using System;
+using System.Security.Claims;
+using LogiHub.Services.Shared.SemiLavorati;
+using LogiHub.Web.Areas.Magazzino.SemiLavorati;
 
 namespace LogiHub.Web.Areas.Magazzino
 {
@@ -59,6 +62,44 @@ namespace LogiHub.Web.Areas.Magazzino
             if (dto == null) return NotFound();
 
             return PartialView("Details", dto);
+        }
+        
+        
+        [HttpGet]
+        public virtual IActionResult CreaSemilavorato()
+        {
+            var model = new CreaSemiLavoratoViewModel();
+            return PartialView("CreaSemilavorato", model);
+        }
+        
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public virtual async Task<IActionResult> CreaSemilavorato(
+            CreaSemiLavoratoViewModel model)
+        {
+            if (!ModelState.IsValid)
+                return PartialView("CreaSemilavorato", model);
+
+            var userId = Guid.Parse(
+                User.FindFirstValue(ClaimTypes.NameIdentifier)
+            );
+
+            Guid? ubicazioneId = null;
+            Guid? aziendaEsternaId = null;
+
+            var dto = new CreaSemiLavoratoDTO
+            {
+                Id = model.Id,
+                Descrizione = model.Descrizione,
+                UbicazioneId = ubicazioneId,
+                AziendaEsternaId = aziendaEsternaId,
+                UserId = userId,
+                Dettagli = $"Ubicazione: {model.Ubicazione}, Azienda: {model.AziendaEsterna}"
+            };
+
+            await _service.CreaSemiLavoratoAsync(dto);
+
+            return RedirectToAction(nameof(Index));
         }
     }
 }
