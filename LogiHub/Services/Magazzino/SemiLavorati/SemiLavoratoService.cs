@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using LogiHub.Models.Shared;
 using LogiHub.Services;
+using LogiHub.Services.Shared.SemiLavorati;
 using Microsoft.EntityFrameworkCore;
 
 public class SemiLavoratoService : ISemiLavoratoService
@@ -14,6 +15,7 @@ public class SemiLavoratoService : ISemiLavoratoService
         _context = context;
     }
 
+    //METODI CRUD
     public async Task<SemiLavorato> CreaSemiLavoratoAsync(CreaSemiLavoratoDTO dto)
     {
         var exists = await _context.SemiLavorati.AnyAsync(x => x.Id == dto.Id);
@@ -33,138 +35,226 @@ public class SemiLavoratoService : ISemiLavoratoService
 
         _context.SemiLavorati.Add(semi);
 
-        await RegistraAzioneInterna(dto.Id, "Creazione", dto.UserId, dto.Dettagli ?? "");
+        if (!GeneraAzioneCreazione(dto))
+        {
+            throw new Exception("Errore nella generazione dell'azione di log.");
+        }
         await _context.SaveChangesAsync();
 
         return semi;
     }
-
-    public async Task<SemiLavorato?> GetByIdAsync(string id)
+    public async Task<bool> EliminaAsync(EliminaSemiLavoratoDTO dto)
     {
-        return await _context.SemiLavorati
-            .Include(s => s.Ubicazione)
-            .Include(s => s.AziendaEsterna)
-            .Include(s => s.Azioni)
-            .FirstOrDefaultAsync(s => s.Id == id);
+        var sl = await _context.SemiLavorati.FindAsync(dto.SemiLavoratoId);
+        if (sl == null || sl.Eliminato) return false;
+        
+        sl.Eliminato = true;
+        sl.UltimaModifica = DateTime.Now;
+        
+        if (!GeneraAzioneEliminazione(dto))
+        {
+            return false;
+        }
+        
+        return await _context.SaveChangesAsync() > 0;
     }
+    
+    //AZIONI
+    private bool GeneraAzioneCreazione(CreaSemiLavoratoDTO dto)
+    { 
+        if (string.IsNullOrEmpty(dto.Id) || dto.UserId == Guid.Empty)
+        {
+            return false;
+        }
 
-    public async Task<bool> AggiornaAsync(
-        string id,
-        string? nuovaDescrizione,
-        Guid? nuovaUbicazioneId,
-        Guid? nuovaAziendaEsternaId,
-        Guid userId,
-        string dettagli)
-    {
-        var semi = await _context.SemiLavorati.FindAsync(id);
-        if (semi == null || semi.Eliminato) return false;
-
-        semi.Descrizione = nuovaDescrizione ?? semi.Descrizione;
-        semi.UbicazioneId = nuovaUbicazioneId ?? semi.UbicazioneId;
-        semi.AziendaEsternaId = nuovaAziendaEsternaId ?? semi.AziendaEsternaId;
-        semi.UltimaModifica = DateTime.Now;
-
-        await RegistraAzioneInterna(id, "Aggiornamento", userId, dettagli);
-        await _context.SaveChangesAsync();
-
-        return true;
-    }
-
-    public async Task<bool> CambiaUbicazioneAsync(
-        string semiLavoratoId,
-        Guid nuovaUbicazioneId,
-        Guid userId,
-        string dettagli)
-    {
-        var semi = await _context.SemiLavorati.FindAsync(semiLavoratoId);
-        if (semi == null || semi.Eliminato) return false;
-
-        semi.UbicazioneId = nuovaUbicazioneId;
-        semi.UltimaModifica = DateTime.Now;
-
-        await RegistraAzioneInterna(semiLavoratoId, "Cambio Ubicazione", userId, dettagli);
-        await _context.SaveChangesAsync();
-
-        return true;
-    }
-
-    public async Task<bool> InviaAdAziendaEsternaAsync(
-        string semiLavoratoId,
-        Guid aziendaEsternaId,
-        Guid userId,
-        string dettagli)
-    {
-        var semi = await _context.SemiLavorati.FindAsync(semiLavoratoId);
-        if (semi == null || semi.Eliminato) return false;
-
-        semi.AziendaEsternaId = aziendaEsternaId;
-        semi.UltimaModifica = DateTime.Now;
-
-        await RegistraAzioneInterna(semiLavoratoId, "Invio a terzista", userId, dettagli);
-        await _context.SaveChangesAsync();
-
-        return true;
-    }
-
-    public async Task<bool> RegistraRientroAsync(
-        string semiLavoratoId,
-        Guid userId,
-        string dettagli)
-    {
-        var semi = await _context.SemiLavorati.FindAsync(semiLavoratoId);
-        if (semi == null || semi.Eliminato) return false;
-
-        semi.AziendaEsternaId = null;
-        semi.UltimaModifica = DateTime.Now;
-
-        await RegistraAzioneInterna(semiLavoratoId, "Rientro da terzista", userId, dettagli);
-        await _context.SaveChangesAsync();
-
-        return true;
-    }
-
-    public async Task<bool> EliminaAsync(
-        string semiLavoratoId,
-        Guid userId,
-        string dettagli)
-    {
-        var semi = await _context.SemiLavorati.FirstOrDefaultAsync(s => s.Id == semiLavoratoId);
-        if (semi == null || semi.Eliminato) return false;
-
-        semi.Eliminato = true;
-        semi.UltimaModifica = DateTime.Now;
-
-        await RegistraAzioneInterna(semiLavoratoId, "Eliminazione (Soft Delete)", userId, dettagli);
-        await _context.SaveChangesAsync();
-
-        return true;
-    }
-
-    public async Task<IEnumerable<SemiLavorato>> GetAllAsync()
-    {
-        return await _context.SemiLavorati
-            .Include(s => s.Ubicazione)
-            .Include(s => s.AziendaEsterna)
-            .ToListAsync();
-    }
-
-    private async Task RegistraAzioneInterna(
-        string semiLavoratoId,
-        string tipo,
-        Guid userId,
-        string dettagli)
-    {
         var azione = new Azione
         {
             Id = Guid.NewGuid(),
-            SemiLavoratoId = semiLavoratoId,
-            TipoOperazione = tipo,
-            Dettagli = dettagli,
-            UserId = userId,
+            SemiLavoratoId = dto.Id,
+            TipoOperazione = TipoOperazione.Creazione,
+            UserId = dto.UserId,
+            Dettagli = dto.Dettagli ?? "Creazione iniziale",
             DataOperazione = DateTime.Now
         };
-
         _context.Azioni.Add(azione);
-        await Task.CompletedTask;
+        return true; 
     }
+    private bool GeneraAzioneEliminazione(EliminaSemiLavoratoDTO dto)
+    { 
+        if (string.IsNullOrEmpty(dto.SemiLavoratoId) || dto.UserId == Guid.Empty)
+        {
+            return false;
+        }
+
+        var azione = new Azione
+        {
+            Id = Guid.NewGuid(),
+            SemiLavoratoId = dto.SemiLavoratoId,
+            TipoOperazione = TipoOperazione.Eliminazione,
+            UserId = dto.UserId,
+            Dettagli = dto.Dettagli ?? "Eliminazione semilavorato",
+            DataOperazione = DateTime.Now
+        };
+        _context.Azioni.Add(azione);
+        return true; 
+    }
+    
+    // Task<bool> RegistraCambioUbicazione(CambioUbicazioneDTO dto);
+    // Task<bool> RegistraUscita(RegistraUscitaDTO dto);
+    // Task<bool> RegistraEntrata(sRegistraEntrataDTO dto);
+    // Task<bool> RegistraEliminazione(EliminaSemiLavoratoDTO dto);
+    
+ 
+    
+ 
+    //
+    //
+    //
+    //
+    //
+    //
+    //
+    //
+    //
+    //
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    //
+    //
+    //
+    //
+    //
+    //
+    // public async Task<SemiLavorato?> GetByIdAsync(string id)
+    // {
+    //     return await _context.SemiLavorati
+    //         .Include(s => s.Ubicazione)
+    //         .Include(s => s.AziendaEsterna)
+    //         .Include(s => s.Azioni)
+    //         .FirstOrDefaultAsync(s => s.Id == id);
+    // }
+    //
+    // public async Task<bool> AggiornaAsync(
+    //     string id,
+    //     string? nuovaDescrizione,
+    //     Guid? nuovaUbicazioneId,
+    //     Guid? nuovaAziendaEsternaId,
+    //     Guid userId,
+    //     string dettagli)
+    // {
+    //     var semi = await _context.SemiLavorati.FindAsync(id);
+    //     if (semi == null || semi.Eliminato) return false;
+    //
+    //     semi.Descrizione = nuovaDescrizione ?? semi.Descrizione;
+    //     semi.UbicazioneId = nuovaUbicazioneId ?? semi.UbicazioneId;
+    //     semi.AziendaEsternaId = nuovaAziendaEsternaId ?? semi.AziendaEsternaId;
+    //     semi.UltimaModifica = DateTime.Now;
+    //
+    //     await RegistraCreazioneAsync(id, "Aggiornamento", userId, dettagli);
+    //     await _context.SaveChangesAsync();
+    //
+    //     return true;
+    // }
+    //
+    // public async Task<bool> CambiaUbicazioneAsync(
+    //     string semiLavoratoId,
+    //     Guid nuovaUbicazioneId,
+    //     Guid userId,
+    //     string dettagli)
+    // {
+    //     var semi = await _context.SemiLavorati.FindAsync(semiLavoratoId);
+    //     if (semi == null || semi.Eliminato) return false;
+    //
+    //     semi.UbicazioneId = nuovaUbicazioneId;
+    //     semi.UltimaModifica = DateTime.Now;
+    //
+    //     await RegistraCreazioneAsync(semiLavoratoId, "Cambio Ubicazione", userId, dettagli);
+    //     await _context.SaveChangesAsync();
+    //
+    //     return true;
+    // }
+    //
+    // public async Task<bool> InviaAdAziendaEsternaAsync(
+    //     string semiLavoratoId,
+    //     Guid aziendaEsternaId,
+    //     Guid userId,
+    //     string dettagli)
+    // {
+    //     var semi = await _context.SemiLavorati.FindAsync(semiLavoratoId);
+    //     if (semi == null || semi.Eliminato) return false;
+    //
+    //     semi.AziendaEsternaId = aziendaEsternaId;
+    //     semi.UltimaModifica = DateTime.Now;
+    //
+    //     await RegistraCreazioneAsync(semiLavoratoId, "Invio a terzista", userId, dettagli);
+    //     await _context.SaveChangesAsync();
+    //
+    //     return true;
+    // }
+    //
+    // public async Task<bool> RegistraRientroAsync(
+    //     string semiLavoratoId,
+    //     Guid userId,
+    //     string dettagli)
+    // {
+    //     var semi = await _context.SemiLavorati.FindAsync(semiLavoratoId);
+    //     if (semi == null || semi.Eliminato) return false;
+    //
+    //     semi.AziendaEsternaId = null;
+    //     semi.UltimaModifica = DateTime.Now;
+    //
+    //     await RegistraCreazioneAsync(semiLavoratoId, "Rientro da terzista", userId, dettagli);
+    //     await _context.SaveChangesAsync();
+    //
+    //     return true;
+    // }
+    //
+    //
+    //
+    // public async Task<IEnumerable<SemiLavorato>> GetAllAsync()
+    // {
+    //     return await _context.SemiLavorati
+    //         .Include(s => s.Ubicazione)
+    //         .Include(s => s.AziendaEsterna)
+    //         .ToListAsync();
+    // }
+    //
+    // private async Task RegistraCreazioneAsync(
+    //     string semiLavoratoId,
+    //     string tipo,
+    //     Guid userId,
+    //     string dettagli)
+    // {
+    //     var azione = new Azione
+    //     {
+    //         Id = Guid.NewGuid(),
+    //         SemiLavoratoId = semiLavoratoId,
+    //         TipoOperazione = tipo,
+    //         Dettagli = dettagli,
+    //         UserId = userId,
+    //         DataOperazione = DateTime.Now
+    //     };
+    //
+    //     _context.Azioni.Add(azione);
+    //     await Task.CompletedTask;
+    // }
 }
