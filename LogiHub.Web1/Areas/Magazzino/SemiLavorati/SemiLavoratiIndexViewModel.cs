@@ -7,7 +7,7 @@ using System.Collections.Generic;
 
 namespace LogiHub.Web.Areas.Magazzino.Models
 {
-    public class IndexViewModel : PagingViewModel
+    public class SemiLavoratiIndexViewModel : PagingViewModel
     {
         public IEnumerable<SemiLavoratiIndexDTO.RigaSemiLavorato> SemiLavorati { get; set; }
         public string Filter { get; set; }

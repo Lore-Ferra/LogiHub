@@ -38,7 +38,7 @@
                 .Take(pageSize)
                 .ToList();
 
-            var model = new IndexViewModel
+            var model = new SemiLavoratiIndexViewModel
             {
                 Filter = filter,
                 Page = page,
