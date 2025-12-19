@@ -154,14 +154,17 @@ temporaneamente fatto cosi *@
     <i class="fa-solid fa-plus"></i>
 </a>
 
-@await Html.PartialAsync(
-"_Offcanvas",
-    new LogiHub.Web.Features.Offcanvas.OffcanvasViewModel
+@{
+    var offcanvasModel = new LogiHub.Web.Features.Offcanvas.OffcanvasViewModel
     {
         Id = "offcanvasDettagli",
-        Title = "Dettagli semi lavorato",
-    }
-)
+        Title = "Dettagli semi lavorato"
+    };
+}
+
+<partial name="~/Features/Offcanvas/_Offcanvas.cshtml"
+         model="offcanvasModel" />
+
 
 @section Scripts {
     <script src="~/js/features/offcanvas/offcanvas.js"></script>
