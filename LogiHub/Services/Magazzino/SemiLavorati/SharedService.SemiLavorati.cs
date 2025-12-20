@@ -12,6 +12,7 @@ namespace LogiHub.Services.Shared
         {
             var queryable = _dbContext.SemiLavorati
                 .AsNoTracking()
+                .Where(x => !x.Eliminato)
                 .Include(s => s.Ubicazione)
                 .AsQueryable();
 
@@ -20,7 +21,7 @@ namespace LogiHub.Services.Shared
                 var filterLower = qry.Filter.ToLower();
                 queryable = queryable.Where(x =>
                     x.Descrizione.ToLower().Contains(filterLower) ||
-                    x.Id.ToLower().Contains(filterLower) ||
+                    x.Barcode.ToLower().Contains(filterLower) ||
                     (x.Ubicazione != null && x.Ubicazione.Posizione.ToLower().Contains(filterLower))
                 );
             }
@@ -34,6 +35,7 @@ namespace LogiHub.Services.Shared
                 .Select(x => new SemiLavoratiIndexDTO.RigaSemiLavorato
                 {
                     Id = x.Id,
+                    Barcode = x.Barcode,
                     Descrizione = x.Descrizione,
                     CodiceUbicazione = x.Ubicazione != null ? x.Ubicazione.Posizione : "-",
                     UltimaModifica = x.UltimaModifica
@@ -53,7 +55,7 @@ namespace LogiHub.Services.Shared
                 .Include(x => x.Ubicazione)
                 .Include(x => x.AziendaEsterna)
                 .Include(x => x.Azioni)
-                    .ThenInclude(a => a.User)
+                .ThenInclude(a => a.User)
                 .FirstOrDefaultAsync(x => x.Id == qry.Id && !x.Eliminato);
 
             if (item == null) return null;
@@ -61,11 +63,22 @@ namespace LogiHub.Services.Shared
             return new SemiLavoratiDetailsDTO
             {
                 Id = item.Id,
+                Barcode = item.Barcode,
                 Descrizione = item.Descrizione,
-                AziendaEsterna = item.AziendaEsterna?.Nome ?? "Interno",
+                Uscito = item.Uscito,
+        
+                // Dati per la visualizzazione (Etichette)
                 CodiceUbicazione = item.Ubicazione?.Posizione ?? "-",
+                AziendaEsterna = item.AziendaEsterna?.Nome ?? "Interno",
+        
+                // ID tecnici
+                UbicazioneId = item.UbicazioneId,
+                AziendaEsternaId = item.AziendaEsternaId,
+        
+                // Date di sistema
                 UltimaModifica = item.UltimaModifica,
                 DataCreazione = item.DataCreazione,
+        
                 StoricoAzioni = item.Azioni
                     .OrderByDescending(x => x.DataOperazione)
                     .Select(x => new SemiLavoratiDetailsDTO.AzioniDTO

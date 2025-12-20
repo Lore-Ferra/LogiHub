@@ -10,7 +10,8 @@ namespace LogiHub.Services.Shared.SemiLavorati
 
         public class RigaSemiLavorato
         {
-            public string Id { get; set; }
+            public Guid Id { get; set; }
+            public string Barcode { get; set; }
             public string Descrizione { get; set; }
             public string CodiceUbicazione { get; set; }
             public DateTime UltimaModifica { get; set; }

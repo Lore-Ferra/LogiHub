@@ -1,7 +1,9 @@
-﻿namespace LogiHub.Services.Shared.SemiLavorati
+﻿using System;
+
+namespace LogiHub.Services.Shared.SemiLavorati
 {
     public class SemiLavoratiDetailsQuery
     {
-        public string Id { get; set; }
+        public Guid Id { get; set; }
     }
 }

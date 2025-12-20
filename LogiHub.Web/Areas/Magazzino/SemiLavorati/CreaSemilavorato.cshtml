@@ -14,8 +14,9 @@
     <h1 class="text-uppercase text-muted fw-bold fs-6">Nuovo semilavorato</h1>
     
     <div class="mb-3">
-        <label class="form-label text-muted d-block">ID Oggetto</label>
-        <input asp-for="Id" class="form-control" />
+        <label class="form-label text-muted d-block">Codice Barcode</label>
+        <input asp-for="Barcode" class="form-control" placeholder="Scansiona(DA METTERE SOLO NEL MOBILE" />
+        <span asp-validation-for="Barcode" class="text-danger"></span>
     </div>
     
     <div class="mb-3">

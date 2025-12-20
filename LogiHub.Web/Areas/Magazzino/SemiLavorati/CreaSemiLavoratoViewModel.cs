@@ -6,9 +6,10 @@ namespace LogiHub.Web.Areas.Magazzino.SemiLavorati
 {
     public class CreaSemiLavoratoViewModel
     {
-        public string Id { get; set; }
+        public string Barcode { get; set; }
+        public string Descrizione { get; set; }
         public Guid? UbicazioneId { get; set; }
         public IEnumerable<SelectListItem> UbicazioniList { get; set; } = new List<SelectListItem>();
-        public string Descrizione { get; set; }
+        
     }
 }

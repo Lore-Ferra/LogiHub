@@ -7,9 +7,11 @@ using LogiHub.Models.Shared;
 
 public class SemiLavorato
 {
-    [Key]
-    public String Id { get; set; }
-
+    [Key] 
+    public Guid Id { get; set; }
+    
+    [Required]
+    public string Barcode { get; set; }
     public string Descrizione { get; set; } = string.Empty;
 
     public Guid? UbicazioneId { get; set; }

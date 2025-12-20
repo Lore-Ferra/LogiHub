@@ -84,7 +84,7 @@
             <table class="table table-hover align-middle mb-0 text-center">
                 <thead class="bg-light">
                     <tr>
-                        <th class="ps-4">ID Oggetto</th>
+                        <th class="ps-4">Barcode</th>
                         <th>Descrizione</th>
                         <th>Ubicazione</th>
                         <th>Ultima Modifica</th>
@@ -99,7 +99,7 @@
                             data-id="offcanvasDettagli"
                             data-url="/Magazzino/SemiLavorati/Dettagli?id=@item.Id">
                             <td class="ps-4 fw-bold text-primary">
-                                <div class="small text-muted">ID: @item.Id</div>
+                                <div>@item.Barcode</div>
                             </td>
                             <td>@item.Descrizione</td>
                             <td>

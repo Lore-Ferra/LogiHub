@@ -10,8 +10,8 @@
 
     <div class="row mb-4">
         <div class="col-6">
-            <small class="text-muted d-block">ID:</small>
-            <strong class="fs-5">@Model.Id</strong>
+            <small class="text-muted d-block">Barcode:</small>
+            <strong class="fs-5">@Model.Barcode</strong>
         </div>
         <div class="col-6">
             <small class="text-muted d-block">In Carico a:</small>
@@ -41,8 +41,13 @@
     </div>
 
     <div class="d-grid gap-2 mt-5">
-        <a asp-action="Modifica" asp-route-id="@Model.Id" class="btn btn-outline-primary">
+        <button type="button" 
+                class="btn btn-outline-primary"
+                data-offcanvas
+                data-id="offcanvasDettagli" 
+                data-title="Modifica Semilavorato"
+                data-url="/Magazzino/SemiLavorati/Modifica?id=@Model.Id">
             <i class="fas fa-edit"></i> Modifica Semilavorato
-        </a>
+        </button>
     </div>
 </div>

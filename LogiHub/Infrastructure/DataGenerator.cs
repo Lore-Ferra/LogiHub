@@ -94,7 +94,7 @@ namespace LogiHub.Infrastructure
             for (int i = 1; i <= 20; i++)
             {
                 context.SemiLavorati.Add(new SemiLavorato {
-                    Id = $"PZ-{i:D4}",
+                    Barcode = $"PZ-{i:D4}",
                     AziendaEsternaId = aziendeIds[_random.Next(aziendeIds.Count)],
                     UbicazioneId = ubicazioniIds[_random.Next(ubicazioniIds.Count)],
                     Descrizione = $"{descrizioni[_random.Next(descrizioni.Length)]} (Mod. {i})",

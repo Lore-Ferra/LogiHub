@@ -18,13 +18,13 @@ public class SemiLavoratoService : ISemiLavoratoService
     //METODI CRUD
     public async Task<SemiLavorato> CreaSemiLavoratoAsync(CreaSemiLavoratoDTO dto)
     {
-        var exists = await _context.SemiLavorati.AnyAsync(x => x.Id == dto.Id);
+        var exists = await _context.SemiLavorati.AnyAsync(x => x.Barcode == dto.Barcode);
         if (exists)
-            throw new Exception($"Esiste già un semilavorato con ID: {dto.Id}");
+            throw new Exception($"Esiste già un semilavorato con ID: {dto.Barcode}");
 
         var semi = new SemiLavorato
         {
-            Id = dto.Id,
+            Barcode = dto.Barcode,
             Descrizione = dto.Descrizione,
             UbicazioneId = dto.UbicazioneId,
             AziendaEsternaId = dto.AziendaEsternaId,
@@ -34,11 +34,7 @@ public class SemiLavoratoService : ISemiLavoratoService
         };
 
         _context.SemiLavorati.Add(semi);
-
-        if (!GeneraAzioneCreazione(dto))
-        {
-            throw new Exception("Errore nella generazione dell'azione di log.");
-        }
+        GeneraAzioneCreazione(semi.Id, dto.UserId);
         await _context.SaveChangesAsync();
         return semi;
     }
@@ -49,44 +45,33 @@ public class SemiLavoratoService : ISemiLavoratoService
         
         sl.Eliminato = true;
         sl.UltimaModifica = DateTime.Now;
-        
-        if (!GeneraAzioneEliminazione(dto))
-        {
-            return false;
-        }
-        
+
+        GeneraAzioneEliminazione(dto);
         return await _context.SaveChangesAsync() > 0;
     }
     
     //AZIONI
-    private bool GeneraAzioneCreazione(CreaSemiLavoratoDTO dto)
-    { 
-        if (string.IsNullOrEmpty(dto.Id) || dto.UserId == Guid.Empty)
-        {
-            return false;
-        }
-
+    private void GeneraAzioneCreazione(Guid semiLavoratoId, Guid userId)
+    {
+        if (semiLavoratoId == Guid.Empty || userId == Guid.Empty) return;
+ 
         var azione = new Azione
         {
-            Id = Guid.NewGuid(),
-            SemiLavoratoId = dto.Id,
+            SemiLavoratoId = semiLavoratoId,
             TipoOperazione = TipoOperazione.Creazione,
-            UserId = dto.UserId,
-            DataOperazione = DateTime.Now
+            UserId = userId,
+            DataOperazione = DateTime.Now,
+            Dettagli = "Creazione iniziale"
         };
         _context.Azioni.Add(azione);
-        return true; 
     }
-    private bool GeneraAzioneEliminazione(EliminaSemiLavoratoDTO dto)
-    { 
-        if (string.IsNullOrEmpty(dto.SemiLavoratoId) || dto.UserId == Guid.Empty)
-        {
-            return false;
-        }
+    
+    private void GeneraAzioneEliminazione(EliminaSemiLavoratoDTO dto)
+    {
+        if (dto.SemiLavoratoId == Guid.Empty || dto.UserId == Guid.Empty) return;
 
         var azione = new Azione
         {
-            Id = Guid.NewGuid(),
             SemiLavoratoId = dto.SemiLavoratoId,
             TipoOperazione = TipoOperazione.Eliminazione,
             UserId = dto.UserId,
@@ -94,7 +79,6 @@ public class SemiLavoratoService : ISemiLavoratoService
             DataOperazione = DateTime.Now
         };
         _context.Azioni.Add(azione);
-        return true; 
     }
     
     // Task<bool> RegistraCambioUbicazione(CambioUbicazioneDTO dto);
