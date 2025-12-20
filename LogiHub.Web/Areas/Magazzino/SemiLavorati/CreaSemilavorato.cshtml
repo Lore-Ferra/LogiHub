@@ -6,21 +6,18 @@
 <form asp-action="CreaSemilavorato"
       asp-controller="SemiLavorati"
       asp-area="Magazzino"
-      method="post"
-      class="p-4">
+      method="post">
 
     @Html.AntiForgeryToken()
-
-    <h1 class="text-uppercase text-muted fw-bold fs-6">Nuovo semilavorato</h1>
     
     <div class="mb-3">
-        <label class="form-label text-muted d-block">Codice Barcode</label>
+        <label class="form-label text-muted fw-medium d-block">Codice Barcode</label>
         <input asp-for="Barcode" class="form-control" placeholder="Scansiona(DA METTERE SOLO NEL MOBILE" />
         <span asp-validation-for="Barcode" class="text-danger"></span>
     </div>
     
     <div class="mb-3">
-        <label class="form-label text-muted d-block">Ubicazione</label>
+        <label class="form-label text-muted fw-medium d-block">Ubicazione</label>
         <select asp-for="UbicazioneId"
                 asp-items="Model.UbicazioniList"
                 class="form-select js-select-search">
@@ -29,7 +26,7 @@
     </div>
 
     <div class="mb-3">
-        <label class="form-label text-muted d-block">Descrizione</label>
+        <label class="form-label text-muted fw-medium d-block">Descrizione</label>
         <textarea asp-for="Descrizione" class="form-control" rows="3"></textarea>
     </div>
 
