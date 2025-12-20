@@ -72,7 +72,6 @@ public class SemiLavoratoService : ISemiLavoratoService
             SemiLavoratoId = dto.Id,
             TipoOperazione = TipoOperazione.Creazione,
             UserId = dto.UserId,
-            Dettagli = dto.Dettagli ?? "Creazione iniziale",
             DataOperazione = DateTime.Now
         };
         _context.Azioni.Add(azione);

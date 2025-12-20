@@ -10,6 +10,9 @@ namespace LogiHub.Services.Shared.SemiLavorati
         public string Descrizione { get; set; }
         public string CodiceUbicazione { get; set; }
         public string AziendaEsterna { get; set; }
+        public bool Uscito { get; set; }  
+        public Guid? UbicazioneId { get; set; }
+        public Guid? AziendaEsternaId { get; set; }
         public DateTime DataCreazione { get; set; }
         public DateTime UltimaModifica { get; set; }
         public IEnumerable<AzioniDTO> StoricoAzioni { get; set; }
