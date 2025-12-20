@@ -3,17 +3,21 @@
     Layout = null;
 }
 
-<form asp-action="CreaSemilavorato"
-      asp-controller="SemiLavorati"
+<form id="formCreaSemilavorato"
       asp-area="Magazzino"
-      method="post">
+      asp-controller="SemiLavorati"
+      asp-action="CreaSemilavorato"
+      method="post"
+      class="p-4 needs-validation"
+      novalidate>
 
     @Html.AntiForgeryToken()
     
     <div class="mb-3">
         <label class="form-label text-muted fw-medium d-block">Codice Barcode</label>
-        <input asp-for="Barcode" class="form-control" placeholder="Scansiona(DA METTERE SOLO NEL MOBILE" />
+        <input asp-for="Barcode" class="form-control" placeholder="Scansiona(DA METTERE SOLO NEL MOBILE" required/>
         <span asp-validation-for="Barcode" class="text-danger"></span>
+        <div class="invalid-feedback">Codice Barcode obbligatorio</div>
     </div>
     
     <div class="mb-3">
@@ -27,7 +31,8 @@
 
     <div class="mb-3">
         <label class="form-label text-muted fw-medium d-block">Descrizione</label>
-        <textarea asp-for="Descrizione" class="form-control" rows="3"></textarea>
+        <textarea asp-for="Descrizione" class="form-control" rows="3" required></textarea>
+        <div class="invalid-feedback">Descrizione obbligatoria</div>
     </div>
 
     <div class="d-flex justify-content-end mt-4">
