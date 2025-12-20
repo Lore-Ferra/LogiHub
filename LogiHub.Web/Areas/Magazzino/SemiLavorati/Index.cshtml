@@ -26,7 +26,8 @@
                     { "data-offcanvas", "" },
                     { "data-id", "offcanvasAggiungi" },
                     { "data-url", "/Magazzino/SemiLavorati/CreaSemilavorato" },
-                    { "data-title", "Aggiungi Semilavorato" }
+                    { "data-title", "Aggiungi Semilavorato" },
+                    { "title", "Aggiungi Semilavorato" }
                 }            }
         },
         HiddenFields = new Dictionary<string, string>
@@ -43,6 +44,7 @@
         <div class="card shadow-sm semilavorato-card mb-2"
              data-offcanvas
              data-id="offcanvasDettagli"
+             data-title="Dettagli Semilavorato"
              data-url="/Magazzino/SemiLavorati/Dettagli?id=@item.Id">
             <div class="card-body">
                 <div class="fw-bold fs-5 mb-2">
@@ -98,6 +100,8 @@
                         <tr style="cursor:pointer"
                             data-offcanvas
                             data-id="offcanvasDettagli"
+                            title="Dettagli Semilavorato"
+                            data-title="Dettagli Semilavorato"
                             data-url="/Magazzino/SemiLavorati/Dettagli?id=@item.Id">
                             <td class="ps-4 fw-bold text-primary">
                                 <div>@item.Barcode</div>
@@ -136,7 +140,7 @@
 
 <a class="fab d-md-none"
    title="Aggiungi semilavorato"
-   data-title="Nuovo Semilavorato"
+   data-title="Aggiungi Semilavorato"
    data-offcanvas
    data-id="offcanvasAggiungi"
    data-url="/Magazzino/SemiLavorati/CreaSemilavorato">
@@ -148,7 +152,7 @@
     var offcanvasModel = new LogiHub.Web.Features.Offcanvas.OffcanvasViewModel
     {
         Id = "offcanvasDettagli",
-        Title = "Dettagli semi lavorato"
+        Title = "Dettagli semilavorato"
     };
 }
 
