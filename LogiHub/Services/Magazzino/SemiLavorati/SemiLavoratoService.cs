@@ -18,12 +18,11 @@ public class SemiLavoratoService : ISemiLavoratoService
     //METODI CRUD
     public async Task<SemiLavorato> CreaSemiLavoratoAsync(CreaSemiLavoratoDTO dto)
     {
-        var exists = await _context.SemiLavorati.AnyAsync(x => x.Barcode == dto.Barcode);
-        if (exists)
-            throw new Exception($"Esiste già un semilavorato con ID: {dto.Barcode}");
+        // var exists = await _context.SemiLavorati.AnyAsync(x => x.Barcode == dto.Barcode); //causa crash in caso aggiunta nuovo semi stesso barcode
 
         var semi = new SemiLavorato
         {
+            Id = Guid.NewGuid(),
             Barcode = dto.Barcode,
             Descrizione = dto.Descrizione,
             UbicazioneId = dto.UbicazioneId,
