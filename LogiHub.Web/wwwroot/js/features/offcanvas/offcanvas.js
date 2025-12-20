@@ -1,22 +1,3 @@
-function initOffcanvasContent(container) {
-
-    if (window.$ && $.fn.select2) {
-        container.querySelectorAll('.js-select-search').forEach(el => {
-
-            if (!el.classList.contains('select2-hidden-accessible')) {
-
-                const offcanvas = el.closest('.offcanvas');
-
-                $(el).select2({
-                    width: '100%',
-                    placeholder: el.dataset.placeholder || 'Seleziona',
-                    allowClear: true,
-                    dropdownParent: offcanvas || document.body
-                });
-            }
-        });
-    }
-}
 var Example;
 (function (Example) {
     var Components;
@@ -30,9 +11,11 @@ var Example;
                 const offcanvasEl = document.getElementById(id);
                 if (!offcanvasEl)
                     return;
+                // Aggiorna titolo
                 const header = offcanvasEl.querySelector('.offcanvas-title');
                 if (header)
                     header.textContent = title || '';
+                // Mostra spinner
                 const body = offcanvasEl.querySelector('[data-offcanvas-content]');
                 if (!body)
                     return;
@@ -43,18 +26,39 @@ var Example;
                     </div>
                 </div>
             `;
+                // Bootstrap Offcanvas
                 const bsInstance = new bootstrap.Offcanvas(offcanvasEl);
                 bsInstance.show();
                 this.state[id] = { isOpen: true };
                 fetch(url)
                     .then(r => r.text())
+                    .then(html => body.innerHTML = html)
+                    .catch(() => body.innerHTML = '<p class="text-danger text-center p-3">Errore nel caricamento.</p>');
+            }
+            load(options) {
+                const { id, url, title } = options;
+                const offcanvasEl = document.getElementById(id);
+                if (!offcanvasEl)
+                    return;
+                const body = offcanvasEl.querySelector('[data-offcanvas-content]');
+                const header = offcanvasEl.querySelector('.offcanvas-title');
+                if (!body)
+                    return;
+                // Aggiorna titolo se fornito
+                if (header && title)
+                    header.textContent = title;
+                // Opzionale: mostra un piccolo overlay o spinner sopra il contenuto attuale
+                body.classList.add('opacity-50');
+                fetch(url)
+                    .then(r => r.text())
                     .then(html => {
-                        body.innerHTML = html;
-                        initOffcanvasContent(body);
-                    })
+                    body.innerHTML = html;
+                    body.classList.remove('opacity-50');
+                })
                     .catch(() => {
-                        body.innerHTML = '<p class="text-danger text-center p-3">Errore nel caricamento.</p>';
-                    });
+                    body.innerHTML = '<p class="text-danger p-3">Errore nel caricamento.</p>';
+                    body.classList.remove('opacity-50');
+                });
             }
             close(id) {
                 const offcanvasEl = document.getElementById(id);
@@ -82,6 +86,14 @@ document.addEventListener('click', (e) => {
     const title = btn.dataset.title;
     if (!id || !url)
         return;
-    Example.Components.Offcanvas.open({ id, url, title });
+    // SE l'offcanvas con quell'ID è già aperto, usa load(), altrimenti open()
+    const offcanvasEl = document.getElementById(id);
+    const isOpen = offcanvasEl === null || offcanvasEl === void 0 ? void 0 : offcanvasEl.classList.contains('show');
+    if (isOpen) {
+        Example.Components.Offcanvas.load({ id, url, title });
+    }
+    else {
+        Example.Components.Offcanvas.open({ id, url, title });
+    }
 });
 //# sourceMappingURL=offcanvas.js.map

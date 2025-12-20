@@ -41,6 +41,33 @@ module Example.Components {
                 .then(html => body.innerHTML = html)
                 .catch(() => body.innerHTML = '<p class="text-danger text-center p-3">Errore nel caricamento.</p>');
         }
+        load(options: OffcanvasOptions) {
+            const { id, url, title } = options;
+            const offcanvasEl = document.getElementById(id);
+            if (!offcanvasEl) return;
+
+            const body = offcanvasEl.querySelector('[data-offcanvas-content]');
+            const header = offcanvasEl.querySelector('.offcanvas-title');
+            if (!body) return;
+
+            // Aggiorna titolo se fornito
+            if (header && title) header.textContent = title;
+
+            // Opzionale: mostra un piccolo overlay o spinner sopra il contenuto attuale
+            body.classList.add('opacity-50');
+
+            fetch(url)
+                .then(r => r.text())
+                .then(html => {
+                    body.innerHTML = html;
+                    body.classList.remove('opacity-50');
+                })
+                .catch(() => {
+                    body.innerHTML = '<p class="text-danger p-3">Errore nel caricamento.</p>';
+                    body.classList.remove('opacity-50');
+                });
+        }
+        
 
         close(id: string) {
             const offcanvasEl = document.getElementById(id);
@@ -66,5 +93,14 @@ document.addEventListener('click', (e: MouseEvent) => {
     const title = btn.dataset.title;
 
     if (!id || !url) return;
-    Example.Components.Offcanvas.open({ id, url, title });
+
+    // SE l'offcanvas con quell'ID è già aperto, usa load(), altrimenti open()
+    const offcanvasEl = document.getElementById(id);
+    const isOpen = offcanvasEl?.classList.contains('show');
+
+    if (isOpen) {
+        Example.Components.Offcanvas.load({ id, url, title });
+    } else {
+        Example.Components.Offcanvas.open({ id, url, title });
+    }
 });

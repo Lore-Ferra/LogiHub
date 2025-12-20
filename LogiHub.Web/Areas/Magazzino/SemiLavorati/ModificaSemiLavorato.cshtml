@@ -1,0 +1,53 @@
+﻿@model LogiHub.Web.Areas.Magazzino.SemiLavorati.ModificaSemiLavoratoViewModel
+
+<div class="p-4">
+    <form id="formModificaSemilavorato" asp-action="Modifica" asp-area="Magazzino" method="post">
+        @Html.AntiForgeryToken()
+        <input type="hidden" asp-for="Id" />
+
+        <div class="mb-4">
+            <label asp-for="Descrizione" class="form-label fw-bold text-uppercase text-muted small">Descrizione</label>
+            <input asp-for="Descrizione" class="form-control form-control-lg" placeholder="Inserisci descrizione..." />
+            <span asp-validation-for="Descrizione" class="text-danger small"></span>
+        </div>
+
+        <div class="row mb-4">
+            <div class="col-md-6">
+                <label asp-for="UbicazioneId" class="form-label fw-bold text-uppercase text-muted small">Ubicazione</label>
+                <select asp-for="UbicazioneId" asp-items="Model.UbicazioniList" class="form-select">
+                    <option value="">-- Seleziona Ubicazione --</option>
+                </select>
+                <span asp-validation-for="UbicazioneId" class="text-danger small"></span>
+            </div>
+            <div class="col-md-6">
+                <label asp-for="AziendaEsternaId" class="form-label fw-bold text-uppercase text-muted small">In Carico a</label>
+                <select asp-for="AziendaEsternaId" asp-items="Model.AziendeList" class="form-select">
+                    <option value="">-- Seleziona Azienda --</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="form-check form-switch mb-4">
+            <input class="form-check-input" type="checkbox" asp-for="Uscito">
+            <label class="form-check-label" asp-for="Uscito">Segna come uscito dal magazzino</label>
+        </div>
+
+        <hr class="my-4" />
+
+        <div class="d-grid gap-2">
+            <button type="submit" class="btn btn-primary">
+                <i class="fas fa-save me-2"></i>Salva Modifiche
+            </button>
+            
+            @* Tasto Annulla: ricarica i dettagli nello stesso offcanvas *@
+            <button type="button" 
+                    class="btn btn-outline-secondary"
+                    data-offcanvas
+                    data-id="offcanvasDettagli"
+                    data-title="Dettagli semilavorato"
+                    data-url="@Url.Action("Dettagli", "SemiLavorati", new { id = Model.Id })">
+                Annulla
+            </button>
+        </div>
+    </form>
+</div>
