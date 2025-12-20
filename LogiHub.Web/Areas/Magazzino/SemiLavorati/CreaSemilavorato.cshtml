@@ -11,23 +11,24 @@
 
     @Html.AntiForgeryToken()
 
-    <h1 class="h5 fw-bold mb-4">Nuovo semilavorato</h1>
+    <h1 class="text-uppercase text-muted fw-bold fs-6">Nuovo semilavorato</h1>
     
     <div class="mb-3">
-        <label class="form-label">ID Oggetto</label>
+        <label class="form-label text-muted d-block">ID Oggetto</label>
         <input asp-for="Id" class="form-control" />
     </div>
     
     <div class="mb-3">
-        <label class="form-label">Ubicazione</label>
+        <label class="form-label text-muted d-block">Ubicazione</label>
         <select asp-for="UbicazioneId"
                 asp-items="Model.UbicazioniList"
-                class="form-select">
+                class="form-select js-select-search">
+            <option value=""></option>
         </select>
     </div>
 
     <div class="mb-3">
-        <label class="form-label">Descrizione</label>
+        <label class="form-label text-muted d-block">Descrizione</label>
         <textarea asp-for="Descrizione" class="form-control" rows="3"></textarea>
     </div>
 

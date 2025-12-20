@@ -1,3 +1,22 @@
+function initOffcanvasContent(container) {
+
+    if (window.$ && $.fn.select2) {
+        container.querySelectorAll('.js-select-search').forEach(el => {
+
+            if (!el.classList.contains('select2-hidden-accessible')) {
+
+                const offcanvas = el.closest('.offcanvas');
+
+                $(el).select2({
+                    width: '100%',
+                    placeholder: el.dataset.placeholder || 'Seleziona',
+                    allowClear: true,
+                    dropdownParent: offcanvas || document.body
+                });
+            }
+        });
+    }
+}
 var Example;
 (function (Example) {
     var Components;
@@ -11,11 +30,9 @@ var Example;
                 const offcanvasEl = document.getElementById(id);
                 if (!offcanvasEl)
                     return;
-                // Aggiorna titolo
                 const header = offcanvasEl.querySelector('.offcanvas-title');
                 if (header)
                     header.textContent = title || '';
-                // Mostra spinner
                 const body = offcanvasEl.querySelector('[data-offcanvas-content]');
                 if (!body)
                     return;
@@ -26,14 +43,18 @@ var Example;
                     </div>
                 </div>
             `;
-                // Bootstrap Offcanvas
                 const bsInstance = new bootstrap.Offcanvas(offcanvasEl);
                 bsInstance.show();
                 this.state[id] = { isOpen: true };
                 fetch(url)
                     .then(r => r.text())
-                    .then(html => body.innerHTML = html)
-                    .catch(() => body.innerHTML = '<p class="text-danger text-center p-3">Errore nel caricamento.</p>');
+                    .then(html => {
+                        body.innerHTML = html;
+                        initOffcanvasContent(body);
+                    })
+                    .catch(() => {
+                        body.innerHTML = '<p class="text-danger text-center p-3">Errore nel caricamento.</p>';
+                    });
             }
             close(id) {
                 const offcanvasEl = document.getElementById(id);

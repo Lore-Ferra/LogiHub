@@ -12,7 +12,17 @@
         InputValue = Model.Filter,
         Buttons = new List<SearchCardButton>
         {
-            new() { Text = "Aggiungi", CssClass = "btn-primary", Type="button", IconClass="fa-solid fa-plus", OnClick="location.href='/Magazzino/SemiLavorati/Aggiungi'" }
+            new()
+            {
+                Text = "Aggiungi",
+                CssClass = "btn-primary",
+                Type = "button",
+                IconClass = "fa-solid fa-plus",
+                HtmlAttributes = new Dictionary<string, string>
+                {
+                    { "onclick", "location.href='/Magazzino/SemiLavorati/Aggiungi'" }
+                }
+            }
         },
         HiddenFields = new Dictionary<string, string>
         {

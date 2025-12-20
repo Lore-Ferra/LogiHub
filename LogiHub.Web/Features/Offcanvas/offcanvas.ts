@@ -51,7 +51,7 @@ module Example.Components {
         }
     }
 
-    export const Offcanvas = new OffcanvasComponent();
+    export let Offcanvas = new OffcanvasComponent();
 }
 
 document.addEventListener('click', (e: MouseEvent) => {

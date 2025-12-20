@@ -31,3 +31,6 @@
         width: 500px;
     }
 }
+select option[value=""] {
+    display: none;
+}
