@@ -118,28 +118,28 @@ namespace LogiHub.Web.Areas.Magazzino
             return success ? Ok() : BadRequest();
         }
         
-        [HttpGet]
-        public virtual async Task<IActionResult> Modifica(string id)
-        {
-            var dto = await _queries.GetSemiLavoratoDetailsAsync(new SemiLavoratiDetailsQuery { Id = id });
-            if (dto == null) return NotFound();
-
-            var model = new ModificaSemiLavoratoViewModel
-            {
-                Id = dto.Id,
-                Descrizione = dto.Descrizione,
-                UbicazioneId = dto.UbicazioneId,
-                AziendaEsternaId = dto.AziendaEsternaId,
-                Uscito = dto.Uscito,
-                UbicazioniList = _context.Ubicazioni
-                    .Select(u => new SelectListItem { Value = u.UbicazioneId.ToString(), Text = u.Posizione })
-                    .ToList(),
-                AziendeList = _context.AziendeEsterne
-                    .Select(a => new SelectListItem { Value = a.Id.ToString(), Text = a.Nome })
-                    .ToList()
-            };
-
-            return PartialView("ModificaSemiLavorato", model);
-        }
+    //     [HttpGet]
+    //     public virtual async Task<IActionResult> Modifica(string id)
+    //     {
+    //         var dto = await _queries.GetSemiLavoratoDetailsAsync(new SemiLavoratiDetailsQuery { Id = id });
+    //         if (dto == null) return NotFound();
+    //
+    //         var model = new ModificaSemiLavoratoViewModel
+    //         {
+    //             Id = dto.Id,
+    //             Descrizione = dto.Descrizione,
+    //             UbicazioneId = dto.UbicazioneId,
+    //             AziendaEsternaId = dto.AziendaEsternaId,
+    //             Uscito = dto.Uscito,
+    //             UbicazioniList = _context.Ubicazioni
+    //                 .Select(u => new SelectListItem { Value = u.UbicazioneId.ToString(), Text = u.Posizione })
+    //                 .ToList(),
+    //             AziendeList = _context.AziendeEsterne
+    //                 .Select(a => new SelectListItem { Value = a.Id.ToString(), Text = a.Nome })
+    //                 .ToList()
+    //         };
+    //
+    //         return PartialView("ModificaSemiLavorato", model);
+    //     }
     }
 }
