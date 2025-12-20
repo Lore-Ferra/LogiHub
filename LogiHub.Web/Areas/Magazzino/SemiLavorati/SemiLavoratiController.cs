@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Security.Claims;
+using LogiHub.Services;
 using LogiHub.Services.Shared.SemiLavorati;
 using LogiHub.Web.Areas.Magazzino.SemiLavorati;
+using Microsoft.AspNetCore.Mvc.Rendering;
 
 namespace LogiHub.Web.Areas.Magazzino
 {
@@ -16,12 +18,14 @@ namespace LogiHub.Web.Areas.Magazzino
     public partial class SemiLavoratiController : AuthenticatedBaseController
     {
         private readonly SharedService _queries;
+        private readonly TemplateDbContext _context;
 
         private readonly ISemiLavoratoService _service;
-        public SemiLavoratiController(SharedService queries, ISemiLavoratoService service)
+        public SemiLavoratiController(SharedService queries, ISemiLavoratoService service, TemplateDbContext context)
         {
             _queries = queries;
             _service = service;
+            _context = context;
         }
 
         [HttpGet]
@@ -54,47 +58,51 @@ namespace LogiHub.Web.Areas.Magazzino
         }
 
         [HttpGet]
-        public virtual async Task<IActionResult> Details(string id)
+        public virtual async Task<IActionResult> Dettagli(string id)
         {
             var query = new SemiLavoratiDetailsQuery { Id = id };
             var dto = await _queries.GetSemiLavoratoDetailsAsync(query);
 
             if (dto == null) return NotFound();
 
-            return PartialView("Details", dto);
+            return PartialView("DettagliSemiLavorato", dto);
         }
         
         
         [HttpGet]
         public virtual IActionResult CreaSemilavorato()
         {
-            var model = new CreaSemiLavoratoViewModel();
-            return PartialView("CreaSemilavorato", model);
+            var model = new CreaSemiLavoratoViewModel
+            {
+                UbicazioniList = _context.Ubicazioni
+                    .Select(u => new SelectListItem { Value = u.UbicazioneId.ToString(), Text = u.Posizione })
+                    .ToList(),
+            };
+
+            return View("CreaSemilavorato", model);
         }
         
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public virtual async Task<IActionResult> CreaSemilavorato(
-            CreaSemiLavoratoViewModel model)
+        public virtual async Task<IActionResult> CreaSemilavorato(CreaSemiLavoratoViewModel model)
         {
             if (!ModelState.IsValid)
-                return PartialView("CreaSemilavorato", model);
+            {
+                model.UbicazioniList = _context.Ubicazioni
+                    .Select(u => new SelectListItem { Value = u.UbicazioneId.ToString(), Text = u.Posizione })
+                    .ToList();
 
-            var userId = Guid.Parse(
-                User.FindFirstValue(ClaimTypes.NameIdentifier)
-            );
+                return View("CreaSemilavorato", model);
+            }
 
-            Guid? ubicazioneId = null;
-            Guid? aziendaEsternaId = null;
+            var userId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
 
             var dto = new CreaSemiLavoratoDTO
             {
                 Id = model.Id,
                 Descrizione = model.Descrizione,
-                UbicazioneId = ubicazioneId,
-                AziendaEsternaId = aziendaEsternaId,
+                UbicazioneId = model.UbicazioneId,
                 UserId = userId,
-                Dettagli = $"Ubicazione: {model.Ubicazione}, Azienda: {model.AziendaEsterna}"
             };
 
             await _service.CreaSemiLavoratoAsync(dto);
@@ -108,6 +116,30 @@ namespace LogiHub.Web.Areas.Magazzino
             dto.UserId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)); 
             var success = await _service.EliminaAsync(dto);
             return success ? Ok() : BadRequest();
+        }
+        
+        [HttpGet]
+        public virtual async Task<IActionResult> Modifica(string id)
+        {
+            var dto = await _queries.GetSemiLavoratoDetailsAsync(new SemiLavoratiDetailsQuery { Id = id });
+            if (dto == null) return NotFound();
+
+            var model = new ModificaSemiLavoratoViewModel
+            {
+                Id = dto.Id,
+                Descrizione = dto.Descrizione,
+                UbicazioneId = dto.UbicazioneId,
+                AziendaEsternaId = dto.AziendaEsternaId,
+                Uscito = dto.Uscito,
+                UbicazioniList = _context.Ubicazioni
+                    .Select(u => new SelectListItem { Value = u.UbicazioneId.ToString(), Text = u.Posizione })
+                    .ToList(),
+                AziendeList = _context.AziendeEsterne
+                    .Select(a => new SelectListItem { Value = a.Id.ToString(), Text = a.Nome })
+                    .ToList()
+            };
+
+            return PartialView("ModificaSemiLavorato", model);
         }
     }
 }
