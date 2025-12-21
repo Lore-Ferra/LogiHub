@@ -78,6 +78,9 @@ document.addEventListener('click', (e) => {
     const target = e.target;
     if (!target)
         return;
+    // Ignora i click sui pulsanti elimina
+    if (target.closest('.btn-elimina'))
+        return;
     const btn = target.closest('[data-offcanvas]');
     if (!btn)
         return;

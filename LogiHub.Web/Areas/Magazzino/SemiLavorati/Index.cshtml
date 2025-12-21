@@ -66,7 +66,7 @@
                         </div>
                     </div>
                     <div class="d-flex gap-3 align-items-center">
-                        <i class="bi bi-trash3 text-danger btn-elimina" data-id="@item.Id" style="cursor:pointer;"></i>
+                        <i class="bi bi-trash3 text-danger btn-elimina" data-id="@item.Id" data-barcode="@item.Barcode" style="cursor:pointer;"></i>
                     </div>
                 </div>
             </div>
@@ -114,7 +114,8 @@
                             <td>
                                 <button type="button" 
                                         class="btn btn-sm btn-outline-danger btn-elimina" 
-                                        data-id="@item.Id" 
+                                        data-id="@item.Id"
+                                        data-barcode="@item.Barcode"
                                         title="Elimina">
                                     <i class="bi bi-trash3"></i>
                                 </button>
@@ -170,31 +171,107 @@
 <partial name="~/Features/Offcanvas/_Offcanvas.cshtml"
          model="offcanvasAggiungiModel" />
 
+<!-- Modal Conferma Eliminazione -->
+<div class="modal fade" id="modalConfermaElimina" tabindex="-1" aria-labelledby="modalConfermaEliminaLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header border-0">
+                <h5 class="modal-title" id="modalConfermaEliminaLabel">
+                    <i class="bi bi-exclamation-triangle-fill text-warning me-2"></i>
+                    Conferma eliminazione
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Chiudi"></button>
+            </div>
+            <div class="modal-body">
+                <p class="mb-0">Sei sicuro di voler eliminare il semilavorato <strong id="elimina-barcode"></strong>?</p>
+            </div>
+            <div class="modal-footer border-0">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="bi bi-x-lg me-1"></i>Annulla
+                </button>
+                <button type="button" class="btn btn-danger" id="btn-conferma-elimina">
+                    <i class="bi bi-trash3 me-1"></i>Elimina
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
 
 @section Scripts {
     <script src="./js/Features/Offcanvas/offcanvas.js"></script>
 
     <script>
-    document.addEventListener('click', async function (e) {
-        const btn = e.target.closest('.btn-elimina');
-        if (!btn) return;
+    (function() {
+        let currentBtn = null;
+        let currentId = null;
+        const modalEl = document.getElementById('modalConfermaElimina');
+        const modal = new bootstrap.Modal(modalEl);
+        const barcodeSpan = document.getElementById('elimina-barcode');
+        const btnConferma = document.getElementById('btn-conferma-elimina');
 
-        const id = btn.dataset.id;
+        document.addEventListener('click', function (e) {
+            const btn = e.target.closest('.btn-elimina');
+            if (!btn) return;
+            
+            e.preventDefault();
+            e.stopPropagation();
+            e.stopImmediatePropagation();
+            
+            currentBtn = btn;
+            currentId = btn.dataset.id;
+            
+            barcodeSpan.textContent = btn.dataset.barcode;
+            modal.show();
+        }, true); // <-- true = capture phase
 
-        if (!confirm(`Sei sicuro di voler eliminare il pezzo ${id}?`)) return;
+        btnConferma.addEventListener('click', async function() {
+            if (!currentId || !currentBtn) return;
+            
+            btnConferma.disabled = true;
+            btnConferma.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Eliminazione...';
+            
+            try {
+                const response = await fetch('/Magazzino/SemiLavorati/Elimina', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ semiLavoratoId: currentId })
+                });
 
-        const response = await fetch('/Magazzino/SemiLavorati/Elimina', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ semiLavoratoId: id })
+                if (response.ok) {
+                    modal.hide();
+                    currentBtn.closest('tr, .card')?.remove();
+                } else {
+                    modal.hide();
+                    showToast('Errore durante l\'eliminazione.', 'danger');
+                }
+            } catch (error) {
+                modal.hide();
+                showToast('Errore di connessione.', 'danger');
+            } finally {
+                btnConferma.disabled = false;
+                btnConferma.innerHTML = '<i class="bi bi-trash3 me-1"></i>Elimina';
+                currentBtn = null;
+                currentId = null;
+            }
         });
 
-        if (response.ok) {
-            btn.closest('tr, .card')?.remove();
-        } else {
-            alert("Errore durante l'eliminazione.");
+        function showToast(message, type) {
+            const toastContainer = document.getElementById('toast-container');
+            if (toastContainer) {
+                const toast = document.createElement('div');
+                toast.className = `toast align-items-center text-bg-${type} border-0 show`;
+                toast.innerHTML = `
+                    <div class="d-flex">
+                        <div class="toast-body">${message}</div>
+                        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+                    </div>`;
+                toastContainer.appendChild(toast);
+                setTimeout(() => toast.remove(), 5000);
+            } else {
+                alert(message);
+            }
         }
-    });
+    })();
     </script>
     <script>
         document.addEventListener('submit', function (e) {
