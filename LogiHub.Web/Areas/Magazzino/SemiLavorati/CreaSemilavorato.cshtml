@@ -39,7 +39,8 @@
         <label class="form-label text-muted fw-medium d-block">Ubicazione</label>
         <select asp-for="UbicazioneId"
                 asp-items="Model.UbicazioniList"
-                class="form-select js-select-search">
+                class="form-select js-select-search"
+                required>
             <option value=""></option>
         </select>
     </div>
