@@ -15,11 +15,26 @@
     
     <div class="mb-3">
         <label class="form-label text-muted fw-medium d-block">Codice Barcode</label>
-        <input asp-for="Barcode" class="form-control" placeholder="Scansiona(DA METTERE SOLO NEL MOBILE" required/>
+
+        <div class="input-group d-md-none mb-2">
+            <button type="button"
+                    class="btn btn-outline-primary"
+                    id="btnScanBarcode">
+                <i class="bi bi-upc-scan me-1"></i>
+                Scansiona Barcode
+            </button>
+        </div>
+
+        <input asp-for="Barcode"
+               id="barcodeInput"
+               class="form-control"
+               placeholder="Codice barcode"
+               required />
+
         <span asp-validation-for="Barcode" class="text-danger"></span>
-        <div class="invalid-feedback">Codice Barcode obbligatorio</div>
+        <div class="invalid-feedback">Codice Barcode</div>
     </div>
-    
+
     <div class="mb-3">
         <label class="form-label text-muted fw-medium d-block">Ubicazione</label>
         <select asp-for="UbicazioneId"

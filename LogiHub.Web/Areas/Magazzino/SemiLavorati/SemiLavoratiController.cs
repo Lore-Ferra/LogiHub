@@ -3,7 +3,9 @@ using System.Security.Claims;
 using LogiHub.Services;
 using LogiHub.Services.Shared.SemiLavorati;
 using LogiHub.Web.Areas.Magazzino.SemiLavorati;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.EntityFrameworkCore;
 
 namespace LogiHub.Web.Areas.Magazzino
 {
@@ -137,6 +139,20 @@ namespace LogiHub.Web.Areas.Magazzino
             };
 
             return PartialView("ModificaSemilavorato", model); 
+        }
+        
+        [HttpGet]
+        [Route("/Magazzino/SemiLavorati/GeneraBarcodeUnivoco")]
+        public virtual async Task<IActionResult> GeneraBarcodeUnivoco()
+        {
+            string barcode;
+            do
+            {
+                barcode = "#" + Random.Shared.Next(0001, 9999);
+            }
+            while (await _context.SemiLavorati.AnyAsync(x => x.Barcode == barcode));
+
+            return Json(barcode);
         }
     }
 }

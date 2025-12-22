@@ -312,4 +312,39 @@
 
         }, true);
     </script>
+    
+    <script>
+    document.addEventListener('click', async function (e) {
+
+        const btn = e.target.closest('#btnScanBarcode');
+        if (!btn) return;
+
+        e.preventDefault();
+
+        const container = btn.closest('form');
+        if (!container) return;
+
+        const barcodeInput = container.querySelector('#barcodeInput');
+        if (!barcodeInput) return;
+
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Generazione...';
+
+        try {
+            const response = await fetch('/Magazzino/SemiLavorati/GeneraBarcodeUnivoco');
+            const barcode = await response.json();
+
+            barcodeInput.value = barcode;
+            barcodeInput.focus();
+        }
+        catch {
+            alert('Errore durante la generazione del barcode');
+        }
+        finally {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="bi bi-upc-scan me-1"></i>Scansiona Barcode';
+        }
+
+    }, true);
+    </script>
 }
