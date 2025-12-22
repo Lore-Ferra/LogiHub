@@ -47,7 +47,7 @@
              data-title="Dettagli Semilavorato"
              data-url="/Magazzino/SemiLavorati/Dettagli?id=@item.Id">
             <div class="card-body">
-                <div class="fw-bold fs-5 mb-2">
+                <div class="fw-bold fs-5 mb-2 text-primary">
                     #@item.Barcode
                 </div>
                 <hr class="my-2" />
@@ -61,7 +61,7 @@
                             <strong>Descrizione:</strong> @item.Descrizione
                         </div>
                         <div class="small text-muted">
-                            <strong>Ultima mov.:</strong>
+                            <strong>Ultima mod.:</strong>
                             @item.UltimaModifica.ToString("dd/MM/yyyy")
                         </div>
                     </div>
