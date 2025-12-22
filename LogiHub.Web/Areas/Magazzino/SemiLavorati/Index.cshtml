@@ -347,4 +347,43 @@
 
     }, true);
     </script>
+    <script>
+        document.addEventListener('focusout', async function(e) {
+
+            // 1. Controlliamo che l'evento arrivi dal nostro input 'barcodeInput'
+            if (!e.target || e.target.id !== 'barcodeInput') return;
+
+            const input = e.target;
+            const barcode = input.value.trim();
+            const feedbackDiv = input.parentElement.querySelector('.invalid-feedback');
+            const defaultMessage = "Codice Barcode obbligatorio"; // Messaggio originale
+
+            // Se è vuoto, lasciamo gestire l'errore al 'required' standard
+            if (!barcode) {
+                input.setCustomValidity("");
+                if(feedbackDiv) feedbackDiv.textContent = defaultMessage;
+                return;
+            }
+
+            try {
+                const response = await fetch(`/Magazzino/SemiLavorati/VerificaEsistenzaBarcode?barcode=${encodeURIComponent(barcode)}`);
+                const data = await response.json();
+
+                if (data.esiste) {
+                    input.setCustomValidity("Esiste già");
+
+                    if(feedbackDiv) feedbackDiv.textContent = "Barcode già presente nel sistema!";
+
+                    input.classList.add('is-invalid');
+                } else {
+                    input.setCustomValidity("");
+                    if(feedbackDiv) feedbackDiv.textContent = defaultMessage;
+                    input.classList.remove('is-invalid');
+                }
+            } catch (error) {
+                console.error("Errore verifica barcode", error);
+            }
+
+        }, true);
+    </script>
 }
