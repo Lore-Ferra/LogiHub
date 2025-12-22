@@ -1,6 +1,6 @@
 ﻿@model LogiHub.Web.Areas.Magazzino.SemiLavorati.ModificaSemiLavoratoViewModel
 
-<div class="p-4">
+
     <form id="formModificaSemilavorato" asp-action="Modifica" asp-area="Magazzino" method="post">
         @Html.AntiForgeryToken()
         <input type="hidden" asp-for="Id" />
@@ -50,4 +50,3 @@
             </button>
         </div>
     </form>
-</div>
