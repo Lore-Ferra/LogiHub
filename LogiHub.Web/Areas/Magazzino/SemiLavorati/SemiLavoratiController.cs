@@ -154,5 +154,15 @@ namespace LogiHub.Web.Areas.Magazzino
 
             return Json(barcode);
         }
+
+        [HttpGet]
+        [Route("/Magazzino/SemiLavorati/VerificaEsistenzaBarcode")]
+        public virtual async Task<IActionResult> VerificaEsistenzaBarcode(string barcode)
+        {
+            var esiste = await _context.SemiLavorati
+                .AnyAsync(x => x.Barcode == barcode && !x.Eliminato);
+
+            return Json(new { esiste });
+        }
     }
 }
