@@ -23,17 +23,23 @@ module Example.Components {
             const body = offcanvasEl.querySelector('[data-offcanvas-content]');
             if (!body) return;
             body.innerHTML = `
-                <div class="d-flex justify-content-center align-items-center h-100">
-                    <div class="spinner-border text-primary" role="status">
-                        <span class="visually-hidden">Caricamento...</span>
-                    </div>
-                </div>
-            `;
+        <div class="d-flex justify-content-center align-items-center h-100">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Caricamento...</span>
+            </div>
+        </div>
+    `;
 
-            // Bootstrap Offcanvas
-            const bsInstance = new bootstrap.Offcanvas(offcanvasEl);
+            // Bootstrap Offcanvas: usa getInstance prima di crearne uno nuovo
+            let bsInstance = bootstrap.Offcanvas.getInstance(offcanvasEl);
+            if (!bsInstance) {
+                bsInstance = new bootstrap.Offcanvas(offcanvasEl, {
+                    backdrop: true,
+                    scroll: false
+                });
+            }
+
             bsInstance.show();
-
             this.state[id] = { isOpen: true };
 
             fetch(url)
@@ -85,6 +91,9 @@ document.addEventListener('click', (e: MouseEvent) => {
     const target = e.target as HTMLElement | null;
     if (!target) return;
 
+    // Ignora click su btn-elimina
+    if (target.closest('.btn-elimina')) return;
+
     const btn = target.closest('[data-offcanvas]') as HTMLElement | null;
     if (!btn) return;
 
@@ -94,7 +103,6 @@ document.addEventListener('click', (e: MouseEvent) => {
 
     if (!id || !url) return;
 
-    // SE l'offcanvas con quell'ID è già aperto, usa load(), altrimenti open()
     const offcanvasEl = document.getElementById(id);
     const isOpen = offcanvasEl?.classList.contains('show');
 
@@ -104,3 +112,4 @@ document.addEventListener('click', (e: MouseEvent) => {
         Example.Components.Offcanvas.open({ id, url, title });
     }
 });
+
