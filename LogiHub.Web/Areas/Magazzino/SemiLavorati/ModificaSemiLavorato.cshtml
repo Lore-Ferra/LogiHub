@@ -4,7 +4,12 @@
     <form id="formModificaSemilavorato" asp-action="Modifica" asp-area="Magazzino" method="post">
         @Html.AntiForgeryToken()
         <input type="hidden" asp-for="Id" />
-
+        <input type="hidden" asp-for="Barcode" />
+        <div class="mb-3">
+            <label asp-for="Barcode" class="form-label fw-bold text-uppercase text-muted small"></label>
+            <input asp-for="Barcode" class="form-control form-control-lg" readonly />
+            <span asp-validation-for="Barcode" class="text-danger"></span>
+        </div>
         <div class="mb-4">
             <label asp-for="Descrizione" class="form-label fw-bold text-uppercase text-muted small">Descrizione</label>
             <input asp-for="Descrizione" class="form-control form-control-lg" placeholder="Inserisci descrizione..." />
