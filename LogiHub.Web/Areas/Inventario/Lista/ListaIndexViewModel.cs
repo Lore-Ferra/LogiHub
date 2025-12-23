@@ -8,11 +8,8 @@ namespace LogiHub.Web.Areas.Inventario
         public string Filter { get; set; }
         public override IActionResult GetRoute()
         {
-            return MVC.Magazzino.SemiLavorati
-                .Index(Filter, Page, PageSize)
-                .GetAwaiter()
-                .GetResult();
+            return MVC.Inventario.Lista
+                .Index(Filter, Page, PageSize);
         }
-
     }
 }
