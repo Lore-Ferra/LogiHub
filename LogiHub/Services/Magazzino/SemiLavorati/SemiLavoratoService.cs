@@ -37,6 +37,36 @@ public class SemiLavoratoService : ISemiLavoratoService
         await _context.SaveChangesAsync();
         return semi;
     }
+
+    public async Task<bool> ModificaSemiLavorato(ModificaSemiLavoratoDTO dto)
+    {
+        var sl = await _context.SemiLavorati.FirstOrDefaultAsync(x => x.Id == dto.Id);
+        if (sl == null || sl.Eliminato) return false;
+        var ubicazioneOld = await _context.Ubicazioni
+            .Where(x => x.UbicazioneId == sl.UbicazioneId)
+            .Select(u => u.Posizione)
+            .FirstOrDefaultAsync();
+        sl.Barcode = dto.Barcode;
+        sl.Descrizione = dto.Descrizione;
+        sl.AziendaEsternaId = dto.AziendaEsternaId;
+        var ubicazioneCambiata = sl.UbicazioneId != dto.UbicazioneId;
+        
+        sl.UltimaModifica = DateTime.Now;
+        
+        if (ubicazioneCambiata)
+        {
+            sl.UbicazioneId = dto.UbicazioneId;
+            
+            var ubicazioneNew = await _context.Ubicazioni
+                .Where(u => u.UbicazioneId == sl.UbicazioneId)
+                .Select(u => u.Posizione)
+                .FirstOrDefaultAsync();
+            
+            GeneraAzioneSpostamento(dto.Id, dto.UserId, ubicazioneOld, ubicazioneNew);
+        }
+            
+        return await _context.SaveChangesAsync() > 0;
+    }
     public async Task<bool> EliminaAsync(EliminaSemiLavoratoDTO dto)
     {
         var sl = await _context.SemiLavorati.FindAsync(dto.SemiLavoratoId);
