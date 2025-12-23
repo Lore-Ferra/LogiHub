@@ -104,4 +104,48 @@ document.addEventListener('click', (e) => {
         Example.Components.Offcanvas.open({ id, url, title });
     }
 });
-//# sourceMappingURL=offcanvas.js.map
+// Intercetta submit del form di modifica semilavorato (AJAX)
+document.addEventListener('submit', function (e) {
+    var form = e.target;
+    if (!form || !form.classList || !form.classList.contains('modifica-form')) return;
+
+    e.preventDefault();
+    e.stopPropagation();
+
+    // HTML5 validation
+    if (form.checkValidity && !form.checkValidity()) {
+        form.classList.add('was-validated');
+        return;
+    }
+
+    fetch(form.action, {
+        method: 'POST',
+        body: new FormData(form),
+        headers: { 'X-Requested-With': 'XMLHttpRequest' }
+    })
+        .then(function (r) { return r.json(); })
+        .then(function (data) {
+            if (!data || !data.success) return;
+
+            var offcanvasDettagli = document.getElementById('offcanvasDettagli');
+            if (!offcanvasDettagli) return;
+
+            var offcanvasModifica = document.getElementById('offcanvasModifica');
+            if (offcanvasModifica && bootstrap && bootstrap.Offcanvas) {
+                var instance = bootstrap.Offcanvas.getInstance(offcanvasModifica);
+                if (instance && instance.hide) instance.hide();
+            }
+
+            var body = offcanvasDettagli.querySelector('[data-offcanvas-content]');
+            if (!body) return;
+
+            fetch('/Magazzino/SemiLavorati/Dettagli?id=' + data.id)
+                .then(function (r) { return r.text(); })
+                .then(function (html) { body.innerHTML = html; })
+                .catch(function (err) { console.error('Errore caricamento dettagli', err); });
+        })
+        .catch(function (err) {
+            console.error('Errore durante il salvataggio', err);
+            alert('Errore durante il salvataggio');
+        });
+}, true);

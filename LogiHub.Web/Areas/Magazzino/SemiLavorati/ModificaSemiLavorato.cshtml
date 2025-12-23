@@ -1,7 +1,7 @@
 ﻿@model LogiHub.Web.Areas.Magazzino.SemiLavorati.ModificaSemiLavoratoViewModel
 
 
-    <form id="formModificaSemilavorato" asp-action="Modifica" asp-area="Magazzino" method="post">
+    <form id="formModificaSemilavorato" class="modifica-form" asp-action="Modifica" asp-area="Magazzino" method="post">
         @Html.AntiForgeryToken()
         <input type="hidden" asp-for="Id" />
         <input type="hidden" asp-for="Barcode" />

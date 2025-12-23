@@ -113,3 +113,43 @@ document.addEventListener('click', (e: MouseEvent) => {
     }
 });
 
+document.addEventListener('submit', async function (e) {
+    const form = e.target as HTMLFormElement;
+    if (!form.classList.contains('modifica-form')) return;
+
+    e.preventDefault();
+    e.stopPropagation();
+
+    if (!form.checkValidity()) {
+        form.classList.add('was-validated');
+        return;
+    }
+
+    try {
+        const response = await fetch(form.action, {
+            method: 'POST',
+            body: new FormData(form),
+            headers: { 'X-Requested-With': 'XMLHttpRequest' }
+        });
+
+        const data = await response.json();
+        if (!data.success) return;
+
+        const offcanvasEl = document.getElementById('offcanvasDettagli');
+        if (!offcanvasEl) return;
+
+        const modifyOffcanvas = document.getElementById('offcanvasModifica');
+        if (modifyOffcanvas) bootstrap.Offcanvas.getInstance(modifyOffcanvas)?.hide();
+
+        const body = offcanvasEl.querySelector('[data-offcanvas-content]') as HTMLElement | null;
+        if (!body) return;
+
+        const html = await fetch(`/Magazzino/SemiLavorati/Dettagli?id=${data.id}`).then(r => r.text());
+        body.innerHTML = html;
+    } catch (err) {
+        console.error('Errore durante il salvataggio', err);
+        alert('Errore durante il salvataggio');
+    }
+}, true);
+
+
