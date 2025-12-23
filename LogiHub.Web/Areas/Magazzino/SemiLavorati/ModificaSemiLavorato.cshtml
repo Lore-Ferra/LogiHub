@@ -5,13 +5,13 @@
         @Html.AntiForgeryToken()
         <input type="hidden" asp-for="Id" />
         <div class="mb-3">
-            <label asp-for="Barcode" class="form-label fw-bold text-uppercase text-muted small"></label>
-            <input asp-for="Barcode" class="form-control form-control-lg" />
+            <label asp-for="Barcode" class="small text-muted d-block mb-1">Barcode:</label>
+            <input asp-for="Barcode" class="form-control" />
             <span asp-validation-for="Barcode" class="text-danger"></span>
         </div>
         <div class="mb-4">
-            <label asp-for="Descrizione" class="form-label fw-bold text-uppercase text-muted small">Descrizione</label>
-            <input asp-for="Descrizione" class="form-control form-control-lg" placeholder="Inserisci descrizione..." required />
+            <label asp-for="Descrizione" class="small text-muted d-block mb-1">Descrizione:</label>
+            <input asp-for="Descrizione" class="form-control" placeholder="Inserisci descrizione..." required />
             <div class="invalid-feedback">
                 Descrizione obbligatoria
             </div>
@@ -20,7 +20,7 @@
 
         <div class="row mb-4">
             <div class="col-md-6">
-                <label asp-for="UbicazioneId" class="form-label fw-bold text-uppercase text-muted small">Ubicazione</label>
+                <label asp-for="UbicazioneId" class="small text-muted d-block mb-1">Ubicazione:</label>
                 <select asp-for="UbicazioneId" asp-items="Model.UbicazioniList" class="form-select" required>
                     <option value="">-- Seleziona Ubicazione --</option>
                 </select>
@@ -30,7 +30,7 @@
                 <span asp-validation-for="UbicazioneId" class="text-danger small"></span>
             </div>
             <div class="col-md-6">
-                <label asp-for="AziendaEsternaId" class="form-label fw-bold text-uppercase text-muted small">In Carico a</label>
+                <label asp-for="AziendaEsternaId" class="small text-muted d-block mb-1">In carico a:</label>
                 <select asp-for="AziendaEsternaId"
                         asp-items="Model.AziendeList"
                         class="form-select"

@@ -14,7 +14,7 @@
     @Html.AntiForgeryToken()
     
     <div class="mb-3">
-        <label class="form-label text-muted fw-medium d-block">Codice Barcode</label>
+        <label asp-for="Barcode" class="small text-muted d-block mb-1">Barcode:</label>
 
         <div class="input-group d-md-none mb-2">
             <button type="button"
@@ -28,26 +28,31 @@
         <input asp-for="Barcode"
                id="barcodeInput"
                class="form-control"
-               placeholder="Codice barcode"
                required />
-
+                    
         <span asp-validation-for="Barcode" class="text-danger"></span>
         <div class="invalid-feedback">Codice Barcode obbligatorio</div>
     </div>
 
     <div class="mb-3">
-        <label class="form-label text-muted fw-medium d-block">Ubicazione</label>
+        <label asp-for="UbicazioneId" class="small text-muted d-block mb-1">Ubicazione:</label>
+
         <select asp-for="UbicazioneId"
                 asp-items="Model.UbicazioniList"
                 class="form-select js-select-search"
                 required>
             <option value=""></option>
         </select>
+        <div class="invalid-feedback">Ubicazione obbligatoria</div>
     </div>
 
     <div class="mb-3">
-        <label class="form-label text-muted fw-medium d-block">Descrizione</label>
-        <textarea asp-for="Descrizione" class="form-control" rows="3" required></textarea>
+        <label asp-for="Descrizione" class="small text-muted d-block mb-1">Descrizione:</label>
+
+        <textarea asp-for="Descrizione"
+                  class="form-control"
+                  rows="3"
+                  required></textarea>
         <div class="invalid-feedback">Descrizione obbligatoria</div>
     </div>
 
