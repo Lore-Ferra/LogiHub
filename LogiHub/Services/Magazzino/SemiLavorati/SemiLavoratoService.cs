@@ -78,7 +78,19 @@ public class SemiLavoratoService : ISemiLavoratoService
         GeneraAzioneEliminazione(dto);
         return await _context.SaveChangesAsync() > 0;
     }
-    
+
+    private void GeneraAzioneSpostamento(Guid semiLavoratoId, Guid userId, string ubicazioneOld, string ubicazioneNew)
+    {
+        var azione = new Azione
+        {
+            SemiLavoratoId = semiLavoratoId,
+            TipoOperazione = TipoOperazione.CambioUbicazione,
+            UserId = userId,
+            DataOperazione = DateTime.Now,
+            Dettagli = "Spostamento da " + ubicazioneOld + " a " + ubicazioneNew
+        };
+        _context.Azioni.Add(azione);
+    }
     //AZIONI
     private void GeneraAzioneCreazione(Guid semiLavoratoId, Guid userId)
     {
