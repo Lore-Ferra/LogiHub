@@ -10,7 +10,7 @@ public class ModificaSemiLavoratoDTO
 
     public string Descrizione { get; set; } = string.Empty;
 
-    public Guid UbicazioneId { get; set; }
+    public Guid? UbicazioneId { get; set; }
 
     public Guid? AziendaEsternaId { get; set; }
 
