@@ -38,7 +38,7 @@ var Example;
                 this.state[id] = { isOpen: true };
                 fetch(url)
                     .then(r => r.text())
-                    .then(html => body.innerHTML = html)
+                    .then(html => { body.innerHTML = html; initSemilavoratoForm(body); })
                     .catch(() => body.innerHTML = '<p class="text-danger text-center p-3">Errore nel caricamento.</p>');
             }
             load(options) {
@@ -59,6 +59,7 @@ var Example;
                     .then(r => r.text())
                     .then(html => {
                     body.innerHTML = html;
+                    initSemilavoratoForm(body);
                     body.classList.remove('opacity-50');
                 })
                     .catch(() => {
@@ -129,35 +130,48 @@ document.addEventListener('submit', async (e) => {
         alert('Errore durante il salvataggio');
     }
 }, true);
-document.addEventListener('DOMContentLoaded', () => {
-    const Uscito = document.getElementById('Uscito');
-    const Rientrato = document.getElementById('Rientrato');
-    const aziendaSelect = document.querySelector('[name="AziendaEsternaId"]');
-    if (!Uscito || !Rientrato)
+function initSemilavoratoForm(root) {
+    const uscita = root.querySelector('#Uscito');
+    const rientro = root.querySelector('#Rientrato');
+    const azienda = root.querySelector('[name="AziendaEsternaId"]');
+    const form = root.querySelector('form');
+    if (!uscita || !rientro || !azienda || !form)
         return;
-    Uscito.addEventListener('change', () => {
-        if (Uscito.checked) {
-            Rientrato.checked = false;
+    function updateAziendaValidation() {
+        if (uscita.checked) {
+            azienda.setAttribute('required', 'true');
         }
         else {
-            if (aziendaSelect)
-                aziendaSelect.value = '';
+            azienda.removeAttribute('required');
+            azienda.classList.remove('is-invalid');
         }
-    });
-    Rientrato.addEventListener('change', () => {
-        if (Rientrato.checked) {
-            Uscito.checked = false;
-            if (aziendaSelect)
-                aziendaSelect.value = '';
-        }
-    });
-    if (aziendaSelect) {
-        aziendaSelect.addEventListener('change', () => {
-            if (aziendaSelect.value) {
-                Uscito.checked = true;
-                Rientrato.checked = false;
-            }
-        });
     }
-});
+    azienda.addEventListener('change', () => {
+        if (azienda.value) {
+            uscita.checked = true;
+            rientro.checked = false;
+        }
+        updateAziendaValidation();
+    });
+    uscita.addEventListener('change', () => {
+        if (!uscita.checked) {
+            azienda.value = '';
+        }
+        updateAziendaValidation();
+    });
+    rientro.addEventListener('change', () => {
+        if (rientro.checked) {
+            uscita.checked = false;
+            azienda.value = '';
+        }
+        updateAziendaValidation();
+    });
+    updateAziendaValidation();
+}
+function setChecked(el, value) {
+    if (el.checked !== value) {
+        el.checked = value;
+        el.dispatchEvent(new Event('change', { bubbles: true }));
+    }
+}
 //# sourceMappingURL=offcanvas.js.map

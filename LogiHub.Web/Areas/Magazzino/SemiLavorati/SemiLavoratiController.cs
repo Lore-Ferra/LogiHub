@@ -126,7 +126,8 @@ namespace LogiHub.Web.Areas.Magazzino
             var dto = await _queries.GetSemiLavoratoDetailsAsync(
                 new SemiLavoratiDetailsQuery { Id = id });
 
-            if (dto == null) return NotFound();
+            if (dto == null)
+                return NotFound();
 
             var model = new ModificaSemiLavoratoViewModel
             {
@@ -135,7 +136,7 @@ namespace LogiHub.Web.Areas.Magazzino
                 Descrizione = dto.Descrizione,
                 UbicazioneId = dto.UbicazioneId,
                 AziendaEsternaId = dto.AziendaEsternaId,
-                Uscito = dto.Uscito,
+                Uscito = dto.AziendaEsternaId != null,
 
                 UbicazioniList = _context.Ubicazioni
                     .Select(u => new SelectListItem
@@ -161,8 +162,7 @@ namespace LogiHub.Web.Areas.Magazzino
         [ValidateAntiForgeryToken]
         public virtual async Task<IActionResult> Modifica(ModificaSemiLavoratoViewModel model)
         {
-            if (!model.Uscito)
-                model.AziendaEsternaId = null;
+            model.Uscito = model.AziendaEsternaId != null;
 
             if (model.Uscito && model.AziendaEsternaId == null)
             {
@@ -179,14 +179,16 @@ namespace LogiHub.Web.Areas.Magazzino
                     {
                         Value = u.UbicazioneId.ToString(),
                         Text = u.Posizione
-                    }).ToList();
+                    })
+                    .ToList();
 
                 model.AziendeList = _context.AziendeEsterne
                     .Select(a => new SelectListItem
                     {
                         Value = a.Id.ToString(),
                         Text = a.Nome
-                    }).ToList();
+                    })
+                    .ToList();
 
                 return PartialView("ModificaSemilavorato", model);
             }
@@ -200,12 +202,15 @@ namespace LogiHub.Web.Areas.Magazzino
                 Descrizione = model.Descrizione,
                 UbicazioneId = model.UbicazioneId,
                 AziendaEsternaId = model.AziendaEsternaId,
-                Uscito = model.Uscito,
+
+                Uscito = model.AziendaEsternaId != null,
+
                 UserId = userId
             };
 
             var success = await _service.ModificaSemiLavorato(dto);
-            if (!success) return NotFound();
+            if (!success)
+                return NotFound();
 
             return RedirectToAction(nameof(Index));
         }

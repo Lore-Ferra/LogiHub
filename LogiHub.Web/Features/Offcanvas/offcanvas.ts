@@ -44,7 +44,7 @@ module Example.Components {
 
             fetch(url)
                 .then(r => r.text())
-                .then(html => body.innerHTML = html)
+                .then(html => {body.innerHTML = html; initSemilavoratoForm(body);})
                 .catch(() => body.innerHTML = '<p class="text-danger text-center p-3">Errore nel caricamento.</p>');
         }
         load(options: OffcanvasOptions) {
@@ -66,6 +66,7 @@ module Example.Components {
                 .then(r => r.text())
                 .then(html => {
                     body.innerHTML = html;
+                    initSemilavoratoForm(body);
                     body.classList.remove('opacity-50');
                 })
                 .catch(() => {
@@ -141,35 +142,56 @@ document.addEventListener('submit', async (e) => {
     }
 }, true);
 
-document.addEventListener('DOMContentLoaded', () => {
+function initSemilavoratoForm(root: Element) {
 
-    const Uscito = document.getElementById('Uscito') as HTMLInputElement | null;
-    const Rientrato = document.getElementById('Rientrato') as HTMLInputElement | null;
-    const aziendaSelect = document.querySelector('[name="AziendaEsternaId"]') as HTMLSelectElement | null;
+    const uscita = root.querySelector('#Uscito') as HTMLInputElement;
+    const rientro = root.querySelector('#Rientrato') as HTMLInputElement;
+    const azienda = root.querySelector('[name="AziendaEsternaId"]') as HTMLSelectElement;
+    const form = root.querySelector('form') as HTMLFormElement;
 
-    if (!Uscito || !Rientrato) return;
+    if (!uscita || !rientro || !azienda || !form) return;
 
-    Uscito.addEventListener('change', () => {
-        if (Uscito.checked) {
-            Rientrato.checked = false;
+    function updateAziendaValidation() {
+        if (uscita.checked) {
+            azienda.setAttribute('required', 'true');
         } else {
-            if (aziendaSelect) aziendaSelect.value = '';
+            azienda.removeAttribute('required');
+            azienda.classList.remove('is-invalid');
         }
-    });
-
-    Rientrato.addEventListener('change', () => {
-        if (Rientrato.checked) {
-            Uscito.checked = false;
-            if (aziendaSelect) aziendaSelect.value = '';
-        }
-    });
-
-    if (aziendaSelect) {
-        aziendaSelect.addEventListener('change', () => {
-            if (aziendaSelect.value) {
-                Uscito.checked = true;
-                Rientrato.checked = false;
-            }
-        });
     }
-});
+
+    azienda.addEventListener('change', () => {
+        if (azienda.value) {
+            uscita.checked = true;
+            rientro.checked = false;
+        }
+        updateAziendaValidation();
+    });
+
+    uscita.addEventListener('change', () => {
+        if (!uscita.checked) {
+            azienda.value = '';
+        }
+        updateAziendaValidation();
+    });
+
+    rientro.addEventListener('change', () => {
+        if (rientro.checked) {
+            uscita.checked = false;
+            azienda.value = '';
+        }
+        updateAziendaValidation();
+    });
+
+    updateAziendaValidation();
+}
+
+
+function setChecked(el: HTMLInputElement, value: boolean) {
+    if (el.checked !== value) {
+        el.checked = value;
+        el.dispatchEvent(new Event('change', { bubbles: true }));
+    }
+}
+
+

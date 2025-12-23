@@ -31,9 +31,16 @@
             </div>
             <div class="col-md-6">
                 <label asp-for="AziendaEsternaId" class="form-label fw-bold text-uppercase text-muted small">In Carico a</label>
-                <select asp-for="AziendaEsternaId" asp-items="Model.AziendeList" class="form-select">
+                <select asp-for="AziendaEsternaId"
+                        asp-items="Model.AziendeList"
+                        class="form-select"
+                        id="AziendaEsternaId">
                     <option value="">-- Seleziona Azienda --</option>
                 </select>
+
+                <div class="invalid-feedback">
+                    Se il semilavorato è uscito, seleziona un’azienda.
+                </div>
             </div>
         </div>
 
