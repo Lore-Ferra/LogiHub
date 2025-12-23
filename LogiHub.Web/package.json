@@ -15,5 +15,8 @@
     "toastify-js": "1.12.0",
     "vue": "2.6.14",
     "vue-multiselect": "2.1.9"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.3"
   }
 }

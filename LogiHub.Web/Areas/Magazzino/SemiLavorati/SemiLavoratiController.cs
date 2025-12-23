@@ -123,7 +123,9 @@ namespace LogiHub.Web.Areas.Magazzino
         [HttpGet]
         public virtual async Task<IActionResult> Modifica(Guid id)
         {
-            var dto = await _queries.GetSemiLavoratoDetailsAsync(new SemiLavoratiDetailsQuery { Id = id });
+            var dto = await _queries.GetSemiLavoratoDetailsAsync(
+                new SemiLavoratiDetailsQuery { Id = id });
+
             if (dto == null) return NotFound();
 
             var model = new ModificaSemiLavoratoViewModel
@@ -132,19 +134,44 @@ namespace LogiHub.Web.Areas.Magazzino
                 Barcode = dto.Barcode,
                 Descrizione = dto.Descrizione,
                 UbicazioneId = dto.UbicazioneId,
- 
+                AziendaEsternaId = dto.AziendaEsternaId,
+                Uscito = dto.Uscito,
+
                 UbicazioniList = _context.Ubicazioni
-                    .Select(u => new SelectListItem { Value = u.UbicazioneId.ToString(), Text = u.Posizione })
+                    .Select(u => new SelectListItem
+                    {
+                        Value = u.UbicazioneId.ToString(),
+                        Text = u.Posizione
+                    })
+                    .ToList(),
+
+                AziendeList = _context.AziendeEsterne
+                    .Select(a => new SelectListItem
+                    {
+                        Value = a.Id.ToString(),
+                        Text = a.Nome
+                    })
                     .ToList()
             };
 
-            return PartialView("ModificaSemilavorato", model); 
+            return PartialView("ModificaSemilavorato", model);
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
         public virtual async Task<IActionResult> Modifica(ModificaSemiLavoratoViewModel model)
         {
+            if (!model.Uscito)
+                model.AziendaEsternaId = null;
+
+            if (model.Uscito && model.AziendaEsternaId == null)
+            {
+                ModelState.AddModelError(
+                    nameof(model.AziendaEsternaId),
+                    "Se il semilavorato è uscito, seleziona un'azienda."
+                );
+            }
+
             if (!ModelState.IsValid)
             {
                 model.UbicazioniList = _context.Ubicazioni
@@ -153,9 +180,19 @@ namespace LogiHub.Web.Areas.Magazzino
                         Value = u.UbicazioneId.ToString(),
                         Text = u.Posizione
                     }).ToList();
-                return PartialView("ModificaSemiLavorato", model);
+
+                model.AziendeList = _context.AziendeEsterne
+                    .Select(a => new SelectListItem
+                    {
+                        Value = a.Id.ToString(),
+                        Text = a.Nome
+                    }).ToList();
+
+                return PartialView("ModificaSemilavorato", model);
             }
+
             var userId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
+
             var dto = new ModificaSemiLavoratoDTO
             {
                 Id = model.Id,
@@ -166,10 +203,11 @@ namespace LogiHub.Web.Areas.Magazzino
                 Uscito = model.Uscito,
                 UserId = userId
             };
+
             var success = await _service.ModificaSemiLavorato(dto);
             if (!success) return NotFound();
-            
-            return Json(new { success = true, id = model.Id });
+
+            return RedirectToAction(nameof(Index));
         }
         
         [HttpGet]

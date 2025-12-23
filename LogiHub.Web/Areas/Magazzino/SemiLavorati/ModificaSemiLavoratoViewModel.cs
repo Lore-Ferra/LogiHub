@@ -17,4 +17,6 @@ public class ModificaSemiLavoratoViewModel
     public IEnumerable<SelectListItem> AziendeList { get; set; } = new List<SelectListItem>();
 
     public bool Uscito { get; set; }
+    
+    public bool Rientrato { get; set; }
 }

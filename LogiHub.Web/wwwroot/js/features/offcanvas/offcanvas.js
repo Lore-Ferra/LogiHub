@@ -104,48 +104,60 @@ document.addEventListener('click', (e) => {
         Example.Components.Offcanvas.open({ id, url, title });
     }
 });
-// Intercetta submit del form di modifica semilavorato (AJAX)
-document.addEventListener('submit', function (e) {
-    var form = e.target;
-    if (!form || !form.classList || !form.classList.contains('modifica-form')) return;
-
+document.addEventListener('submit', async (e) => {
+    const form = e.target;
+    if (!form.classList.contains('modifica-form'))
+        return;
     e.preventDefault();
     e.stopPropagation();
-
-    // HTML5 validation
-    if (form.checkValidity && !form.checkValidity()) {
+    if (!form.checkValidity()) {
         form.classList.add('was-validated');
         return;
     }
-
-    fetch(form.action, {
-        method: 'POST',
-        body: new FormData(form),
-        headers: { 'X-Requested-With': 'XMLHttpRequest' }
-    })
-        .then(function (r) { return r.json(); })
-        .then(function (data) {
-            if (!data || !data.success) return;
-
-            var offcanvasDettagli = document.getElementById('offcanvasDettagli');
-            if (!offcanvasDettagli) return;
-
-            var offcanvasModifica = document.getElementById('offcanvasModifica');
-            if (offcanvasModifica && bootstrap && bootstrap.Offcanvas) {
-                var instance = bootstrap.Offcanvas.getInstance(offcanvasModifica);
-                if (instance && instance.hide) instance.hide();
-            }
-
-            var body = offcanvasDettagli.querySelector('[data-offcanvas-content]');
-            if (!body) return;
-
-            fetch('/Magazzino/SemiLavorati/Dettagli?id=' + data.id)
-                .then(function (r) { return r.text(); })
-                .then(function (html) { body.innerHTML = html; })
-                .catch(function (err) { console.error('Errore caricamento dettagli', err); });
-        })
-        .catch(function (err) {
-            console.error('Errore durante il salvataggio', err);
-            alert('Errore durante il salvataggio');
+    try {
+        const response = await fetch(form.action, {
+            method: 'POST',
+            body: new FormData(form),
+            headers: { 'X-Requested-With': 'XMLHttpRequest' }
         });
+        if (response.redirected) {
+            window.location.href = response.url;
+        }
+    }
+    catch (err) {
+        console.error(err);
+        alert('Errore durante il salvataggio');
+    }
 }, true);
+document.addEventListener('DOMContentLoaded', () => {
+    const Uscito = document.getElementById('Uscito');
+    const Rientrato = document.getElementById('Rientrato');
+    const aziendaSelect = document.querySelector('[name="AziendaEsternaId"]');
+    if (!Uscito || !Rientrato)
+        return;
+    Uscito.addEventListener('change', () => {
+        if (Uscito.checked) {
+            Rientrato.checked = false;
+        }
+        else {
+            if (aziendaSelect)
+                aziendaSelect.value = '';
+        }
+    });
+    Rientrato.addEventListener('change', () => {
+        if (Rientrato.checked) {
+            Uscito.checked = false;
+            if (aziendaSelect)
+                aziendaSelect.value = '';
+        }
+    });
+    if (aziendaSelect) {
+        aziendaSelect.addEventListener('change', () => {
+            if (aziendaSelect.value) {
+                Uscito.checked = true;
+                Rientrato.checked = false;
+            }
+        });
+    }
+});
+//# sourceMappingURL=offcanvas.js.map

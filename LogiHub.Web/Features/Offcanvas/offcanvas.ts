@@ -113,7 +113,7 @@ document.addEventListener('click', (e: MouseEvent) => {
     }
 });
 
-document.addEventListener('submit', async function (e) {
+document.addEventListener('submit', async (e) => {
     const form = e.target as HTMLFormElement;
     if (!form.classList.contains('modifica-form')) return;
 
@@ -132,24 +132,44 @@ document.addEventListener('submit', async function (e) {
             headers: { 'X-Requested-With': 'XMLHttpRequest' }
         });
 
-        const data = await response.json();
-        if (!data.success) return;
-
-        const offcanvasEl = document.getElementById('offcanvasDettagli');
-        if (!offcanvasEl) return;
-
-        const modifyOffcanvas = document.getElementById('offcanvasModifica');
-        if (modifyOffcanvas) bootstrap.Offcanvas.getInstance(modifyOffcanvas)?.hide();
-
-        const body = offcanvasEl.querySelector('[data-offcanvas-content]') as HTMLElement | null;
-        if (!body) return;
-
-        const html = await fetch(`/Magazzino/SemiLavorati/Dettagli?id=${data.id}`).then(r => r.text());
-        body.innerHTML = html;
+        if (response.redirected) {
+            window.location.href = response.url;
+        }
     } catch (err) {
-        console.error('Errore durante il salvataggio', err);
+        console.error(err);
         alert('Errore durante il salvataggio');
     }
 }, true);
 
+document.addEventListener('DOMContentLoaded', () => {
 
+    const Uscito = document.getElementById('Uscito') as HTMLInputElement | null;
+    const Rientrato = document.getElementById('Rientrato') as HTMLInputElement | null;
+    const aziendaSelect = document.querySelector('[name="AziendaEsternaId"]') as HTMLSelectElement | null;
+
+    if (!Uscito || !Rientrato) return;
+
+    Uscito.addEventListener('change', () => {
+        if (Uscito.checked) {
+            Rientrato.checked = false;
+        } else {
+            if (aziendaSelect) aziendaSelect.value = '';
+        }
+    });
+
+    Rientrato.addEventListener('change', () => {
+        if (Rientrato.checked) {
+            Uscito.checked = false;
+            if (aziendaSelect) aziendaSelect.value = '';
+        }
+    });
+
+    if (aziendaSelect) {
+        aziendaSelect.addEventListener('change', () => {
+            if (aziendaSelect.value) {
+                Uscito.checked = true;
+                Rientrato.checked = false;
+            }
+        });
+    }
+});
