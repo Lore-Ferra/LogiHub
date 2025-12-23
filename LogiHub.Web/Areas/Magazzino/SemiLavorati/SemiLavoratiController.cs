@@ -140,6 +140,37 @@ namespace LogiHub.Web.Areas.Magazzino
 
             return PartialView("ModificaSemilavorato", model); 
         }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public virtual async Task<IActionResult> Modifica(ModificaSemiLavoratoViewModel model)
+        {
+            if (!ModelState.IsValid)
+            {
+                model.UbicazioniList = _context.Ubicazioni
+                    .Select(u => new SelectListItem
+                    {
+                        Value = u.UbicazioneId.ToString(),
+                        Text = u.Posizione
+                    }).ToList();
+                return PartialView("ModificaSemiLavorato", model);
+            }
+            var userId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
+            var dto = new ModificaSemiLavoratoDTO
+            {
+                Id = model.Id,
+                Barcode = model.Barcode,
+                Descrizione = model.Descrizione,
+                UbicazioneId = model.UbicazioneId,
+                AziendaEsternaId = model.AziendaEsternaId,
+                Uscito = model.Uscito,
+                UserId = userId
+            };
+            var success = await _service.ModificaSemiLavorato(dto);
+            if (!success) return NotFound();
+            
+            return Json(new { success = true, id = model.Id });
+        }
         
         [HttpGet]
         [Route("/Magazzino/SemiLavorati/GeneraBarcodeUnivoco")]
