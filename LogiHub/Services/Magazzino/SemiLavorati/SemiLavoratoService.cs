@@ -16,7 +16,7 @@ public class SemiLavoratoService : ISemiLavoratoService
     }
 
     //METODI CRUD
-    public async Task<SemiLavorato> CreaSemiLavoratoAsync(CreaSemiLavoratoDTO dto)
+    public async Task<SemiLavorato> AggiungiSemiLavoratoAsync(AggiungiSemiLavoratoDTO dto)
     {
         // var exists = await _context.SemiLavorati.AnyAsync(x => x.Barcode == dto.Barcode); //causa crash in caso aggiunta nuovo semi stesso barcode
 

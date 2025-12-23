@@ -25,7 +25,7 @@
                 {
                     { "data-offcanvas", "" },
                     { "data-id", "offcanvasAggiungi" },
-                    { "data-url", "/Magazzino/SemiLavorati/CreaSemilavorato" },
+                    { "data-url", "/Magazzino/SemiLavorati/AggiungiSemilavorato" },
                     { "data-title", "Aggiungi Semilavorato" },
                     { "title", "Aggiungi Semilavorato" }
                 }            }
@@ -144,7 +144,7 @@
    data-title="Aggiungi Semilavorato"
    data-offcanvas
    data-id="offcanvasAggiungi"
-   data-url="/Magazzino/SemiLavorati/CreaSemilavorato">
+   data-url="/Magazzino/SemiLavorati/AggiungiSemilavorato">
     <i class="fa-solid fa-plus"></i>
 </a>
 
@@ -277,7 +277,7 @@
         document.addEventListener('submit', function (e) {
             
             const form = e.target;
-            if (form.id !== 'formCreaSemilavorato') return;
+            if (form.id !== 'formAggiungiSemilavorato') return;
 
             e.preventDefault();
             e.stopPropagation();

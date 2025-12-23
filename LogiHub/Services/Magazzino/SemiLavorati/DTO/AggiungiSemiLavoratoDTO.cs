@@ -1,6 +1,6 @@
 ﻿using System;
 
-public class CreaSemiLavoratoDTO
+public class AggiungiSemiLavoratoDTO
 {
     public string Barcode { get; set; }
     public string Descrizione { get; set; }

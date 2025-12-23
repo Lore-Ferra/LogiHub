@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 
 namespace LogiHub.Web.Areas.Magazzino.SemiLavorati
 {
-    public class CreaSemiLavoratoViewModel
+    public class AggiungiSemiLavoratoViewModel
     {
         public string Barcode { get; set; }
         public string Descrizione { get; set; }

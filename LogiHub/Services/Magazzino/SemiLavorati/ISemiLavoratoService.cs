@@ -6,7 +6,7 @@ using LogiHub.Services.Shared.SemiLavorati;
 public interface ISemiLavoratoService
 {
     
-    Task<SemiLavorato> CreaSemiLavoratoAsync(CreaSemiLavoratoDTO dto);
+    Task<SemiLavorato> AggiungiSemiLavoratoAsync(AggiungiSemiLavoratoDTO dto);
     Task<bool> EliminaAsync(EliminaSemiLavoratoDTO dto);
     Task<bool> ModificaSemiLavorato(ModificaSemiLavoratoDTO dto);
     //

@@ -72,21 +72,21 @@ namespace LogiHub.Web.Areas.Magazzino
         
         
         [HttpGet]
-        public virtual IActionResult CreaSemilavorato()
+        public virtual IActionResult AggiungiSemilavorato()
         {
-            var model = new CreaSemiLavoratoViewModel
+            var model = new AggiungiSemiLavoratoViewModel
             {
                 UbicazioniList = _context.Ubicazioni
                     .Select(u => new SelectListItem { Value = u.UbicazioneId.ToString(), Text = u.Posizione })
                     .ToList(),
             };
 
-            return View("CreaSemilavorato", model);
+            return View("AggiungiSemilavorato", model);
         }
         
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public virtual async Task<IActionResult> CreaSemilavorato(CreaSemiLavoratoViewModel model)
+        public virtual async Task<IActionResult> AggiungiSemilavorato(AggiungiSemiLavoratoViewModel model)
         {
             if (!ModelState.IsValid)
             {
@@ -94,12 +94,12 @@ namespace LogiHub.Web.Areas.Magazzino
                     .Select(u => new SelectListItem { Value = u.UbicazioneId.ToString(), Text = u.Posizione })
                     .ToList();
 
-                return View("CreaSemilavorato", model);
+                return View("AggiungiSemilavorato", model);
             }
 
             var userId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
 
-            var dto = new CreaSemiLavoratoDTO
+            var dto = new AggiungiSemiLavoratoDTO
             {
                 Barcode = model.Barcode,
                 Descrizione = model.Descrizione,
@@ -107,7 +107,7 @@ namespace LogiHub.Web.Areas.Magazzino
                 UserId = userId,
             };
 
-            await _service.CreaSemiLavoratoAsync(dto);
+            await _service.AggiungiSemiLavoratoAsync(dto);
 
             return RedirectToAction(nameof(Index));
         }
