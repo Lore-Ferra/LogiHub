@@ -1,6 +1,4 @@
-﻿declare const bootstrap: any;
-
-module Example.Components {
+﻿module Example.Components {
     export interface OffcanvasOptions {
         id: string;
         url: string;
@@ -93,7 +91,7 @@ document.addEventListener('click', (e: MouseEvent) => {
     if (!target) return;
 
     // Ignora click su btn-elimina
-    if (target.closest('.btn-elimina')) return;
+    if (target.closest('[data-delete]')) return;
 
     const btn = target.closest('[data-offcanvas]') as HTMLElement | null;
     if (!btn) return;

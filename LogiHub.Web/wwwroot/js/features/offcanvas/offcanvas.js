@@ -86,7 +86,7 @@ document.addEventListener('click', (e) => {
     if (!target)
         return;
     // Ignora click su btn-elimina
-    if (target.closest('.btn-elimina'))
+    if (target.closest('[data-delete]'))
         return;
     const btn = target.closest('[data-offcanvas]');
     if (!btn)
