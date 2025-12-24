@@ -264,43 +264,64 @@
 
     }, true);
     </script>
-    <script>
-        document.addEventListener('focusout', async function(e) {
+<script>
+    document.addEventListener('focusout', async function(e) {
 
-            // 1. Controlliamo che l'evento arrivi dal nostro input 'barcodeInput'
-            if (!e.target || e.target.id !== 'barcodeInput') return;
+        const input = e.target;
+        if (!input || (input.id !== 'barcodeInput' && input.name !== 'Barcode')) return;
 
-            const input = e.target;
-            const barcode = input.value.trim();
-            const feedbackDiv = input.parentElement.querySelector('.invalid-feedback');
-            const defaultMessage = "Codice Barcode obbligatorio"; // Messaggio originale
+        const barcode = input.value.trim();
+        
+        const feedbackDiv = input.parentElement.querySelector('.invalid-feedback') || 
+                            document.querySelector(`[data-valmsg-for="${input.name}"]`);
+        
+        const defaultMessage = "Codice Barcode obbligatorio";
 
-            // Se è vuoto, lasciamo gestire l'errore al 'required' standard
-            if (!barcode) {
-                input.setCustomValidity("");
-                if(feedbackDiv) feedbackDiv.textContent = defaultMessage;
-                return;
+        if (!barcode) {
+            input.setCustomValidity("");
+            input.classList.remove('is-invalid');
+            if(feedbackDiv) {
+                feedbackDiv.textContent = defaultMessage;
+                feedbackDiv.style.display = '';
+            }
+            return;
+        }
+
+        const form = input.closest('form');
+        const idInput = form ? form.querySelector('input[name="Id"]') : null;
+        const currentId = idInput ? idInput.value : '';
+
+        try {
+            let url = `/Magazzino/SemiLavorati/VerificaEsistenzaBarcode?barcode=${encodeURIComponent(barcode)}`;
+            if (currentId) {
+                url += `&idEscluso=${currentId}`;
             }
 
-            try {
-                const response = await fetch(`/Magazzino/SemiLavorati/VerificaEsistenzaBarcode?barcode=${encodeURIComponent(barcode)}`);
-                const data = await response.json();
+            const response = await fetch(url);
+            const data = await response.json();
 
-                if (data.esiste) {
-                    input.setCustomValidity("Esiste già");
-
-                    if(feedbackDiv) feedbackDiv.textContent = "Barcode già presente nel sistema!";
-
-                    input.classList.add('is-invalid');
-                } else {
-                    input.setCustomValidity("");
-                    if(feedbackDiv) feedbackDiv.textContent = defaultMessage;
-                    input.classList.remove('is-invalid');
+            if (data.esiste) {
+                input.setCustomValidity("Esiste già");
+                input.classList.add('is-invalid');
+                
+                if(feedbackDiv) {
+                    feedbackDiv.textContent = "Barcode già presente nel sistema!";
+                    feedbackDiv.style.display = 'block'; 
+                    feedbackDiv.classList.add('text-danger');
                 }
-            } catch (error) {
-                console.error("Errore verifica barcode", error);
+            } else {
+                input.setCustomValidity("");
+                input.classList.remove('is-invalid');
+                
+                if(feedbackDiv) {
+                    feedbackDiv.textContent = defaultMessage;
+                    feedbackDiv.style.display = ''; 
+                }
             }
+        } catch (error) {
+            console.error("Errore verifica barcode", error);
+        }
 
-        }, true);
-    </script>
+    }, true);
+</script>
 }

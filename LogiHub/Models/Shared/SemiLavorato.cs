@@ -12,6 +12,7 @@ public class SemiLavorato
     
     [Required]
     public string Barcode { get; set; }
+    [Required]
     public string Descrizione { get; set; } = string.Empty;
 
     public Guid? UbicazioneId { get; set; }
