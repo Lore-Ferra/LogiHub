@@ -1,51 +1,67 @@
 @model LogiHub.Services.Shared.SemiLavorati.SemiLavoratiDetailsDTO
 
-    <div class="mb-4">
-        <small class="text-uppercase text-muted fw-bold fs-6">Descrizione</small>
-        <h3 class="fw-bold">@Model.Descrizione</h3>
-        <small class="text-muted d-block">Ubicazione:</small>
-        <span class="badge bg-secondary">@Model.CodiceUbicazione</span>
-    </div>
+@* 1. WRAPPER PRINCIPALE: Crea una colonna flex alta il 100% *@
+<div class="d-flex flex-column h-100">
 
-    <div class="row mb-4">
-        <div class="col-6">
-            <small class="text-muted d-block">Barcode:</small>
-            <strong class="fs-5">@Model.Barcode</strong>
+    @* 2. AREA SCORREVOLE: Contiene tutto tranne il bottone.
+       flex-grow-1: Occupa tutto lo spazio
+       overflow-auto: Scrolla se il contenuto è lungo
+       pe-2: Un po' di padding a destra per non far sovrapporre la scrollbar al testo *@
+    <div class="flex-grow-1 overflow-auto pe-2">
+        
+        <div class="mb-4">
+            <small class="text-uppercase text-muted fw-bold fs-6">Descrizione</small>
+            <h3 class="fw-bold">@Model.Descrizione</h3>
+            <small class="text-muted d-block">Ubicazione:</small>
+            <span class="badge bg-secondary">@Model.CodiceUbicazione</span>
         </div>
-        <div class="col-6">
-            <small class="text-muted d-block">In Carico a:</small>
-            <strong class="fs-5">@Model.AziendaEsterna</strong>
-        </div>
-    </div>
 
-    <hr />
-
-    <h6 class="fw-bold mb-3"><i class="fas fa-history me-2"></i>Storico Movimenti</h6>
-    
-    <div class="timeline">
-        @foreach(var azione in Model.StoricoAzioni)
-        {
-            <div class="d-flex mb-3 border-bottom pb-2">
-                <div class="me-3 text-center" style="width: 50px;">
-                    <small class="d-block text-muted fw-bold">@azione.DataOperazione.ToString("dd/MM")</small>
-                    <small class="text-muted">@azione.DataOperazione.ToString("HH:mm")</small>
-                </div>
-                <div>
-                    <div class="fw-bold text-dark">@azione.TipoOperazione</div>
-                    <div class="small text-muted">@azione.Dettagli</div>
-                    <div class="small text-secondary fst-italic">Operatore: @azione.Utente</div>
-                </div>
+        <div class="row mx-0 mb-4">
+            <div class="col-6">
+                <small class="text-muted d-block">Barcode:</small>
+                <strong class="fs-5">@Model.Barcode</strong>
             </div>
-        }
+            <div class="col-6">
+                <small class="text-muted d-block">In Carico a:</small>
+                <strong class="fs-5">@Model.AziendaEsterna</strong>
+            </div>
+        </div>
+
+        <hr />
+
+        <h6 class="fw-bold mb-3"><i class="fas fa-history me-2"></i>Storico Movimenti</h6>
+        
+        <div class="timeline">
+            @foreach(var azione in Model.StoricoAzioni)
+            {
+                <div class="d-flex mb-3 border-bottom pb-2">
+                    <div class="me-3 text-center" style="width: 50px;">
+                        <small class="d-block text-muted fw-bold">@azione.DataOperazione.ToString("dd/MM")</small>
+                        <small class="text-muted">@azione.DataOperazione.ToString("HH:mm")</small>
+                    </div>
+                    <div>
+                        <div class="fw-bold text-dark">@azione.TipoOperazione</div>
+                        <div class="small text-muted">@azione.Dettagli</div>
+                        <div class="small text-secondary fst-italic">Operatore: @azione.Utente</div>
+                    </div>
+                </div>
+            }
+        </div>
+
+    </div> @* Fine Area Scorrevole *@
+
+    @* 3. AREA FISSA (FOOTER): Rimane sempre in basso *@
+    <div class="mt-3 pt-3 border-top">
+        <div class="d-flex justify-content-end">
+            <button type="button" 
+                    class="btn btn-primary"
+                    data-offcanvas
+                    data-id="offcanvasDettagli" 
+                    data-title="Modifica Semilavorato"
+                    data-url="/Magazzino/SemiLavorati/Modifica?id=@Model.Id">
+                <i class="fas fa-edit"></i> Modifica Semilavorato
+            </button>
+        </div>
     </div>
 
-    <div class="d-flex justify-content-end mt-4">
-        <button type="button" 
-                class="btn btn-primary"
-                data-offcanvas
-                data-id="offcanvasDettagli" 
-                data-title="Modifica Semilavorato"
-                data-url="/Magazzino/SemiLavorati/Modifica?id=@Model.Id">
-            <i class="fas fa-edit"></i> Modifica Semilavorato
-        </button>
-    </div>
+</div>
