@@ -8,9 +8,12 @@
     "sourceMap": true,
     "target": "es2019",
     "module": "none",
-
     "skipLibCheck": true
   },
+  "include": [
+    "**/*.ts",
+    "types/**/*.d.ts"
+  ],
   "exclude": [
     "bin",
     "obj"

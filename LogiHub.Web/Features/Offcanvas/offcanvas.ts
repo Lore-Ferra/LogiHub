@@ -1,6 +1,3 @@
-﻿// GenericOffcanvas.ts
-declare const bootstrap: any;
-
 module Example.Components {
     export interface OffcanvasOptions {
         id: string;
@@ -19,6 +16,7 @@ module Example.Components {
             const header = offcanvasEl.querySelector('.offcanvas-title');
             if (header) header.textContent = title || '';
 
+            // Mostra spinner
             const body = offcanvasEl.querySelector('[data-offcanvas-content]');
             if (!body) return;
 
@@ -30,6 +28,7 @@ module Example.Components {
                     </div>
                 </div>`;
 
+            // Bootstrap Offcanvas: usa getInstance prima di crearne uno nuovo
             let bsInstance = bootstrap.Offcanvas.getInstance(offcanvasEl);
             if (!bsInstance) {
                 bsInstance = new bootstrap.Offcanvas(offcanvasEl, { backdrop: true, scroll: false });
@@ -40,7 +39,6 @@ module Example.Components {
 
             this.fetchContent(url, body);
         }
-
         load(options: OffcanvasOptions) {
             const { id, url, title } = options;
             const offcanvasEl = document.getElementById(id);
@@ -76,8 +74,14 @@ module Example.Components {
                 });
         }
 
-        // ... metodo close() uguale a prima
-    }
+
+        close(id: string) {
+            const offcanvasEl = document.getElementById(id);
+            if (!offcanvasEl) return;
+            const bsInstance = bootstrap.Offcanvas.getInstance(offcanvasEl);
+            bsInstance?.hide();
+            if (this.state[id]) this.state[id].isOpen = false;
+        }    }
 
     export let Offcanvas = new OffcanvasComponent();
 }
@@ -89,6 +93,9 @@ document.addEventListener('click', (e: MouseEvent) => {
     if (!target) return;
     if (target.closest('.btn-elimina')) return; // O qualsiasi altra eccezione generica
 
+    // Ignora click su btn-elimina
+    if (target.closest('[data-delete]')) return;
+
     const btn = target.closest('[data-offcanvas]') as HTMLElement | null;
     if (!btn) return;
 
@@ -96,6 +103,7 @@ document.addEventListener('click', (e: MouseEvent) => {
     const id = btn.dataset.id;
     const url = btn.dataset.url;
     const title = btn.dataset.title;
+
     if (!id || !url) return;
 
     const offcanvasEl = document.getElementById(id);
@@ -104,10 +112,8 @@ document.addEventListener('click', (e: MouseEvent) => {
     else Example.Components.Offcanvas.open({ id, url, title });
 });
 
-// Listener generico per submit Form AJAX - RIMANE QUI (se è uno standard per tutta l'app)
 document.addEventListener('submit', async (e) => {
     const form = e.target as HTMLFormElement;
-    // Usa una classe generica, es. 'ajax-form' o mantieni 'modifica-form' se è standard
     if (!form.classList.contains('modifica-form')) return;
 
     e.preventDefault();
