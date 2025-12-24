@@ -1,77 +1,102 @@
 ﻿@model LogiHub.Web.Areas.Magazzino.SemiLavorati.ModificaSemiLavoratoViewModel
 
+@{
+    /* LOGICA JS INLINE
+       Nota: Aggiungiamo .value = '' per pulire il campo
+       e .classList.remove('is-invalid') per togliere il rosso se l'utente cambia idea.
+    */
+
+    // Seleziono "In Magazzino": Abilito Ubicazione, Pulisco e Disabilito Azienda
+    string jsIn = "document.getElementById('UbicazioneId').disabled = false; " +
+                  "var az = document.getElementById('AziendaEsternaId'); " +
+                  "az.disabled = true; az.value = ''; az.classList.remove('is-invalid');";
+    
+    // Seleziono "Uscito": Abilito Azienda, Pulisco e Disabilito Ubicazione
+    string jsOut = "document.getElementById('AziendaEsternaId').disabled = false; " +
+                   "var ub = document.getElementById('UbicazioneId'); " +
+                   "ub.disabled = true; ub.value = ''; ub.classList.remove('is-invalid');";
+}
 
 <form id="formModificaSemilavorato" class="modifica-form needs-validation" asp-action="Modifica" asp-area="Magazzino" method="post" novalidate>
-        @Html.AntiForgeryToken()
-        <input type="hidden" asp-for="Id" />
-        <div class="mb-3">
-            <label asp-for="Barcode" class="small text-muted d-block mb-1">Barcode:</label>
-            <input asp-for="Barcode" class="form-control" />
-            <span asp-validation-for="Barcode" class="text-danger"></span>
-        </div>
-        <div class="mb-4">
-            <label asp-for="Descrizione" class="small text-muted d-block mb-1">Descrizione:</label>
-            <input asp-for="Descrizione" class="form-control" placeholder="Inserisci descrizione..." required />
-            <div class="invalid-feedback">
-                Descrizione obbligatoria
-            </div>
-            <span asp-validation-for="Descrizione" class="text-danger small"></span>
-        </div>
+    @Html.AntiForgeryToken()
+    <input type="hidden" asp-for="Id" />
 
-        <div class="row mb-4">
-            <div class="col-md-6">
-                <label asp-for="UbicazioneId" class="small text-muted d-block mb-1">Ubicazione:</label>
-                <select asp-for="UbicazioneId" asp-items="Model.UbicazioniList" class="form-select" required>
-                    <option value="">-- Seleziona Ubicazione --</option>
-                </select>
-                <div class="invalid-feedback">
-                    Ubicazione obbligatoria
-                </div>
-                <span asp-validation-for="UbicazioneId" class="text-danger small"></span>
-            </div>
-            <div class="col-md-6">
-                <label asp-for="AziendaEsternaId" class="small text-muted d-block mb-1">In carico a:</label>
-                <select asp-for="AziendaEsternaId"
-                        asp-items="Model.AziendeList"
-                        class="form-select"
-                        id="AziendaEsternaId">
-                    <option value="">-- Seleziona Azienda --</option>
-                </select>
+    @* Barcode *@
+    <div class="mb-3">
+        <label asp-for="Barcode" class="small text-muted d-block mb-1">Barcode:</label>
+        <input asp-for="Barcode" class="form-control" required/>
+        <div class="invalid-feedback">Codice Barcode obbligatorio</div>
+        <span asp-validation-for="Barcode" class="text-danger"></span>
+    </div>
 
-                <div class="invalid-feedback">
-                    Se il semilavorato è uscito, seleziona un’azienda.
-                </div>
-            </div>
-        </div>
+    @* Descrizione *@
+    <div class="mb-4">
+        <label asp-for="Descrizione" class="small text-muted d-block mb-1">Descrizione:</label>
+        <input asp-for="Descrizione" class="form-control" placeholder="Inserisci descrizione..." required />
+        <div class="invalid-feedback">Descrizione obbligatoria</div>
+        <span asp-validation-for="Descrizione" class="text-danger small"></span>
+    </div>
 
-        <div class="form-check form-switch mb-4">
-            <input class="form-check-input" type="checkbox" asp-for="Uscito" id="Uscito">
-            <label class="form-check-label" for="Uscito">
-                Segna come uscito dal magazzino
-            </label>
-        </div>
-
-        <div class="form-check form-switch mb-4">
-            <input class="form-check-input" type="checkbox" id="Rientrato">
-            <label class="form-check-label" for="Rientrato">
-                Rientrato dal magazzino
-            </label>
-        </div>
-
-        <hr class="my-4" />
-
-        <div class="d-flex justify-content-end mt-4 gap-3">
-            <button type="submit" class="btn btn-primary">
-                <i class="fas fa-save me-2"></i>Salva Modifiche
-            </button>
+    <div class="row mb-4">
+        @* UBICAZIONE *@
+        <div class="col-md-6">
+            <label asp-for="UbicazioneId" class="small text-muted d-block mb-1">Ubicazione:</label>
+            <select asp-for="UbicazioneId" 
+                    asp-items="Model.UbicazioniList" 
+                    class="form-select" 
+                    required
+                    id="UbicazioneId"
+                    disabled="@(Model.Uscito ? "disabled" : null)">
+                <option value="">-- Seleziona Ubicazione --</option>
+            </select>
             
-            <button type="button" 
-                    class="btn btn-secondary"
-                    data-offcanvas
-                    data-id="offcanvasDettagli"
-                    data-title="Dettagli semilavorato"
-                    data-url="@Url.Action("Dettagli", "SemiLavorati", new { id = Model.Id })">
-                Annulla
-            </button>
+            @* MODIFICA QUI: Aggiunto 'd-block' allo span.
+               Così il messaggio dal server (es. "Seleziona ubicazione") si vede sempre.
+            *@
+            <span asp-validation-for="UbicazioneId" class="text-danger small d-block mt-1"></span>
         </div>
-    </form>
+        
+        @* AZIENDA *@
+        <div class="col-md-6">
+            <label asp-for="AziendaEsternaId" class="small text-muted d-block mb-1">In carico a:</label>
+            <select asp-for="AziendaEsternaId"
+                    asp-items="Model.AziendeList"
+                    class="form-select"
+                    id="AziendaEsternaId"
+                    disabled="@(!Model.Uscito ? "disabled" : null)">
+                <option value="">-- Seleziona Azienda --</option>
+            </select>
+            
+            @* MODIFICA QUI: Aggiunto 'd-block' allo span. 
+               Questo mostrerà l'errore del Controller ("Seleziona l'azienda destinataria").
+            *@
+            <span asp-validation-for="AziendaEsternaId" class="text-danger small d-block mt-1"></span>
+        </div>
+    </div>
+
+    @* RADIO BUTTONS *@
+    <label class="d-block small text-muted mb-2">Stato Semilavorato:</label>
+    <div class="btn-group w-100" role="group">
+        
+        @* In Magazzino -> Esegue jsIn *@
+        <input type="radio" class="btn-check" asp-for="Uscito" value="false" id="StatoIn" onchange="@jsIn">
+        <label class="btn btn-outline-primary" for="StatoIn">
+            <i class="fas fa-warehouse me-2"></i>In Magazzino
+        </label>
+
+        @* Uscito -> Esegue jsOut *@
+        <input type="radio" class="btn-check" asp-for="Uscito" value="true" id="StatoOut" onchange="@jsOut">
+        <label class="btn btn-outline-warning" for="StatoOut">
+            <i class="fas fa-truck-loading me-2"></i>Uscito
+        </label>
+    </div>
+
+    <hr class="my-4" />
+
+    <div class="d-flex justify-content-end mt-4 gap-3">
+        <button type="submit" class="btn btn-primary">
+            <i class="fas fa-save me-2"></i>Salva Modifiche
+        </button>
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="offcanvas">Annulla</button>
+    </div>
+</form>

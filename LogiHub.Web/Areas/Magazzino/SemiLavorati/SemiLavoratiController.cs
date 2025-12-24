@@ -126,8 +126,7 @@ namespace LogiHub.Web.Areas.Magazzino
             var dto = await _queries.GetSemiLavoratoDetailsAsync(
                 new SemiLavoratiDetailsQuery { Id = id });
 
-            if (dto == null)
-                return NotFound();
+            if (dto == null) return NotFound();
 
             var model = new ModificaSemiLavoratoViewModel
             {
@@ -136,7 +135,9 @@ namespace LogiHub.Web.Areas.Magazzino
                 Descrizione = dto.Descrizione,
                 UbicazioneId = dto.UbicazioneId,
                 AziendaEsternaId = dto.AziendaEsternaId,
-                Uscito = dto.AziendaEsternaId != null,
+                
+                // Imposta lo stato iniziale per i Radio Button
+                Uscito = dto.AziendaEsternaId != null, 
 
                 UbicazioniList = _context.Ubicazioni
                     .Select(u => new SelectListItem
@@ -162,32 +163,47 @@ namespace LogiHub.Web.Areas.Magazzino
         [ValidateAntiForgeryToken]
         public virtual async Task<IActionResult> Modifica(ModificaSemiLavoratoViewModel model)
         {
-            model.Uscito = model.AziendaEsternaId != null;
-
-            if (model.Uscito && model.AziendaEsternaId == null)
+            // LOGICA DI PULIZIA E VALIDAZIONE STATO
+            if (model.Uscito)
             {
-                ModelState.AddModelError(
-                    nameof(model.AziendaEsternaId),
-                    "Se il semilavorato è uscito, seleziona un'azienda."
-                );
+                // CASO 1: Il pezzo è USCITO
+                // Deve avere un'azienda, ma NON deve avere un'ubicazione in magazzino
+                if (model.AziendaEsternaId == null)
+                {
+                    ModelState.AddModelError(nameof(model.AziendaEsternaId), "Seleziona l'azienda destinataria.");
+                }
+                
+                // Pulisco i dati incoerenti
+                model.UbicazioneId = null;
+                
+                // Rimuovo errori di validazione su Ubicazione (se presenti da DataAnnotations)
+                ModelState.Remove(nameof(model.UbicazioneId)); 
+            }
+            else
+            {
+                // CASO 2: Il pezzo è IN MAGAZZINO
+                // Deve avere un'ubicazione, ma NON deve avere un'azienda
+                if (model.UbicazioneId == null)
+                {
+                    ModelState.AddModelError(nameof(model.UbicazioneId), "Seleziona un'ubicazione in magazzino.");
+                }
+
+                // Pulisco i dati incoerenti
+                model.AziendaEsternaId = null;
+
+                // Rimuovo errori di validazione su Azienda
+                ModelState.Remove(nameof(model.AziendaEsternaId));
             }
 
             if (!ModelState.IsValid)
             {
+                // Ricarico le liste per la view
                 model.UbicazioniList = _context.Ubicazioni
-                    .Select(u => new SelectListItem
-                    {
-                        Value = u.UbicazioneId.ToString(),
-                        Text = u.Posizione
-                    })
+                    .Select(u => new SelectListItem { Value = u.UbicazioneId.ToString(), Text = u.Posizione })
                     .ToList();
 
                 model.AziendeList = _context.AziendeEsterne
-                    .Select(a => new SelectListItem
-                    {
-                        Value = a.Id.ToString(),
-                        Text = a.Nome
-                    })
+                    .Select(a => new SelectListItem { Value = a.Id.ToString(), Text = a.Nome })
                     .ToList();
 
                 return PartialView("ModificaSemilavorato", model);
@@ -200,18 +216,18 @@ namespace LogiHub.Web.Areas.Magazzino
                 Id = model.Id,
                 Barcode = model.Barcode,
                 Descrizione = model.Descrizione,
-                UbicazioneId = model.UbicazioneId,
-                AziendaEsternaId = model.AziendaEsternaId,
-
-                Uscito = model.AziendaEsternaId != null,
-
+                UbicazioneId = model.UbicazioneId,         // Sarà null se Uscito
+                AziendaEsternaId = model.AziendaEsternaId, // Sarà null se In Magazzino
+                Uscito = model.Uscito,
                 UserId = userId
             };
 
             var success = await _service.ModificaSemiLavorato(dto);
-            if (!success)
-                return NotFound();
+            
+            if (!success) return NotFound();
 
+            // Poiché siamo in un offcanvas/modale ajax, qui dovresti ritornare un JSON di successo o un redirect gestito dal client.
+            // Se usi la logica standard MVC:
             return RedirectToAction(nameof(Index));
         }
         

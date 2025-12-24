@@ -90,4 +90,9 @@
 	  <Content Remove="wwwroot\Features\Offcanvas\offcanvas.js.map" />
 	</ItemGroup>
 
+	<ItemGroup>
+	  <Folder Include="Features\Components\" />
+	  <Folder Include="wwwroot\js\Features\" />
+	</ItemGroup>
+
 </Project>
