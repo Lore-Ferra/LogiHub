@@ -18,8 +18,6 @@ public class SemiLavoratoService : ISemiLavoratoService
     //METODI CRUD
     public async Task<SemiLavorato> AggiungiSemiLavoratoAsync(AggiungiSemiLavoratoDTO dto)
     {
-        // var exists = await _context.SemiLavorati.AnyAsync(x => x.Barcode == dto.Barcode); //causa crash in caso aggiunta nuovo semi stesso barcode
-
         var semi = new SemiLavorato
         {
             Id = Guid.NewGuid(),
@@ -33,7 +31,7 @@ public class SemiLavoratoService : ISemiLavoratoService
         };
 
         _context.SemiLavorati.Add(semi);
-        GeneraAzioneCreazione(semi.Id, dto.UserId);
+        GeneraAzione(semi.Id, dto.UserId, TipoOperazione.Creazione, "Creazione iniziale");
         await _context.SaveChangesAsync();
         return semi;
     }
@@ -62,7 +60,8 @@ public class SemiLavoratoService : ISemiLavoratoService
                 .Select(u => u.Posizione)
                 .FirstOrDefaultAsync();
             
-            GeneraAzioneSpostamento(dto.Id, dto.UserId, ubicazioneOld, ubicazioneNew);
+            GeneraAzione(dto.Id, dto.UserId, TipoOperazione.CambioUbicazione, 
+                $"Spostamento da {ubicazioneOld} a {ubicazioneNew}");
         }
             
         return await _context.SaveChangesAsync() > 0;
@@ -75,50 +74,28 @@ public class SemiLavoratoService : ISemiLavoratoService
         sl.Eliminato = true;
         sl.UltimaModifica = DateTime.Now;
 
-        GeneraAzioneEliminazione(dto);
+        GeneraAzione(dto.SemiLavoratoId, dto.UserId, TipoOperazione.Eliminazione, 
+            dto.Dettagli ?? "Eliminazione semilavorato");
         return await _context.SaveChangesAsync() > 0;
     }
-
-    private void GeneraAzioneSpostamento(Guid semiLavoratoId, Guid userId, string ubicazioneOld, string ubicazioneNew)
-    {
-        var azione = new Azione
-        {
-            SemiLavoratoId = semiLavoratoId,
-            TipoOperazione = TipoOperazione.CambioUbicazione,
-            UserId = userId,
-            DataOperazione = DateTime.Now,
-            Dettagli = "Spostamento da " + ubicazioneOld + " a " + ubicazioneNew
-        };
-        _context.Azioni.Add(azione);
-    }
-    //AZIONI
-    private void GeneraAzioneCreazione(Guid semiLavoratoId, Guid userId)
+    
+    private void GeneraAzione(
+        Guid semiLavoratoId, 
+        Guid userId, 
+        TipoOperazione tipoOperazione, 
+        string dettagli)
     {
         if (semiLavoratoId == Guid.Empty || userId == Guid.Empty) return;
- 
+    
         var azione = new Azione
         {
             SemiLavoratoId = semiLavoratoId,
-            TipoOperazione = TipoOperazione.Creazione,
+            TipoOperazione = tipoOperazione,
             UserId = userId,
             DataOperazione = DateTime.Now,
-            Dettagli = "Creazione iniziale"
+            Dettagli = dettagli
         };
-        _context.Azioni.Add(azione);
-    }
-    
-    private void GeneraAzioneEliminazione(EliminaSemiLavoratoDTO dto)
-    {
-        if (dto.SemiLavoratoId == Guid.Empty || dto.UserId == Guid.Empty) return;
-
-        var azione = new Azione
-        {
-            SemiLavoratoId = dto.SemiLavoratoId,
-            TipoOperazione = TipoOperazione.Eliminazione,
-            UserId = dto.UserId,
-            Dettagli = dto.Dettagli ?? "Eliminazione semilavorato",
-            DataOperazione = DateTime.Now
-        };
+        
         _context.Azioni.Add(azione);
     }
     
