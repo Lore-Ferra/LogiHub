@@ -44,17 +44,52 @@ public class SemiLavoratoService : ISemiLavoratoService
             .Where(x => x.UbicazioneId == sl.UbicazioneId)
             .Select(u => u.Posizione)
             .FirstOrDefaultAsync();
+        
+        var aziendaOld = sl.AziendaEsternaId;
+        
         sl.Barcode = dto.Barcode;
         sl.Descrizione = dto.Descrizione;
         sl.AziendaEsternaId = dto.AziendaEsternaId;
-        var ubicazioneCambiata = sl.UbicazioneId != dto.UbicazioneId;
-        
         sl.UltimaModifica = DateTime.Now;
         
-        if (ubicazioneCambiata)
+        var ubicazioneCambiata = sl.UbicazioneId != dto.UbicazioneId && dto.UbicazioneId != null;
+        var rientro = aziendaOld.HasValue && dto.AziendaEsternaId == null;
+        
+        sl.UbicazioneId = dto.UbicazioneId;
+        
+        if (rientro)
         {
-            sl.UbicazioneId = dto.UbicazioneId;
+            var nomeAzienda = await _context.AziendeEsterne
+                .Where(x => x.Id == aziendaOld)
+                .Select(x => x.Nome)
+                .FirstOrDefaultAsync();
             
+            GeneraAzione(dto.Id, dto.UserId, TipoOperazione.Entrata, 
+                $"Rientro da {nomeAzienda}");
+        
+            if (dto.UbicazioneId != null)
+            {
+                sl.UbicazioneId = dto.UbicazioneId;
+            
+                var ubicazioneNew = await _context.Ubicazioni
+                    .Where(u => u.UbicazioneId == dto.UbicazioneId)
+                    .Select(u => u.Posizione)
+                    .FirstOrDefaultAsync();
+            
+                GeneraAzione(dto.Id, dto.UserId, TipoOperazione.CambioUbicazione,
+                    $"Posizionato in {ubicazioneNew}");
+            }
+        }
+        else if (dto.AziendaEsternaId != null)
+        {
+            var inCaricoA = await _context.AziendeEsterne
+                .Where(x => x.Id == dto.AziendaEsternaId)
+                .Select( x => x.Nome)
+                .FirstOrDefaultAsync();
+            GeneraAzione(dto.Id, dto.UserId, TipoOperazione.Uscita, $"In carico a {inCaricoA}");
+        }
+        else if(ubicazioneCambiata && dto.UbicazioneId != null)
+        {
             var ubicazioneNew = await _context.Ubicazioni
                 .Where(u => u.UbicazioneId == sl.UbicazioneId)
                 .Select(u => u.Posizione)
