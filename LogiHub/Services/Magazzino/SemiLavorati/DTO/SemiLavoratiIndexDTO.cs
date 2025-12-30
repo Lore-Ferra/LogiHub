@@ -15,6 +15,7 @@ namespace LogiHub.Services.Shared.SemiLavorati
             public string Descrizione { get; set; }
             public string CodiceUbicazione { get; set; }
             public DateTime UltimaModifica { get; set; }
+            public bool Uscito { get; set; }
         }
     }
 }

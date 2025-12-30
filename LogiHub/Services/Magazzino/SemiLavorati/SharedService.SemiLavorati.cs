@@ -64,6 +64,7 @@ namespace LogiHub.Services.Shared
                     Barcode = x.Barcode,
                     Descrizione = x.Descrizione,
                     CodiceUbicazione = x.Ubicazione != null ? x.Ubicazione.Posizione : "-",
+                    Uscito = x.Uscito,
                     UltimaModifica = x.UltimaModifica
                 })
                 .ToListAsync();

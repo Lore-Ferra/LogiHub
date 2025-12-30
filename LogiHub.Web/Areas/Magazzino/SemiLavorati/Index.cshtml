@@ -29,7 +29,9 @@
                     <div class="flex-grow-1 pe-3">
                         <div class="small text-muted mb-1">
                             <strong>Ubicazione:</strong>
-                            <span class="badge bg-secondary">@item.CodiceUbicazione</span>
+                            <span class="badge @(item.Uscito ? "bg-info text-dark" : "bg-secondary")">
+                                @(item.Uscito ? "Uscito" : item.CodiceUbicazione)
+                            </span>
                         </div>
                         <div class="small text-muted mb-1">
                             <strong>Descrizione:</strong> @item.Descrizione
@@ -82,8 +84,11 @@
                             </td>
                             <td>@item.Descrizione</td>
                             <td>
-                                <span class="badge bg-secondary">@item.CodiceUbicazione</span>
+                                <span class="badge @(item.Uscito ? "bg-info text-dark" : "bg-secondary")">
+                                    @(item.Uscito ? "Uscito" : item.CodiceUbicazione)
+                                </span>
                             </td>
+
                             <td>@item.UltimaModifica.ToString("dd/MM/yyyy")</td>
                             <td>
                                 <button
