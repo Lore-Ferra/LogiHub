@@ -12,20 +12,46 @@ namespace LogiHub.Services.Shared
         {
             var queryable = _dbContext.SemiLavorati
                 .AsNoTracking()
-                .Where(x => !x.Eliminato)
                 .Include(s => s.Ubicazione)
                 .AsQueryable();
 
-            if (!string.IsNullOrWhiteSpace(qry.Filter))
+   
+
+            // Filtro USCITO
+            if (qry.Uscito == TriState.True)
             {
-                var filterLower = qry.Filter.ToLower();
+                queryable = queryable.Where(x => x.Uscito);
+            }
+            else if (qry.Uscito == TriState.False)
+            {
+                queryable = queryable.Where(x => !x.Uscito);
+            }
+
+            // Ricerca Testuale (Solo se c'è testo)
+            if (!string.IsNullOrWhiteSpace(qry.SearchText))
+            {
+                var filterLower = qry.SearchText.ToLower();
+
+                // Se la lista colonne è null o vuota, cerco ovunque
+                var searchAll = qry.SearchInColumns == null || !qry.SearchInColumns.Any();
+
+                
                 queryable = queryable.Where(x =>
-                    x.Descrizione.ToLower().Contains(filterLower) ||
-                    x.Barcode.ToLower().Contains(filterLower) ||
-                    (x.Ubicazione != null && x.Ubicazione.Posizione.ToLower().Contains(filterLower))
+                    // Cerca in Barcode
+                    ((searchAll || qry.SearchInColumns.Contains("Barcode")) &&
+                     x.Barcode.ToLower().Contains(filterLower)) ||
+
+                    // Cerca in Descrizione
+                    ((searchAll || qry.SearchInColumns.Contains("Descrizione")) &&
+                     x.Descrizione.ToLower().Contains(filterLower)) ||
+
+                    // Cerca in Ubicazione
+                    ((searchAll || qry.SearchInColumns.Contains("Ubicazione")) && (x.Ubicazione != null &&
+                        x.Ubicazione.Posizione.ToLower().Contains(filterLower)))
                 );
             }
 
+            // Paginazione e Risultato
             var totalCount = await queryable.CountAsync();
 
             var items = await queryable
@@ -56,7 +82,7 @@ namespace LogiHub.Services.Shared
                 .Include(x => x.AziendaEsterna)
                 .Include(x => x.Azioni)
                 .ThenInclude(a => a.User)
-                .FirstOrDefaultAsync(x => x.Id == qry.Id && !x.Eliminato);
+                .FirstOrDefaultAsync(x => x.Id == qry.Id);
 
             if (item == null) return null;
 
@@ -66,19 +92,19 @@ namespace LogiHub.Services.Shared
                 Barcode = item.Barcode,
                 Descrizione = item.Descrizione,
                 Uscito = item.Uscito,
-        
+
                 // Dati per la visualizzazione (Etichette)
                 CodiceUbicazione = item.Ubicazione?.Posizione ?? "-",
                 AziendaEsterna = item.AziendaEsterna?.Nome ?? "Interno",
-        
+
                 // ID tecnici
                 UbicazioneId = item.UbicazioneId,
                 AziendaEsternaId = item.AziendaEsternaId,
-        
+
                 // Date di sistema
                 UltimaModifica = item.UltimaModifica,
                 DataCreazione = item.DataCreazione,
-        
+
                 StoricoAzioni = item.Azioni
                     .OrderByDescending(x => x.DataOperazione)
                     .Select(x => new SemiLavoratiDetailsDTO.AzioniDTO

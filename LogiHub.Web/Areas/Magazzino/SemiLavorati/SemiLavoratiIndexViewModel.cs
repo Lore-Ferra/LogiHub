@@ -5,18 +5,24 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 using System.Collections;
 using System.Collections.Generic;
 using LogiHub.Services.Shared.SemiLavorati;
+using LogiHub.Web.Features.SearchCard;
 
 namespace LogiHub.Web.Areas.Magazzino.Models
 {
     public class SemiLavoratiIndexViewModel : PagingViewModel
     {
         public IEnumerable<SemiLavoratiIndexDTO.RigaSemiLavorato> SemiLavorati { get; set; }
-        public string Filter { get; set; }
+        public SearchCardViewModel SearchCard { get; set; }
 
         public override IActionResult GetRoute()
         {
             return MVC.Magazzino.SemiLavorati
-                .Index(Filter, Page, PageSize)
+                .Index(
+                    SearchCard.Query, 
+                    SearchCard.Filters, 
+                    Page, 
+                    PageSize
+                )
                 .GetAwaiter()
                 .GetResult();
         }
@@ -25,7 +31,10 @@ namespace LogiHub.Web.Areas.Magazzino.Models
         {
             return new SemilavoratiIndexQuery
             {
-                Filter = this.Filter
+                Uscito = SearchCard.Filters.Uscito,
+                SearchInColumns = SearchCard.Filters.SearchInColumns,
+                Page = Page,
+                PageSize = PageSize
             };
         }
     }

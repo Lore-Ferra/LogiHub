@@ -9,8 +9,8 @@
     @await Html.PartialAsync("~/Features/SearchCard/_SearchCard.cshtml", new SearchCardViewModel
     {
         Title = "🗃 Inventario",
-        InputValue = Model.Filter,
-        Buttons = new List<SearchCardButton>
+        Query  = Model.Filter,
+        HeaderButtons = new List<SearchCardButton>
         {
             new()
             {
@@ -24,10 +24,5 @@
                 }
             }
         },
-        HiddenFields = new Dictionary<string, string>
-        {
-            { "Page", "1" },
-            { "PageSize", Model.PageSize.ToString() }
-        }
     })
 </div>

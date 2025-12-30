@@ -1,4 +1,6 @@
-﻿@model LogiHub.Web.Features.SearchCard.SearchCardViewModel
+﻿@using LogiHub.Services.Shared
+@using LogiHub.Web.Features.SearchCard
+@model LogiHub.Web.Features.SearchCard.SearchCardViewModel
 
 <div class="d-flex justify-content-between align-items-center mb-4">
     @if (!string.IsNullOrEmpty(Model.Title))
@@ -6,12 +8,12 @@
         <h1 class="h3 mb-0 text-gray-800">@Model.Title</h1>
     }
 
-    @if (Model.Buttons != null && Model.Buttons.Any())
+    @if (Model.HeaderButtons != null && Model.HeaderButtons.Any())
     {
         <div class="d-flex gap-2">
-            @foreach (var btn in Model.Buttons)
+            @foreach (var btn in Model.HeaderButtons)
             {
-                var htmlAttrs = string.Join(" ", (btn.HtmlAttributes ?? new Dictionary<string,string>()).Select(a => $"{a.Key}=\"{a.Value}\""));
+                var htmlAttrs = string.Join(" ", (btn.HtmlAttributes ?? new Dictionary<string, string>()).Select(a => $"{a.Key}=\"{a.Value}\""));
                 <button class="btn d-none d-md-block @btn.CssClass"
                         type="@(string.IsNullOrWhiteSpace(btn.Type) ? "button" : btn.Type)"
                         @Html.Raw(htmlAttrs)>
@@ -26,36 +28,70 @@
     }
 </div>
 
-<div class="card shadow-sm mb-4">
-    <div class="card-body">
-        <form method="get" class="row g-3">
-            @if (Model.HiddenFields != null)
-            {
-                @foreach (var field in Model.HiddenFields)
-                {
-                    <input type="hidden" name="@field.Key" value="@field.Value" />
-                }
-            }
+<div class="card shadow-sm mb-4 border-0">
+    <div class="card-body p-4">
+        <form method="get">
+            <div class="row g-2 mb-3 align-items-end">
+                <div class="col-12 col-lg-7">
+                    <label for="searchQuery" class="form-label small text-muted fw-bold mb-1">Ricerca</label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-light border-end-0 text-muted">
+                            <i class="fas fa-search small"></i>
+                        </span>
+                        <input name="Query"
+                               id="searchQuery"
+                               value="@Model.Query"
+                               class="form-control border-start-0 bg-light ps-0"
+                               placeholder="@Model.Placeholder" />
+                    </div>
+                </div>
 
-            <div class="col-8 col-md-10">
-                <div class="input-group">
-                    <span class="input-group-text bg-light border-0">
-                        <i class="fas fa-search text-muted"></i>
-                    </span>
-                    <input name="@Model.InputName"
-                           value="@Model.InputValue"
-                           class="form-control border-0 bg-light"
-                           placeholder="@Model.Placeholder" />
+                <div class="col-6 col-lg-2">
+                    <label for="filterUscito" class="form-label small text-muted fw-bold mb-1">Uscito</label>
+                    <select class="form-select" id="filterUscito" name="Filters.Uscito">
+                        <option value="0" selected="@(Model.Filters.Uscito == TriState.All)">Tutti</option>
+                        <option value="1" selected="@(Model.Filters.Uscito == TriState.True)">Sì</option>
+                        <option value="2" selected="@(Model.Filters.Uscito == TriState.False)">No</option>
+                    </select>
+                </div>
+
+                <div class="col-12 col-lg-1">
+                    <button type="submit" class="btn btn-primary w-100" title="Cerca">
+                        <i class="fas fa-arrow-right"></i>
+                    </button>
                 </div>
             </div>
 
-            <div class="col-4 col-md-2">
-                <div class="dropdown">
-                    <button class="btn btn-primary dropdown-toggle w-100" type="button" data-bs-toggle="dropdown">
-                        <i class="fa-solid fa-filter"></i> Filtri
-                    </button>
-                    <div class="dropdown-menu dropdown-menu-end">
-                        <a class="dropdown-item" href="#">Filtri in arrivo…</a>
+            <div class="row">
+                <div class="col-12 d-flex align-items-center flex-wrap gap-2">
+                    <span class="small text-uppercase text-muted fw-bold me-2" style="font-size: 0.7rem;">Cerca in:</span>
+                    
+                    <div class="btn-group" role="group">
+                        @{
+                            var columns = new Dictionary<string, string> 
+                            { 
+                                { "Barcode", "Barcode" }, 
+                                { "Descrizione", "Descrizione" }, 
+                                { "Ubicazione", "Ubicazione" }, 
+                                { "UltimaModifica", "Ultima modifica" } 
+                            };
+                            var currentFilters = Model.Filters.SearchInColumns ?? new List<string> { "Barcode", "Descrizione", "Ubicazione" };
+                        }
+
+                        @foreach (var col in columns)
+                        {
+                            var isChecked = currentFilters.Contains(col.Key);
+                            <input type="checkbox" 
+                                   class="btn-check" 
+                                   id="col_@col.Key" 
+                                   autocomplete="off" 
+                                   name="Filters.SearchInColumns" 
+                                   value="@col.Key" 
+                                   @(isChecked ? "checked" : "")>
+                            <label class="btn btn-outline-primary rounded-pill btn-sm px-3 me-1" for="col_@col.Key">
+                                @if(isChecked) { <i class="fas fa-check me-1"></i> } @col.Value
+                            </label>
+                        }
                     </div>
                 </div>
             </div>

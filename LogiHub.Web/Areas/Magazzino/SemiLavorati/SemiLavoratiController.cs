@@ -1,8 +1,10 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Security.Claims;
 using LogiHub.Services;
 using LogiHub.Services.Shared.SemiLavorati;
 using LogiHub.Web.Areas.Magazzino.SemiLavorati;
+using LogiHub.Web.Features.SearchCard;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 
@@ -32,30 +34,70 @@ namespace LogiHub.Web.Areas.Magazzino
 
         [HttpGet]
         public virtual async Task<IActionResult> Index(
-            string filter,
+            [FromQuery] string Query,
+            [FromQuery] SearchCardFiltersViewModel Filters,
             int page = 1,
             int pageSize = 25
         )
         {
-            var query = new SemilavoratiIndexQuery
+
+            if (Filters == null)
             {
-                Filter = filter,
+                Filters = new SearchCardFiltersViewModel
+                {
+                    Eliminato = TriState.False,
+                    Uscito = TriState.All,
+                    SearchInColumns = new List<string> { "Barcode", "Descrizione", "Ubicazione" }
+                };
+            }
+            
+            var serviceQuery = new SemilavoratiIndexQuery
+            {
+                SearchText = Query,
+                Uscito = Filters.Uscito,
+                SearchInColumns = Filters.SearchInColumns,
                 Page = page,
                 PageSize = pageSize
             };
 
-            var dto = await _queries.GetSemiLavoratiListAsync(query);
+            var dto = await _queries.GetSemiLavoratiListAsync(serviceQuery);
 
+            var searchCardModel = new SearchCardViewModel
+            {
+                Title = "📦 Magazzino Semilavorati",
+                Placeholder = "Cerca barcode, descrizione...",
+
+                Query = Query,
+                Filters = Filters,
+
+                HeaderButtons = new List<SearchCardButton>
+                {
+                    new SearchCardButton
+                    {
+                        Text = "Aggiungi",
+                        CssClass = "btn-primary",
+                        IconClass = "fa-solid fa-plus",
+                        Type = "button",
+                        HtmlAttributes = new Dictionary<string, string>
+                        {
+                            { "data-offcanvas", "" },
+                            { "data-id", "offcanvasAggiungi" },
+                            { "data-url", Url.Action("AggiungiSemilavorato") },
+                            { "data-title", "Aggiungi Semilavorato" },
+                            { "title", "Aggiungi Semilavorato" }
+                        }
+                    }
+                }
+            };
 
             var model = new SemiLavoratiIndexViewModel
             {
-                Filter = filter,
+                SearchCard = searchCardModel,
                 Page = page,
                 PageSize = pageSize,
                 TotalItems = dto.TotalCount,
                 SemiLavorati = dto.Items
             };
-
             return View(model);
         }
 

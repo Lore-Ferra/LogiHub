@@ -9,33 +9,7 @@
     <link rel="stylesheet" href="~/css/offcanvas.css" />
 }
 <div>
-    @await Html.PartialAsync("~/Features/SearchCard/_SearchCard.cshtml", new SearchCardViewModel
-    {
-        Title = "📦 Magazzino Semilavorati",
-        InputValue = Model.Filter,
-        Buttons = new List<SearchCardButton>
-        {
-            new()
-            {
-                Text = "Aggiungi",
-                CssClass = "btn-primary",
-                Type = "button",
-                IconClass = "fa-solid fa-plus",
-                HtmlAttributes = new Dictionary<string, string>
-                {
-                    { "data-offcanvas", "" },
-                    { "data-id", "offcanvasAggiungi" },
-                    { "data-url", "/Magazzino/SemiLavorati/AggiungiSemilavorato" },
-                    { "data-title", "Aggiungi Semilavorato" },
-                    { "title", "Aggiungi Semilavorato" }
-                }            }
-        },
-        HiddenFields = new Dictionary<string, string>
-        {
-            { "Page", "1" },
-            { "PageSize", Model.PageSize.ToString() }
-        }
-    })
+    @await Html.PartialAsync("~/Features/SearchCard/_SearchCard.cshtml", Model.SearchCard)
 </div>
 
 <div class="d-md-none">

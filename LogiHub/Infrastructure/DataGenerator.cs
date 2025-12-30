@@ -93,16 +93,31 @@ namespace LogiHub.Infrastructure
 
             for (int i = 1; i <= 20; i++)
             {
-                context.SemiLavorati.Add(new SemiLavorato {
+                var uscito = _random.Next(0, 2) == 1;
+                var eliminato = _random.Next(0, 2) == 1;
+
+                var semi = new SemiLavorato
+                {
                     Barcode = $"PZ-{i:D4}",
-                    AziendaEsternaId = aziendeIds[_random.Next(aziendeIds.Count)],
-                    UbicazioneId = ubicazioniIds[_random.Next(ubicazioniIds.Count)],
                     Descrizione = $"{descrizioni[_random.Next(descrizioni.Length)]} (Mod. {i})",
+                    Uscito = uscito,
+                    AziendaEsternaId = uscito ? aziendeIds[_random.Next(aziendeIds.Count)] : null,
+                    UbicazioneId = uscito ? null : ubicazioniIds[_random.Next(ubicazioniIds.Count)],
                     DataCreazione = DateTime.Now.AddDays(-_random.Next(1, 365)),
-                    UltimaModifica = DateTime.Now.AddDays(-_random.Next(0, 30))
-                });
+                    UltimaModifica = DateTime.Now.AddDays(-_random.Next(0, 30)),
+                    Eliminato = eliminato
+                };
+
+                context.SemiLavorati.Add(semi);
+
+
+                
+                
+                Console.WriteLine($"{i:D2} | Barcode: {semi.Barcode} | Uscito: {semi.Uscito} | Eliminato: {semi.Eliminato}");
             }
+
         }
+
 
         private static void SeedAzioni(TemplateDbContext context)
         {
