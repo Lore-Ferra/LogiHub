@@ -13,19 +13,23 @@
             <small class="text-uppercase text-muted fw-bold fs-6">Descrizione</small>
             <h3 class="fw-bold">@Model.Descrizione</h3>
             <small class="text-muted d-block">Ubicazione:</small>
-            <span class="badge bg-secondary">@Model.CodiceUbicazione</span>
+            <span class="badge @(Model.Uscito ? "bg-info text-dark" : "bg-secondary")">
+                @(Model.Uscito ? "Uscito" : Model.CodiceUbicazione)
+            </span>
+
         </div>
 
-        <div class="row mb-4">
-            <div class="col-6">
+        <div class="d-flex justify-content-between mb-4">
+            <div>
                 <small class="text-muted d-block">Barcode:</small>
                 <strong class="fs-5">@Model.Barcode</strong>
             </div>
-            <div class="col-6">
+            <div>
                 <small class="text-muted d-block">In Carico a:</small>
                 <strong class="fs-5">@Model.AziendaEsterna</strong>
             </div>
         </div>
+
 
         <hr />
 
