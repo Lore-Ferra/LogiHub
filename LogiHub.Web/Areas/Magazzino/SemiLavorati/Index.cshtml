@@ -15,11 +15,12 @@
 <div class="d-md-none">
     @foreach (var item in Model.SemiLavorati)
     {
-        <div class="card shadow-sm semilavorato-card mb-2"
+        <div class="card shadow-sm semilavorato-card mb-2 "
              data-offcanvas
              data-id="offcanvasDettagli"
              data-title="Dettagli Semilavorato"
-             data-url="/Magazzino/SemiLavorati/Dettagli?id=@item.Id">
+             data-url="/Magazzino/SemiLavorati/Dettagli?id=@item.Id"
+             style="cursor:pointer;">
             <div class="card-body">
                 <div class="fw-bold fs-5 mb-2 text-primary">
                     @item.Barcode
@@ -41,8 +42,10 @@
                             @item.UltimaModifica.ToString("dd/MM/yyyy")
                         </div>
                     </div>
-                    <div class="d-flex gap-3 align-items-center">
-                        <i class="bi bi-trash3 text-danger" data-delete data-id="@item.Id" data-label="@item.Barcode" style="cursor:pointer;"></i>
+                    <div class="d-flex gap-3 align-items-center text-black">
+                        <button type="button" class="btn btn-sm btn-outline-danger" data-delete data-id="@item.Id" data-label="@item.Barcode">
+                            <i class="bi bi-trash3"></i>
+                        </button>
                     </div>
                 </div>
             </div>

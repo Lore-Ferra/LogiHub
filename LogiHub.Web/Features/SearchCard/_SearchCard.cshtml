@@ -3,97 +3,68 @@
 @model LogiHub.Web.Features.SearchCard.SearchCardViewModel
 
 <div class="d-flex justify-content-between align-items-center mb-4">
-    @if (!string.IsNullOrEmpty(Model.Title))
-    {
-        <h1 class="h3 mb-0 text-gray-800">@Model.Title</h1>
-    }
-
-    @if (Model.HeaderButtons != null && Model.HeaderButtons.Any())
-    {
-        <div class="d-flex gap-2">
-            @foreach (var btn in Model.HeaderButtons)
-            {
-                var htmlAttrs = string.Join(" ", (btn.HtmlAttributes ?? new Dictionary<string, string>()).Select(a => $"{a.Key}=\"{a.Value}\""));
-                <button class="btn d-none d-md-block @btn.CssClass"
-                        type="@(string.IsNullOrWhiteSpace(btn.Type) ? "button" : btn.Type)"
-                        @Html.Raw(htmlAttrs)>
-                    @if (!string.IsNullOrEmpty(btn.IconClass))
-                    {
-                        <i class="@btn.IconClass me-1"></i>
-                    }
-                    @btn.Text
-                </button>
-            }
-        </div>
-    }
-</div>
+    @if (!string.IsNullOrEmpty(Model.Title)) { <h1 class="h3 mb-0 text-gray-800">@Model.Title</h1> }
+    </div>
 
 <div class="card shadow-sm mb-4 border-0">
-    <div class="card-body p-4">
+    <div class="card-body">
         <form method="get">
-            <div class="row g-2 mb-3 align-items-end">
+            
+            <div class="row g-2 mb-3">
                 <div class="col-12 col-lg-7">
-                    <label for="searchQuery" class="form-label small text-muted fw-bold mb-1">Ricerca</label>
                     <div class="input-group">
-                        <span class="input-group-text bg-light border-end-0 text-muted">
-                            <i class="fas fa-search small"></i>
+                        <span class="input-group-text bg-transparent border-end-0 text-muted">
+                            <i class="fas fa-search"></i>
                         </span>
-                        <input name="Query"
-                               id="searchQuery"
-                               value="@Model.Query"
-                               class="form-control border-start-0 bg-light ps-0"
-                               placeholder="@Model.Placeholder" />
+                        <div class="form-floating">
+                            <input name="Query"
+                                   id="searchQuery"
+                                   type="text"
+                                   value="@Model.Query"
+                                   class="form-control border-start-0"
+                                   placeholder="@(string.IsNullOrEmpty(Model.Placeholder) ? "Cerca..." : Model.Placeholder)" />
+                            <label for="searchQuery">Ricerca</label>
+                        </div>
                     </div>
                 </div>
 
                 <div class="col-6 col-lg-2">
-                    <label for="filterUscito" class="form-label small text-muted fw-bold mb-1">Uscito</label>
-                    <select class="form-select" id="filterUscito" name="Filters.Uscito">
-                        <option value="0" selected="@(Model.Filters.Uscito == TriState.All)">Tutti</option>
-                        <option value="1" selected="@(Model.Filters.Uscito == TriState.True)">Sì</option>
-                        <option value="2" selected="@(Model.Filters.Uscito == TriState.False)">No</option>
-                    </select>
+                    <div class="form-floating">
+                        <select class="form-select" id="filterUscito" name="Filters.Uscito">
+                            <option value="0" selected="@(Model.Filters.Uscito == TriState.All)">Tutti</option>
+                            <option value="1" selected="@(Model.Filters.Uscito == TriState.True)">Sì</option>
+                            <option value="2" selected="@(Model.Filters.Uscito == TriState.False)">No</option>
+                        </select>
+                        <label for="filterUscito">Uscito</label>
+                    </div>
                 </div>
 
-                <div class="col-12 col-lg-1">
-                    <button type="submit" class="btn btn-primary w-100" title="Cerca">
-                        <i class="fas fa-arrow-right"></i>
+                <div class="col-12 col-lg-3">
+                    <button type="submit" class="btn btn-primary w-100 h-100 d-flex align-items-center justify-content-center">
+                        <i class="fas fa-search me-2"></i>Cerca
                     </button>
                 </div>
             </div>
 
-            <div class="row">
-                <div class="col-12 d-flex align-items-center flex-wrap gap-2">
-                    <span class="small text-uppercase text-muted fw-bold me-2" style="font-size: 0.7rem;">Cerca in:</span>
-                    
-                    <div class="btn-group" role="group">
-                        @{
-                            var columns = new Dictionary<string, string> 
-                            { 
-                                { "Barcode", "Barcode" }, 
-                                { "Descrizione", "Descrizione" }, 
-                                { "Ubicazione", "Ubicazione" }, 
-                                { "UltimaModifica", "Ultima modifica" } 
-                            };
-                            var currentFilters = Model.Filters.SearchInColumns ?? new List<string> { "Barcode", "Descrizione", "Ubicazione" };
-                        }
-
-                        @foreach (var col in columns)
-                        {
-                            var isChecked = currentFilters.Contains(col.Key);
-                            <input type="checkbox" 
-                                   class="btn-check" 
-                                   id="col_@col.Key" 
-                                   autocomplete="off" 
-                                   name="Filters.SearchInColumns" 
-                                   value="@col.Key" 
-                                   @(isChecked ? "checked" : "")>
-                            <label class="btn btn-outline-primary rounded-pill btn-sm px-3 me-1" for="col_@col.Key">
-                                @if(isChecked) { <i class="fas fa-check me-1"></i> } @col.Value
-                            </label>
-                        }
-                    </div>
-                </div>
+            <div class="d-flex align-items-center flex-wrap gap-2">
+                <span class="small text-uppercase text-muted fw-bold me-2" style="font-size: 0.75rem;">Cerca in:</span>
+                @{
+                    var columns = new Dictionary<string, string> 
+                    { 
+                        { "Barcode", "Barcode" }, 
+                        { "Descrizione", "Descrizione" }, 
+                        { "Ubicazione", "Ubicazione" }, 
+                        { "UltimaModifica", "Ultima modifica" } 
+                    };
+                    var currentFilters = Model.Filters.SearchInColumns ?? new List<string> { "Barcode", "Descrizione", "Ubicazione" };
+                }
+                @foreach (var col in columns)
+                {
+                    var isChecked = currentFilters.Contains(col.Key);
+                    var id = $"col_{col.Key}";
+                    <input type="checkbox" class="btn-check" id="@id" name="Filters.SearchInColumns" value="@col.Key" autocomplete="off" @(isChecked ? "checked" : "")>
+                    <label class="btn btn-outline-primary btn-sm rounded-pill px-3" for="@id">@col.Value</label>
+                }
             </div>
         </form>
     </div>
