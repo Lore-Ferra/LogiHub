@@ -55,7 +55,7 @@
                         { "Ubicazione", "Ubicazione" }, 
                         { "UltimaModifica", "Ultima modifica" } 
                     };
-                    var currentFilters = Model.Filters.SearchInColumns ?? new List<string> { "Barcode", "Descrizione", "Ubicazione" };
+                    var currentFilters = Model.Filters.SearchInColumns ?? new List<string> { "Barcode", "Descrizione", "Ubicazione", "UltimaModifica" };
                 }
                 @foreach (var col in columns)
                 {

@@ -7,7 +7,6 @@ namespace LogiHub.Web.Features.SearchCard
 
     public class SearchCardFiltersViewModel
     {
-        public TriState Eliminato { get; set; } = TriState.All;
         public TriState Uscito { get; set; } = TriState.All;
 
         public List<string> SearchInColumns { get; set; } = new();

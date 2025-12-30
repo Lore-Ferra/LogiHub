@@ -15,7 +15,6 @@ namespace LogiHub.Services.Shared
                 .Include(s => s.Ubicazione)
                 .AsQueryable();
 
-   
 
             // Filtro USCITO
             if (qry.Uscito == TriState.True)
@@ -35,19 +34,16 @@ namespace LogiHub.Services.Shared
                 // Se la lista colonne è null o vuota, cerco ovunque
                 var searchAll = qry.SearchInColumns == null || !qry.SearchInColumns.Any();
 
-                
+
                 queryable = queryable.Where(x =>
-                    // Cerca in Barcode
                     ((searchAll || qry.SearchInColumns.Contains("Barcode")) &&
                      x.Barcode.ToLower().Contains(filterLower)) ||
-
-                    // Cerca in Descrizione
                     ((searchAll || qry.SearchInColumns.Contains("Descrizione")) &&
                      x.Descrizione.ToLower().Contains(filterLower)) ||
-
-                    // Cerca in Ubicazione
                     ((searchAll || qry.SearchInColumns.Contains("Ubicazione")) && (x.Ubicazione != null &&
-                        x.Ubicazione.Posizione.ToLower().Contains(filterLower)))
+                        x.Ubicazione.Posizione.ToLower().Contains(filterLower))) ||
+                    ((searchAll || qry.SearchInColumns.Contains("UltimaModifica")) &&
+                     x.UltimaModifica.ToString("dd/MM/yyyy").Contains(filterLower))
                 );
             }
 

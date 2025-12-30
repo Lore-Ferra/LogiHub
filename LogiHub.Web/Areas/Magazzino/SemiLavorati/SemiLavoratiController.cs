@@ -45,9 +45,8 @@ namespace LogiHub.Web.Areas.Magazzino
             {
                 Filters = new SearchCardFiltersViewModel
                 {
-                    Eliminato = TriState.False,
                     Uscito = TriState.All,
-                    SearchInColumns = new List<string> { "Barcode", "Descrizione", "Ubicazione" }
+                    SearchInColumns = new List<string> { "Barcode", "Descrizione", "Ubicazione", "UltimaModifica" }
                 };
             }
             
