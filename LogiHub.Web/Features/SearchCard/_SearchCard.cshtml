@@ -2,16 +2,15 @@
 @using LogiHub.Web.Features.SearchCard
 @model LogiHub.Web.Features.SearchCard.SearchCardViewModel
 
-<div class="d-flex justify-content-between align-items-center mb-4">
+<div class="d-flex justify-content-between align-items-center mb-2">
     @if (!string.IsNullOrEmpty(Model.Title)) { <h1 class="h3 mb-0 text-gray-800">@Model.Title</h1> }
     </div>
 
-<div class="card shadow-sm mb-4 border-0">
+<div class="card shadow-sm mb-3 border-0">
     <div class="card-body">
         <form method="get">
-            
             <div class="row g-2 mb-3">
-                <div class="col-12 col-lg-7">
+                <div class="col-8 col-md-8">
                     <div class="input-group">
                         <span class="input-group-text bg-transparent border-end-0 text-muted">
                             <i class="fas fa-search"></i>
@@ -28,7 +27,7 @@
                     </div>
                 </div>
 
-                <div class="col-6 col-lg-2">
+                <div class="col-4 col-md-2">
                     <div class="form-floating">
                         <select class="form-select" id="filterUscito" name="Filters.Uscito">
                             <option value="0" selected="@(Model.Filters.Uscito == TriState.All)">Tutti</option>
@@ -39,7 +38,7 @@
                     </div>
                 </div>
 
-                <div class="col-12 col-lg-3">
+                <div class="col-12 col-md-2">
                     <button type="submit" class="btn btn-primary w-100 h-100 d-flex align-items-center justify-content-center">
                         <i class="fas fa-search me-2"></i>Cerca
                     </button>
@@ -47,7 +46,7 @@
             </div>
 
             <div class="d-flex align-items-center flex-wrap gap-2">
-                <span class="small text-uppercase text-muted fw-bold me-2" style="font-size: 0.75rem;">Cerca in:</span>
+                <span class="small text-uppercase text-muted fw-bold">Cerca in:</span>
                 @{
                     var columns = new Dictionary<string, string> 
                     { 
@@ -63,7 +62,7 @@
                     var isChecked = currentFilters.Contains(col.Key);
                     var id = $"col_{col.Key}";
                     <input type="checkbox" class="btn-check" id="@id" name="Filters.SearchInColumns" value="@col.Key" autocomplete="off" @(isChecked ? "checked" : "")>
-                    <label class="btn btn-outline-primary btn-sm rounded-pill px-3" for="@id">@col.Value</label>
+                    <label class="btn btn-outline-primary btn-sm rounded-pill" for="@id">@col.Value</label>
                 }
             </div>
         </form>
