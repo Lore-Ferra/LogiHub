@@ -3,11 +3,11 @@
 namespace LogiHub.Web.Areas.Inventario;
 
 [Area("Inventario")]
-public partial class ListaController : AuthenticatedBaseController
+public partial class SessioniController : AuthenticatedBaseController
 {
     public virtual IActionResult Index(string filter, int page = 1, int pageSize = 10)
     {
-        var model = new ListaIndexViewModel
+        var model = new SessioniIndexViewModel
         {
             Filter = filter ?? string.Empty,
             Page = page,
