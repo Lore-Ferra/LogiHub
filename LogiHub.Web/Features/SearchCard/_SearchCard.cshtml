@@ -2,9 +2,39 @@
 @using LogiHub.Web.Features.SearchCard
 @model LogiHub.Web.Features.SearchCard.SearchCardViewModel
 
-<div class="d-flex justify-content-between align-items-center mb-2">
-    @if (!string.IsNullOrEmpty(Model.Title)) { <h1 class="h3 mb-0 text-gray-800">@Model.Title</h1> }
-    </div>
+
+<div class="d-flex justify-content-between align-items-center p-3">
+
+    @* Titolo *@
+    @if (!string.IsNullOrEmpty(Model.Title))
+    {
+        <h1 class="h3 mb-0 text-gray-800">@Model.Title</h1>
+    }
+    
+    @if (Model.HeaderButtons != null && Model.HeaderButtons.Any())
+    {
+        <div class="d-none d-md-flex gap-2">
+            @foreach (var btn in Model.HeaderButtons)
+            {
+                <button type="@btn.Type" class="btn @btn.CssClass"
+                        @if (btn.HtmlAttributes != null)
+                        {
+                            foreach (var attr in btn.HtmlAttributes)
+                            {
+                                @Html.Raw($"{attr.Key}=\"{attr.Value}\" ")
+                            }
+                        }>
+                    @if (!string.IsNullOrEmpty(btn.IconClass))
+                    {
+                        <i class="@btn.IconClass me-2"></i>
+                    }
+                    @btn.Text
+                </button>
+            }
+        </div>
+    }
+</div>
+
 
 <div class="card shadow-sm mb-3 border-0">
     <div class="card-body">
@@ -21,7 +51,7 @@
                                    type="text"
                                    value="@Model.Query"
                                    class="form-control border-start-0"
-                                   placeholder="@(string.IsNullOrEmpty(Model.Placeholder) ? "Cerca..." : Model.Placeholder)" />
+                                   placeholder="@(string.IsNullOrEmpty(Model.Placeholder) ? "Cerca..." : Model.Placeholder)"/>
                             <label for="searchQuery">Ricerca</label>
                         </div>
                     </div>
@@ -39,7 +69,8 @@
                 </div>
 
                 <div class="col-12 col-md-2">
-                    <button type="submit" class="btn btn-primary w-100 h-100 d-flex align-items-center justify-content-center">
+                    <button type="submit"
+                            class="btn btn-primary w-100 h-100 d-flex align-items-center justify-content-center">
                         <i class="fas fa-search me-2"></i>Cerca
                     </button>
                 </div>
@@ -48,12 +79,12 @@
             <div class="d-flex align-items-center flex-wrap gap-2">
                 <span class="small text-uppercase text-muted fw-bold">Cerca in:</span>
                 @{
-                    var columns = new Dictionary<string, string> 
-                    { 
-                        { "Barcode", "Barcode" }, 
-                        { "Descrizione", "Descrizione" }, 
-                        { "Ubicazione", "Ubicazione" }, 
-                        { "UltimaModifica", "Ultima modifica" } 
+                    var columns = new Dictionary<string, string>
+                    {
+                        { "Barcode", "Barcode" },
+                        { "Descrizione", "Descrizione" },
+                        { "Ubicazione", "Ubicazione" },
+                        { "UltimaModifica", "Ultima modifica" }
                     };
                     var currentFilters = Model.Filters.SearchInColumns ?? new List<string> { "Barcode", "Descrizione", "Ubicazione", "UltimaModifica" };
                 }
@@ -61,7 +92,8 @@
                 {
                     var isChecked = currentFilters.Contains(col.Key);
                     var id = $"col_{col.Key}";
-                    <input type="checkbox" class="btn-check" id="@id" name="Filters.SearchInColumns" value="@col.Key" autocomplete="off" @(isChecked ? "checked" : "")>
+                    <input type="checkbox" class="btn-check" id="@id" name="Filters.SearchInColumns" value="@col.Key"
+                           autocomplete="off" @(isChecked ? "checked" : "")>
                     <label class="btn btn-outline-primary btn-sm rounded-pill" for="@id">@col.Value</label>
                 }
             </div>
