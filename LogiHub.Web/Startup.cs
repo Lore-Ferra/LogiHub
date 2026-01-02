@@ -114,8 +114,8 @@ namespace LogiHub.Web
                 // ROUTING PER HUB
                 endpoints.MapHub<TemplateHub>("/templateHub");
 
-                endpoints.MapAreaControllerRoute("Inventario", "Inventario",
-                    "Inventario/{controller=Sessioni}/{action=Index}/{id?}");
+                endpoints.MapAreaControllerRoute("SessioneInventario", "Inventario",
+                    "SessioneInventario/{controller=Sessioni}/{action=Index}/{id?}");
                 endpoints.MapAreaControllerRoute("Magazzino", "Magazzino",
                     "Magazzino/{controller=SemiLavorati}/{action=Index}/{id?}");
                 endpoints.MapAreaControllerRoute("Example", "Example",
