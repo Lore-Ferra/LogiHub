@@ -101,7 +101,7 @@ public class SemiLavoratoService : ISemiLavoratoService
             
         return await _context.SaveChangesAsync() > 0;
     }
-    public async Task<bool> EliminaAsync(EliminaSemiLavoratoDTO dto)
+    public async Task<bool> EliminaSemiLavoratoAsync(EliminaSemiLavoratoDTO dto)
     {
         var sl = await _context.SemiLavorati.FindAsync(dto.SemiLavoratoId);
         if (sl == null || sl.Eliminato) return false;

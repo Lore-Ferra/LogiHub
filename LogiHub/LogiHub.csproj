@@ -10,7 +10,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Services\Inventario\Sessioni\" />
     <Folder Include="Services\Magazzino\" />
   </ItemGroup>
 

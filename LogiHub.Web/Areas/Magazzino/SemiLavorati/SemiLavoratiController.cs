@@ -165,7 +165,7 @@ namespace LogiHub.Web.Areas.Magazzino
         public virtual async Task<IActionResult> Elimina([FromBody] EliminaSemiLavoratoDTO dto)
         {
             dto.UserId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
-            var success = await _service.EliminaAsync(dto);
+            var success = await _service.EliminaSemiLavoratoAsync(dto);
             return success ? Ok() : BadRequest();
         }
 
