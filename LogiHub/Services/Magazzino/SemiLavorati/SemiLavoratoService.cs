@@ -2,10 +2,11 @@
 using System.Linq;
 using System.Threading.Tasks;
 using LogiHub.Models.Shared;
-using LogiHub.Services;
 using LogiHub.Services.Shared.SemiLavorati;
 using Microsoft.EntityFrameworkCore;
 
+
+namespace LogiHub.Services.Magazzino.SemiLavorati;
 public class SemiLavoratoService : ISemiLavoratoService
 {
     private readonly TemplateDbContext _context;

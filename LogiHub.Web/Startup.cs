@@ -1,6 +1,4 @@
-﻿//using LogiHub.Web1.Hubs;
-
-using Microsoft.AspNetCore.Authentication.Cookies;
+﻿using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Razor;
@@ -12,6 +10,7 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using LogiHub.Services;
+using LogiHub.Services.Magazzino.SemiLavorati;
 using LogiHub.Web.Infrastructure;
 using LogiHub.Web.SignalR.Hubs;
 
@@ -50,7 +49,8 @@ namespace LogiHub.Web
             var builder = services.AddMvc()
                 .AddViewLocalization(LanguageViewLocationExpanderFormat.Suffix)
                 .AddDataAnnotationsLocalization(options =>
-                {                        // Enable loading SharedResource for ModelLocalizer
+                {
+                    // Enable loading SharedResource for ModelLocalizer
                     options.DataAnnotationLocalizerProvider = (type, factory) =>
                         factory.Create(typeof(SharedResource));
                 });
@@ -113,10 +113,13 @@ namespace LogiHub.Web
             {
                 // ROUTING PER HUB
                 endpoints.MapHub<TemplateHub>("/templateHub");
-                
-                endpoints.MapAreaControllerRoute("Inventario", "Inventario", "Inventario/{controller=Sessioni}/{action=Index}/{id?}");
-                endpoints.MapAreaControllerRoute("Magazzino", "Magazzino", "Magazzino/{controller=SemiLavorati}/{action=Index}/{id?}");
-                endpoints.MapAreaControllerRoute("Example", "Example", "Example/{controller=Users}/{action=Index}/{id?}");
+
+                endpoints.MapAreaControllerRoute("Inventario", "Inventario",
+                    "Inventario/{controller=Sessioni}/{action=Index}/{id?}");
+                endpoints.MapAreaControllerRoute("Magazzino", "Magazzino",
+                    "Magazzino/{controller=SemiLavorati}/{action=Index}/{id?}");
+                endpoints.MapAreaControllerRoute("Example", "Example",
+                    "Example/{controller=Users}/{action=Index}/{id?}");
                 endpoints.MapControllerRoute("default", "{controller=Login}/{action=Login}");
             });
         }
