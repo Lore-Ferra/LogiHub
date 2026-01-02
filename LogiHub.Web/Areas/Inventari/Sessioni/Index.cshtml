@@ -1,0 +1,104 @@
+﻿@model LogiHub.Web.Areas.Inventari.Sessioni.SessioniIndexViewModel
+
+@{
+    ViewData["Title"] = "Gestione Inventario";
+}
+
+<div>
+    @await Html.PartialAsync("~/Features/SearchCard/_SearchCard.cshtml", Model.SearchCard)
+</div>
+
+<div class="card shadow-sm mt-3">
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead class="table-light">
+            <tr>
+                <th>Data AggiungiSessioneInventariozione</th>
+                <th>Nome Sessione</th>
+                <th class="text-center">Stato</th>
+                <th class="text-end">Azioni</th>
+            </tr>
+            </thead>
+            <tbody>
+            @if (Model.Sessioni != null && Model.Sessioni.Any())
+            {
+                foreach (var item in Model.Sessioni)
+                {
+                    <tr>
+                        <td>@item.DataCreazione.ToString("dd/MM/yyyy HH:mm")</td>
+                        <td><strong>@item.NomeSessione</strong></td>
+                        <td class="text-center">
+                            @if (item.Chiuso)
+                            {
+                                <span class="badge bg-secondary">Chiuso</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-success">In Corso</span>
+                            }
+                        </td>
+                        <td class="text-end">
+                            <a href="@Url.Action("Dashboard", new { id = item.Id })" 
+                               class="btn btn-sm @(item.Chiuso ? "btn-outline-primary" : "btn-primary")">
+                                <i class="fa-solid @(item.Chiuso ? "fa-eye" : "fa-arrow-right")"></i>
+                                @(item.Chiuso ? "Visualizza" : "Riprendi")
+                            </a>
+                        </td>
+                    </tr>
+                }
+            }
+            else
+            {
+                <tr>
+                    <td colspan="4" class="text-center py-4 text-muted">
+                        Nessun inventario trovato.
+                    </td>
+                </tr>
+            }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Questo script intercetta TUTTI i bottoni con data-post-action
+        document.addEventListener('click', function (e) {
+            
+            // 1. Controlliamo se abbiamo cliccato un bottone o un'icona dentro il bottone
+            const btn = e.target.closest('[data-post-action]');
+            if (!btn) return;
+
+            e.preventDefault();
+
+            // 2. Leggiamo i dati dal bottone
+            const url = btn.getAttribute('data-url');
+            const confirmMsg = btn.getAttribute('data-confirm');
+
+            // 3. Chiediamo conferma (se prevista)
+            if (confirmMsg && !confirm(confirmMsg)) return;
+
+            // 4. Creiamo un "Form fantasma"
+            // Serve perché le azioni che modificano il DB devono essere POST
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = url;
+
+            // 5. Aggiungiamo il Token di Sicurezza (Antiforgery)
+            // Senza questo, ASP.NET blocca la richiesta per sicurezza
+            const token = document.querySelector('input[name="__RequestVerificationToken"]');
+            if (token) {
+                const hiddenInput = document.createElement('input');
+                hiddenInput.type = 'hidden';
+                hiddenInput.name = '__RequestVerificationToken';
+                hiddenInput.value = token.value;
+                form.appendChild(hiddenInput);
+            }
+
+            // 6. Spediamo il form
+            document.body.appendChild(form);
+            form.submit();
+        });
+    </script>
+}
+@Html.AntiForgeryToken()

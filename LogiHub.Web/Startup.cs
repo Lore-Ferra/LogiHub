@@ -10,6 +10,7 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using LogiHub.Services;
+using LogiHub.Services.Inventari.Sessioni;
 using LogiHub.Services.Magazzino.SemiLavorati;
 using LogiHub.Web.Infrastructure;
 using LogiHub.Web.SignalR.Hubs;
@@ -31,6 +32,8 @@ namespace LogiHub.Web
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddScoped<ISemiLavoratoService, SemiLavoratoService>();
+            services.AddScoped<ISessioniService, SessioniService>();
+            
             services.Configure<AppSettings>(Configuration.GetSection("AppSettings"));
 
             services.AddDbContext<TemplateDbContext>(options =>
@@ -114,8 +117,8 @@ namespace LogiHub.Web
                 // ROUTING PER HUB
                 endpoints.MapHub<TemplateHub>("/templateHub");
 
-                endpoints.MapAreaControllerRoute("SessioneInventario", "Inventario",
-                    "SessioneInventario/{controller=Sessioni}/{action=Index}/{id?}");
+                endpoints.MapAreaControllerRoute("Inventari", "Inventari",
+                    "Inventari/{controller=Sessioni}/{action=Index}/{id?}");
                 endpoints.MapAreaControllerRoute("Magazzino", "Magazzino",
                     "Magazzino/{controller=SemiLavorati}/{action=Index}/{id?}");
                 endpoints.MapAreaControllerRoute("Example", "Example",
