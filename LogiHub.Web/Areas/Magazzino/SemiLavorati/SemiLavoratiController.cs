@@ -40,7 +40,6 @@ namespace LogiHub.Web.Areas.Magazzino
             int pageSize = 25
         )
         {
-
             if (Filters == null)
             {
                 Filters = new SearchCardFiltersViewModel
@@ -49,7 +48,7 @@ namespace LogiHub.Web.Areas.Magazzino
                     SearchInColumns = new List<string> { "Barcode", "Descrizione", "Ubicazione", "UltimaModifica" }
                 };
             }
-            
+
             var serviceQuery = new SemilavoratiIndexQuery
             {
                 SearchText = Query,
@@ -183,7 +182,7 @@ namespace LogiHub.Web.Areas.Magazzino
                 UbicazioneId = dto.UbicazioneId,
                 AziendaEsternaId = dto.AziendaEsternaId,
                 Uscito = dto.Uscito,
-                
+
                 UbicazioniList = _context.Ubicazioni
                     .Select(u => new SelectListItem
                     {
