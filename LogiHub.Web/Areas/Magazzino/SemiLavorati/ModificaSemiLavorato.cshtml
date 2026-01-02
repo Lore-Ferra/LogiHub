@@ -1,13 +1,13 @@
 ﻿@model LogiHub.Web.Areas.Magazzino.SemiLavorati.ModificaSemiLavoratoViewModel
 
 @{
-    string jsIn = "document.getElementById('UbicazioneId').disabled = false; " +
-                  "var az = document.getElementById('AziendaEsternaId'); " +
-                  "az.disabled = true; az.value = ''; az.classList.remove('is-invalid');";
+    string jsIn = "var ub = document.getElementById('UbicazioneId'); ub.disabled = false; " +
+                  "var az = document.getElementById('AziendaEsternaId'); az.disabled = true; az.value = ''; " +
+                  "az.classList.remove('is-invalid'); az.classList.remove('is-valid');";
 
-    string jsOut = "document.getElementById('AziendaEsternaId').disabled = false; " +
-                   "var ub = document.getElementById('UbicazioneId'); " +
-                   "ub.disabled = true; ub.value = ''; ub.classList.remove('is-invalid');";
+    string jsOut = "var az = document.getElementById('AziendaEsternaId'); az.disabled = false; " +
+                   "var ub = document.getElementById('UbicazioneId'); ub.disabled = true; ub.value = ''; " +
+                   "ub.classList.remove('is-invalid'); ub.classList.remove('is-valid');";
 }
 
 <form id="formModificaSemilavorato" class="modifica-form needs-validation" asp-action="Modifica" asp-area="Magazzino"
@@ -37,12 +37,10 @@
             <select asp-for="UbicazioneId"
                     asp-items="Model.UbicazioniList"
                     class="form-select"
-                    required
                     id="UbicazioneId"
                     disabled="@(Model.Uscito ? "disabled" : null)">
                 <option value="">-- Seleziona Ubicazione --</option>
             </select>
-
             <span asp-validation-for="UbicazioneId" class="text-danger small d-block mt-1"></span>
         </div>
 
@@ -55,8 +53,6 @@
                     disabled="@(!Model.Uscito ? "disabled" : null)">
                 <option value="">-- Seleziona Azienda --</option>
             </select>
-
-
             <span asp-validation-for="AziendaEsternaId" class="text-danger small d-block mt-1"></span>
         </div>
     </div>

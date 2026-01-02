@@ -172,9 +172,7 @@ namespace LogiHub.Web.Areas.Magazzino
         [HttpGet]
         public virtual async Task<IActionResult> Modifica(Guid id)
         {
-            var dto = await _queries.GetSemiLavoratoDetailsAsync(
-                new SemiLavoratiDetailsQuery { Id = id });
-
+            var dto = await _queries.GetSemiLavoratoDetailsAsync(new SemiLavoratiDetailsQuery { Id = id });
             if (dto == null) return NotFound();
 
             var model = new ModificaSemiLavoratoViewModel
@@ -184,9 +182,8 @@ namespace LogiHub.Web.Areas.Magazzino
                 Descrizione = dto.Descrizione,
                 UbicazioneId = dto.UbicazioneId,
                 AziendaEsternaId = dto.AziendaEsternaId,
-
-                Uscito = dto.AziendaEsternaId != null,
-
+                Uscito = dto.Uscito,
+                
                 UbicazioniList = _context.Ubicazioni
                     .Select(u => new SelectListItem
                     {
