@@ -1,6 +1,7 @@
 ﻿using LogiHub.Web.Infrastructure;
 using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
+using LogiHub.Services.Magazzino.SemiLavorati.DTO;
 using LogiHub.Services.Shared.SemiLavorati;
 using LogiHub.Web.Features.SearchCard;
 

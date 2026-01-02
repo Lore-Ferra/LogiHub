@@ -2,303 +2,303 @@
 using System.Collections.Generic;
 using System.Security.Claims;
 using LogiHub.Services;
+using LogiHub.Services.Magazzino.SemiLavorati.DTO;
 using LogiHub.Services.Shared.SemiLavorati;
 using LogiHub.Web.Areas.Magazzino.SemiLavorati;
 using LogiHub.Web.Features.SearchCard;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 
-namespace LogiHub.Web.Areas.Magazzino
+namespace LogiHub.Web.Areas.Magazzino;
+
+using LogiHub.Services.Shared;
+using LogiHub.Web.Areas.Magazzino.Models;
+using Web.Areas;
+using Microsoft.AspNetCore.Mvc;
+using System.Linq;
+using System.Threading.Tasks;
+
+[Area("Magazzino")]
+public partial class SemiLavoratiController : AuthenticatedBaseController
 {
-    using LogiHub.Services.Shared;
-    using LogiHub.Web.Areas.Magazzino.Models;
-    using Web.Areas;
-    using Microsoft.AspNetCore.Mvc;
-    using System.Linq;
-    using System.Threading.Tasks;
+    private readonly SharedService _queries;
+    private readonly TemplateDbContext _context;
 
-    [Area("Magazzino")]
-    public partial class SemiLavoratiController : AuthenticatedBaseController
+    private readonly ISemiLavoratoService _service;
+
+    public SemiLavoratiController(SharedService queries, ISemiLavoratoService service, TemplateDbContext context)
     {
-        private readonly SharedService _queries;
-        private readonly TemplateDbContext _context;
+        _queries = queries;
+        _service = service;
+        _context = context;
+    }
 
-        private readonly ISemiLavoratoService _service;
-
-        public SemiLavoratiController(SharedService queries, ISemiLavoratoService service, TemplateDbContext context)
+    [HttpGet]
+    public virtual async Task<IActionResult> Index(
+        [FromQuery] string Query,
+        [FromQuery] SearchCardFiltersViewModel Filters,
+        int page = 1,
+        int pageSize = 25
+    )
+    {
+        if (Filters == null)
         {
-            _queries = queries;
-            _service = service;
-            _context = context;
+            Filters = new SearchCardFiltersViewModel
+            {
+                Uscito = TriState.All,
+                SearchInColumns = new List<string> { "Barcode", "Descrizione", "Ubicazione", "UltimaModifica" }
+            };
         }
 
-        [HttpGet]
-        public virtual async Task<IActionResult> Index(
-            [FromQuery] string Query,
-            [FromQuery] SearchCardFiltersViewModel Filters,
-            int page = 1,
-            int pageSize = 25
-        )
+        var serviceQuery = new SemilavoratiIndexQuery
         {
-            if (Filters == null)
+            SearchText = Query,
+            Uscito = Filters.Uscito,
+            SearchInColumns = Filters.SearchInColumns,
+            Page = page,
+            PageSize = pageSize
+        };
+
+        var dto = await _queries.GetSemiLavoratiListAsync(serviceQuery);
+
+        var searchCardModel = new SearchCardViewModel
+        {
+            Title = "📦 Magazzino Semilavorati",
+            Placeholder = "Cerca barcode, descrizione...",
+
+            Query = Query,
+            Filters = Filters,
+
+            HeaderButtons = new List<SearchCardButton>
             {
-                Filters = new SearchCardFiltersViewModel
+                new SearchCardButton
                 {
-                    Uscito = TriState.All,
-                    SearchInColumns = new List<string> { "Barcode", "Descrizione", "Ubicazione", "UltimaModifica" }
-                };
-            }
-
-            var serviceQuery = new SemilavoratiIndexQuery
-            {
-                SearchText = Query,
-                Uscito = Filters.Uscito,
-                SearchInColumns = Filters.SearchInColumns,
-                Page = page,
-                PageSize = pageSize
-            };
-
-            var dto = await _queries.GetSemiLavoratiListAsync(serviceQuery);
-
-            var searchCardModel = new SearchCardViewModel
-            {
-                Title = "📦 Magazzino Semilavorati",
-                Placeholder = "Cerca barcode, descrizione...",
-
-                Query = Query,
-                Filters = Filters,
-
-                HeaderButtons = new List<SearchCardButton>
-                {
-                    new SearchCardButton
+                    Text = "Aggiungi",
+                    CssClass = "btn-primary",
+                    IconClass = "fa-solid fa-plus",
+                    Type = "button",
+                    HtmlAttributes = new Dictionary<string, string>
                     {
-                        Text = "Aggiungi",
-                        CssClass = "btn-primary",
-                        IconClass = "fa-solid fa-plus",
-                        Type = "button",
-                        HtmlAttributes = new Dictionary<string, string>
-                        {
-                            { "data-offcanvas", "" },
-                            { "data-id", "offcanvasAggiungi" },
-                            { "data-url", Url.Action("AggiungiSemilavorato") },
-                            { "data-title", "Aggiungi Semilavorato" },
-                            { "title", "Aggiungi Semilavorato" }
-                        }
+                        { "data-offcanvas", "" },
+                        { "data-id", "offcanvasAggiungi" },
+                        { "data-url", Url.Action("AggiungiSemilavorato") },
+                        { "data-title", "Aggiungi Semilavorato" },
+                        { "title", "Aggiungi Semilavorato" }
                     }
                 }
-            };
+            }
+        };
 
-            var model = new SemiLavoratiIndexViewModel
-            {
-                SearchCard = searchCardModel,
-                Page = page,
-                PageSize = pageSize,
-                TotalItems = dto.TotalCount,
-                SemiLavorati = dto.Items
-            };
-            return View(model);
+        var model = new SemiLavoratiIndexViewModel
+        {
+            SearchCard = searchCardModel,
+            Page = page,
+            PageSize = pageSize,
+            TotalItems = dto.TotalCount,
+            SemiLavorati = dto.Items
+        };
+        return View(model);
+    }
+
+    [HttpGet]
+    public virtual async Task<IActionResult> Dettagli(Guid id)
+    {
+        var query = new SemiLavoratiDetailsQuery { Id = id };
+        var dto = await _queries.GetSemiLavoratoDetailsAsync(query);
+
+        if (dto == null) return NotFound();
+
+        return PartialView("DettagliSemiLavorato", dto);
+    }
+
+
+    [HttpGet]
+    public virtual IActionResult AggiungiSemilavorato()
+    {
+        var model = new AggiungiSemiLavoratoViewModel
+        {
+            UbicazioniList = _context.Ubicazioni
+                .Select(u => new SelectListItem { Value = u.UbicazioneId.ToString(), Text = u.Posizione })
+                .ToList(),
+        };
+
+        return View("AggiungiSemilavorato", model);
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public virtual async Task<IActionResult> AggiungiSemilavorato(AggiungiSemiLavoratoViewModel model)
+    {
+        bool esisteGia = await _context.SemiLavorati
+            .AnyAsync(x => x.Barcode == model.Barcode && !x.Eliminato);
+
+        if (esisteGia)
+        {
+            ModelState.AddModelError(nameof(model.Barcode), "Attenzione: questo Barcode esiste già a sistema.");
         }
 
-        [HttpGet]
-        public virtual async Task<IActionResult> Dettagli(Guid id)
+        if (!ModelState.IsValid)
         {
-            var query = new SemiLavoratiDetailsQuery { Id = id };
-            var dto = await _queries.GetSemiLavoratoDetailsAsync(query);
-
-            if (dto == null) return NotFound();
-
-            return PartialView("DettagliSemiLavorato", dto);
-        }
-
-
-        [HttpGet]
-        public virtual IActionResult AggiungiSemilavorato()
-        {
-            var model = new AggiungiSemiLavoratoViewModel
-            {
-                UbicazioniList = _context.Ubicazioni
-                    .Select(u => new SelectListItem { Value = u.UbicazioneId.ToString(), Text = u.Posizione })
-                    .ToList(),
-            };
+            model.UbicazioniList = _context.Ubicazioni
+                .Select(u => new SelectListItem { Value = u.UbicazioneId.ToString(), Text = u.Posizione })
+                .ToList();
 
             return View("AggiungiSemilavorato", model);
         }
 
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public virtual async Task<IActionResult> AggiungiSemilavorato(AggiungiSemiLavoratoViewModel model)
+        var userId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
+
+        var dto = new AggiungiSemiLavoratoDTO
         {
-            bool esisteGia = await _context.SemiLavorati
-                .AnyAsync(x => x.Barcode == model.Barcode && !x.Eliminato);
+            Barcode = model.Barcode,
+            Descrizione = model.Descrizione,
+            UbicazioneId = model.UbicazioneId,
+            UserId = userId,
+        };
 
-            if (esisteGia)
-            {
-                ModelState.AddModelError(nameof(model.Barcode), "Attenzione: questo Barcode esiste già a sistema.");
-            }
+        await _service.AggiungiSemiLavoratoAsync(dto);
 
-            if (!ModelState.IsValid)
-            {
-                model.UbicazioniList = _context.Ubicazioni
-                    .Select(u => new SelectListItem { Value = u.UbicazioneId.ToString(), Text = u.Posizione })
-                    .ToList();
+        return RedirectToAction(nameof(Index));
+    }
 
-                return View("AggiungiSemilavorato", model);
-            }
+    [HttpPost]
+    public virtual async Task<IActionResult> Elimina([FromBody] EliminaSemiLavoratoDTO dto)
+    {
+        dto.UserId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
+        var success = await _service.EliminaSemiLavoratoAsync(dto);
+        return success ? Ok() : BadRequest();
+    }
 
-            var userId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
+    [HttpGet]
+    public virtual async Task<IActionResult> Modifica(Guid id)
+    {
+        var dto = await _queries.GetSemiLavoratoDetailsAsync(new SemiLavoratiDetailsQuery { Id = id });
+        if (dto == null) return NotFound();
 
-            var dto = new AggiungiSemiLavoratoDTO
-            {
-                Barcode = model.Barcode,
-                Descrizione = model.Descrizione,
-                UbicazioneId = model.UbicazioneId,
-                UserId = userId,
-            };
+        var model = new ModificaSemiLavoratoViewModel
+        {
+            Id = dto.Id,
+            Barcode = dto.Barcode,
+            Descrizione = dto.Descrizione,
+            UbicazioneId = dto.UbicazioneId,
+            AziendaEsternaId = dto.AziendaEsternaId,
+            Uscito = dto.Uscito,
 
-            await _service.AggiungiSemiLavoratoAsync(dto);
+            UbicazioniList = _context.Ubicazioni
+                .Select(u => new SelectListItem
+                {
+                    Value = u.UbicazioneId.ToString(),
+                    Text = u.Posizione
+                })
+                .ToList(),
 
-            return RedirectToAction(nameof(Index));
+            AziendeList = _context.AziendeEsterne
+                .Select(a => new SelectListItem
+                {
+                    Value = a.Id.ToString(),
+                    Text = a.Nome
+                })
+                .ToList()
+        };
+
+        return PartialView("ModificaSemilavorato", model);
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public virtual async Task<IActionResult> Modifica(ModificaSemiLavoratoViewModel model)
+    {
+        bool duplicato = await _context.SemiLavorati
+            .AnyAsync(x => x.Barcode == model.Barcode && x.Id != model.Id && !x.Eliminato);
+
+        if (duplicato)
+        {
+            ModelState.AddModelError(nameof(model.Barcode), "Barcode già presente nel sistema!");
         }
 
-        [HttpPost]
-        public virtual async Task<IActionResult> Elimina([FromBody] EliminaSemiLavoratoDTO dto)
+        if (model.Uscito)
         {
-            dto.UserId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
-            var success = await _service.EliminaSemiLavoratoAsync(dto);
-            return success ? Ok() : BadRequest();
+            if (model.AziendaEsternaId == null)
+            {
+                ModelState.AddModelError(nameof(model.AziendaEsternaId), "Seleziona l'azienda destinataria.");
+            }
+
+            model.UbicazioneId = null;
+
+            ModelState.Remove(nameof(model.UbicazioneId));
+        }
+        else
+        {
+            if (model.UbicazioneId == null)
+            {
+                ModelState.AddModelError(nameof(model.UbicazioneId), "Seleziona un'ubicazione in magazzino.");
+            }
+
+            model.AziendaEsternaId = null;
+
+            ModelState.Remove(nameof(model.AziendaEsternaId));
         }
 
-        [HttpGet]
-        public virtual async Task<IActionResult> Modifica(Guid id)
+        if (!ModelState.IsValid)
         {
-            var dto = await _queries.GetSemiLavoratoDetailsAsync(new SemiLavoratiDetailsQuery { Id = id });
-            if (dto == null) return NotFound();
+            model.UbicazioniList = _context.Ubicazioni
+                .Select(u => new SelectListItem { Value = u.UbicazioneId.ToString(), Text = u.Posizione })
+                .ToList();
 
-            var model = new ModificaSemiLavoratoViewModel
-            {
-                Id = dto.Id,
-                Barcode = dto.Barcode,
-                Descrizione = dto.Descrizione,
-                UbicazioneId = dto.UbicazioneId,
-                AziendaEsternaId = dto.AziendaEsternaId,
-                Uscito = dto.Uscito,
-
-                UbicazioniList = _context.Ubicazioni
-                    .Select(u => new SelectListItem
-                    {
-                        Value = u.UbicazioneId.ToString(),
-                        Text = u.Posizione
-                    })
-                    .ToList(),
-
-                AziendeList = _context.AziendeEsterne
-                    .Select(a => new SelectListItem
-                    {
-                        Value = a.Id.ToString(),
-                        Text = a.Nome
-                    })
-                    .ToList()
-            };
+            model.AziendeList = _context.AziendeEsterne
+                .Select(a => new SelectListItem { Value = a.Id.ToString(), Text = a.Nome })
+                .ToList();
 
             return PartialView("ModificaSemilavorato", model);
         }
 
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public virtual async Task<IActionResult> Modifica(ModificaSemiLavoratoViewModel model)
+        var userId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
+
+        var dto = new ModificaSemiLavoratoDTO
         {
-            bool duplicato = await _context.SemiLavorati
-                .AnyAsync(x => x.Barcode == model.Barcode && x.Id != model.Id && !x.Eliminato);
+            Id = model.Id,
+            Barcode = model.Barcode,
+            Descrizione = model.Descrizione,
+            UbicazioneId = model.UbicazioneId,
+            AziendaEsternaId = model.AziendaEsternaId,
+            Uscito = model.Uscito,
+            UserId = userId
+        };
 
-            if (duplicato)
-            {
-                ModelState.AddModelError(nameof(model.Barcode), "Barcode già presente nel sistema!");
-            }
+        var success = await _service.ModificaSemiLavorato(dto);
 
-            if (model.Uscito)
-            {
-                if (model.AziendaEsternaId == null)
-                {
-                    ModelState.AddModelError(nameof(model.AziendaEsternaId), "Seleziona l'azienda destinataria.");
-                }
+        if (!success) return NotFound();
 
-                model.UbicazioneId = null;
+        return RedirectToAction(nameof(Index));
+    }
 
-                ModelState.Remove(nameof(model.UbicazioneId));
-            }
-            else
-            {
-                if (model.UbicazioneId == null)
-                {
-                    ModelState.AddModelError(nameof(model.UbicazioneId), "Seleziona un'ubicazione in magazzino.");
-                }
+    [HttpGet]
+    [Route("/Magazzino/SemiLavorati/GeneraBarcodeUnivoco")]
+    public virtual async Task<IActionResult> GeneraBarcodeUnivoco()
+    {
+        string barcode;
+        do
+        {
+            barcode = "#" + Random.Shared.Next(0001, 9999);
+        } while (await _context.SemiLavorati.AnyAsync(x => x.Barcode == barcode));
 
-                model.AziendaEsternaId = null;
+        return Json(barcode);
+    }
 
-                ModelState.Remove(nameof(model.AziendaEsternaId));
-            }
+    [HttpGet]
+    [Route("/Magazzino/SemiLavorati/VerificaEsistenzaBarcode")]
+    public virtual async Task<IActionResult> VerificaEsistenzaBarcode(string barcode, Guid? idEscluso)
+    {
+        var query = _context.SemiLavorati
+            .Where(x => x.Barcode == barcode && !x.Eliminato);
 
-            if (!ModelState.IsValid)
-            {
-                model.UbicazioniList = _context.Ubicazioni
-                    .Select(u => new SelectListItem { Value = u.UbicazioneId.ToString(), Text = u.Posizione })
-                    .ToList();
-
-                model.AziendeList = _context.AziendeEsterne
-                    .Select(a => new SelectListItem { Value = a.Id.ToString(), Text = a.Nome })
-                    .ToList();
-
-                return PartialView("ModificaSemilavorato", model);
-            }
-
-            var userId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
-
-            var dto = new ModificaSemiLavoratoDTO
-            {
-                Id = model.Id,
-                Barcode = model.Barcode,
-                Descrizione = model.Descrizione,
-                UbicazioneId = model.UbicazioneId,
-                AziendaEsternaId = model.AziendaEsternaId,
-                Uscito = model.Uscito,
-                UserId = userId
-            };
-
-            var success = await _service.ModificaSemiLavorato(dto);
-
-            if (!success) return NotFound();
-
-            return RedirectToAction(nameof(Index));
+        if (idEscluso.HasValue)
+        {
+            query = query.Where(x => x.Id != idEscluso.Value);
         }
 
-        [HttpGet]
-        [Route("/Magazzino/SemiLavorati/GeneraBarcodeUnivoco")]
-        public virtual async Task<IActionResult> GeneraBarcodeUnivoco()
-        {
-            string barcode;
-            do
-            {
-                barcode = "#" + Random.Shared.Next(0001, 9999);
-            } while (await _context.SemiLavorati.AnyAsync(x => x.Barcode == barcode));
+        var esiste = await query.AnyAsync();
 
-            return Json(barcode);
-        }
-
-        [HttpGet]
-        [Route("/Magazzino/SemiLavorati/VerificaEsistenzaBarcode")]
-        public virtual async Task<IActionResult> VerificaEsistenzaBarcode(string barcode, Guid? idEscluso)
-        {
-            var query = _context.SemiLavorati
-                .Where(x => x.Barcode == barcode && !x.Eliminato);
-
-            if (idEscluso.HasValue)
-            {
-                query = query.Where(x => x.Id != idEscluso.Value);
-            }
-
-            var esiste = await query.AnyAsync();
-
-            return Json(new { esiste });
-        }
+        return Json(new { esiste });
     }
 }

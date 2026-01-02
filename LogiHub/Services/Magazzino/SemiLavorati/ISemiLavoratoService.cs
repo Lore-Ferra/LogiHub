@@ -1,6 +1,7 @@
 ﻿using System.Threading.Tasks;
 using LogiHub.Models.Shared;
-using LogiHub.Services.Shared.SemiLavorati;
+using LogiHub.Services.Magazzino.SemiLavorati.DTO;
+
 
 public interface ISemiLavoratoService
 {

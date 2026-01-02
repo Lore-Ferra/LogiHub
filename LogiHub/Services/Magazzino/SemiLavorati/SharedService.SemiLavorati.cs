@@ -1,7 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using System.Linq;
 using System.Threading.Tasks;
-using LogiHub.Models.Shared;
+using LogiHub.Services.Magazzino.SemiLavorati.DTO;
 using LogiHub.Services.Shared.SemiLavorati;
 
 namespace LogiHub.Services.Shared

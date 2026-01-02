@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace LogiHub.Services.Shared.SemiLavorati;
+namespace LogiHub.Services.Magazzino.SemiLavorati.DTO;
 
 public class EliminaSemiLavoratoDTO
 {

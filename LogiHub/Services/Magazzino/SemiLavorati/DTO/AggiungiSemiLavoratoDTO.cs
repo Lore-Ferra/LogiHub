@@ -1,5 +1,7 @@
 ﻿using System;
 
+namespace LogiHub.Services.Magazzino.SemiLavorati.DTO;
+
 public class AggiungiSemiLavoratoDTO
 {
     public string Barcode { get; set; }

@@ -1,6 +1,6 @@
 using System;
 
-namespace LogiHub.Services.Shared.SemiLavorati;
+namespace LogiHub.Services.Magazzino.SemiLavorati.DTO;
 
 public class ModificaSemiLavoratoDTO
 {
@@ -15,5 +15,5 @@ public class ModificaSemiLavoratoDTO
     public Guid? AziendaEsternaId { get; set; }
 
     public Guid UserId { get; set; }
-    public bool Uscito { get; set; } 
+    public bool Uscito { get; set; }
 }
