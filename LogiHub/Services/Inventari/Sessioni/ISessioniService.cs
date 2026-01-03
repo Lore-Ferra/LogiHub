@@ -27,4 +27,5 @@ public interface ISessioniService
     Task SegnaPresenteAsync(Guid rigaId, Guid userId);
     Task SegnaMancanteAsync(Guid rigaId, Guid userId);
     Task AggiungiExtraAsync(Guid sessioneId, Guid ubicazioneId, string barcode, Guid userId);
+    Task<List<DiscrepanzaDTO>> OttieniDiscrepanzeAsync(Guid sessioneId);
 }

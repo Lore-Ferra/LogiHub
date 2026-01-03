@@ -255,4 +255,31 @@ public class SessioniService : ISessioniService
         _context.RigheInventario.Add(extra);
         await _context.SaveChangesAsync();
     }
+
+    public async Task<List<DiscrepanzaDTO>> OttieniDiscrepanzeAsync(Guid sessioneId)
+    {
+        var righe = await _context.RigheInventario
+            .Include(r => r.SemiLavorato)
+            .Include(r => r.UbicazioneSnapshot)
+            .Include(r => r.UbicazioneRilevata)
+            .Include(r => r.RilevatoDaUser)
+            .Where(r => r.SessioneInventarioId == sessioneId &&
+                        (r.Stato == StatoRigaInventario.Mancante || r.Stato == StatoRigaInventario.Extra))
+            .AsNoTracking()
+            .ToListAsync();
+
+        return righe.Select(r => new DiscrepanzaDTO
+        {
+            RigaId = r.Id,
+            Barcode = r.SemiLavorato.Barcode,
+            Descrizione = r.SemiLavorato.Descrizione,
+            // Se Mancante mostriamo dove doveva essere, se Extra dove è stato trovato
+            Ubicazione = r.Stato == StatoRigaInventario.Mancante 
+                ? r.UbicazioneSnapshot?.Posizione ?? "N/D" 
+                : r.UbicazioneRilevata?.Posizione ?? "N/D",
+            TipoDiscrepanza = r.Stato,
+            RilevatoDa = r.RilevatoDaUser != null ? $"{r.RilevatoDaUser.FirstName} {r.RilevatoDaUser.LastName}" : "Sistema",
+            DataRilevamento = r.DataRilevamento
+        }).OrderByDescending(x => x.DataRilevamento).ToList();
+    }
 }
