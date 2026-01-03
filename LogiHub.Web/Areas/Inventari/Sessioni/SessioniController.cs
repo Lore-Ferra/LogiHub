@@ -130,7 +130,7 @@ public partial class SessioniController : AuthenticatedBaseController
             Filters = new SearchCardFiltersViewModel();
         }
 
-        var data = await _service.GetDashboardAsync(id);
+        var data = await _service.OttieniDettaglioSessioneAsync(id);
         
         var ubicazioniFiltrate = data.Ubicazioni;
         

@@ -43,9 +43,16 @@ public class TemplateDbContext : DbContext
 
         modelBuilder.Entity<RigaInventario>(entity =>
         {
-            entity.HasOne(r => r.Ubicazione)
+            // Relazione con l'ubicazione teorica (Snapshot)
+            entity.HasOne(r => r.UbicazioneSnapshot)
                 .WithMany()
-                .HasForeignKey(r => r.UbicazioneId)
+                .HasForeignKey(r => r.UbicazioneSnapshotId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // Relazione con l'ubicazione fisica trovata (Rilevata)
+            entity.HasOne(r => r.UbicazioneRilevata)
+                .WithMany()
+                .HasForeignKey(r => r.UbicazioneRilevataId)
                 .OnDelete(DeleteBehavior.Restrict);
         });
         modelBuilder.Entity<SessioneUbicazione>(entity =>

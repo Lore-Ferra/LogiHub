@@ -47,30 +47,42 @@ public class SessioneUbicazione
     public DateTime? DataCompletamento { get; set; }
 }
 
-// 3. IL CONTENUTO (I singoli pezzi)
+public enum StatoRigaInventario 
+{ 
+    InAttesa = 0,   // Creato da snapshot
+    Trovato = 1,    // Trovato correttamente nell'ubicazione iniziale
+    Mancante = 2,   // Confermato come non presente nell'ubicazione iniziale (potrebbe essere altrove)
+    Extra = 3       // Trovato fuori posizione o nuovo da creare
+}
+
 public class RigaInventario
 {
     [Key] public Guid Id { get; set; }
     
     public Guid SessioneInventarioId { get; set; }
-    [ForeignKey(nameof(SessioneInventarioId))] public SessioneInventario Sessione { get; set; }
-
-    //public Guid? UbicazionePrevistaId { get; set; }
-    //[ForeignKey(nameof(UbicazionePrevistaId))] public Ubicazione UbicazionePrevista { get; set; }
-    public Guid UbicazioneId { get; set; }
-    [ForeignKey(nameof(UbicazioneId))] public Ubicazione Ubicazione { get; set; }
+    [ForeignKey(nameof(SessioneInventarioId))] 
+    public SessioneInventario Sessione { get; set; }
 
     [Required]
     public Guid SemiLavoratoId { get; set; } 
-    [ForeignKey(nameof(SemiLavoratoId))] public SemiLavorato SemiLavorato { get; set; }
+    [ForeignKey(nameof(SemiLavoratoId))] 
+    public SemiLavorato SemiLavorato { get; set; }
 
-    //public Guid? UbicazioneRealeId { get; set; }
-    //[ForeignKey(nameof(UbicazioneRealeId))] public Ubicazione UbicazioneReale { get; set; }
+    // DOVE DOVEVA ESSERE (Snapshot iniziale)
+    public Guid? UbicazioneSnapshotId { get; set; }
+    [ForeignKey(nameof(UbicazioneSnapshotId))] 
+    public Ubicazione? UbicazioneSnapshot { get; set; }
+
+    // DOVE È STATO TROVATO (Durante l'inventario)
+    public Guid? UbicazioneRilevataId { get; set; }
+    [ForeignKey(nameof(UbicazioneRilevataId))] 
+    public Ubicazione? UbicazioneRilevata { get; set; }
+
+    public StatoRigaInventario Stato { get; set; } = StatoRigaInventario.InAttesa;
 
     public DateTime? DataRilevamento { get; set; }
     
     public Guid? RilevatoDaUserId { get; set; }
-    [ForeignKey(nameof(RilevatoDaUserId))] public User RilevatoDaUser { get; set; }
-    
-    public string? Note { get; set; }
+    [ForeignKey(nameof(RilevatoDaUserId))] 
+    public User? RilevatoDaUser { get; set; }
 }
