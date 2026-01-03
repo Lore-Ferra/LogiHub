@@ -1,15 +1,15 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Security.Claims;
-using System.Threading.Tasks;
-using LogiHub.Services;
+﻿using LogiHub.Services;
 using LogiHub.Services.Inventari.Sessioni;
 using LogiHub.Services.Inventari.Sessioni.DTO;
 using LogiHub.Web.Areas.Inventari.Sessioni;
 using LogiHub.Web.Features.SearchCard;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Security.Claims;
+using System.Threading.Tasks;
 
 namespace LogiHub.Web.Areas.Inventari;
 
@@ -117,10 +117,101 @@ public partial class SessioniController : AuthenticatedBaseController
     }
 
     [HttpGet]
-    public virtual async Task<IActionResult> Dashboard(Guid id)
+    public virtual async Task<IActionResult> Dashboard(
+        Guid id,
+        [FromQuery] string query,
+        [FromQuery] SearchCardFiltersViewModel Filters,
+        int page = 1,
+        int pageSize = 25)
     {
-        // Placeholder per il prossimo step: La Dashboard operativa
-        // Qui caricheremo le zone (Ubicazioni) e lo stato di avanzamento
-        return View(); 
+
+        if (Filters == null)
+        {
+            Filters = new SearchCardFiltersViewModel();
+        }
+
+        var data = await _service.GetDashboardAsync(id);
+        
+        var ubicazioniFiltrate = data.Ubicazioni;
+        
+        if (!string.IsNullOrWhiteSpace(query))
+        {
+            ubicazioniFiltrate = ubicazioniFiltrate
+                .Where(u => u.Posizione.Contains(query, StringComparison.OrdinalIgnoreCase))
+                .ToList();
+        }
+        // Calcola la paginazione
+        var totalItems = ubicazioniFiltrate.Count();
+        var ubicazioniPaginate = ubicazioniFiltrate
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .ToList();
+
+        // Costruzione della SearchCard
+        var searchCardModel = new SearchCardViewModel
+        {
+            Title = "📋 Inventario",
+            Placeholder = "Cerca Ubicazione...",
+            Query = query,
+            Filters = Filters,
+            HeaderButtons = new List<SearchCardButton>
+            {
+                new SearchCardButton
+                {
+                    Text = "Torna allo Storico",
+                    CssClass = "btn-outline-secondary",
+                    IconClass = "fa-solid fa-arrow-left",
+                    Type = "link",
+                    HtmlAttributes = new Dictionary<string, string>
+                    {
+                        { "href", Url.Action("Index", "Sessioni", new { area = "Inventari" }) }
+                    }
+                },
+                new SearchCardButton
+                {
+                    Text = "Visualizza Discrepanze",
+                    CssClass = "btn-primary",
+                    IconClass = "fa-solid fa-triangle-exclamation",
+                    Type = "link",
+                    HtmlAttributes = new Dictionary<string, string>
+                    {
+                        { "href", Url.Action("Discrepanze", "Sessioni", new { area = "Inventari", id = id }) }
+                    }
+                }
+            }
+        };
+
+        // Se la sessione non è chiusa, aggiungi il pulsante di chiusura
+        if (!data.Chiuso)
+        {
+            searchCardModel.HeaderButtons.Add(new SearchCardButton
+            {
+                Text = "Chiudi Inventario",
+                CssClass = "btn-danger",
+                IconClass = "fa-solid fa-lock",
+                Type = "button",
+                HtmlAttributes = new Dictionary<string, string>
+                {
+                    { "data-post-action", "true" },
+                    { "data-url", Url.Action("ChiudiSessione", "Sessioni", new { area = "Inventari", id = id }) },
+                    { "data-confirm", "Sei sicuro di voler chiudere questa sessione di inventario?" }
+                }
+            });
+        }
+
+        var model = new SessioniDashboardViewModel
+        {
+            SessioneId = data.SessioneId,
+            NomeSessione = data.NomeSessione,
+            Chiuso = data.Chiuso,
+            SearchCard = searchCardModel,
+            SearchQuery = query,
+            UbicazioniFiltrate = ubicazioniPaginate,
+            Page = page,
+            PageSize = pageSize,
+            TotalItems = totalItems
+        };
+
+        return View(model);
     }
 }
