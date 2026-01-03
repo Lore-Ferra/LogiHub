@@ -161,10 +161,10 @@ public partial class SessioniController : AuthenticatedBaseController
                     Text = "Torna allo Storico",
                     CssClass = "btn-outline-secondary",
                     IconClass = "fa-solid fa-arrow-left",
-                    Type = "link",
+                    Type = "button",
                     HtmlAttributes = new Dictionary<string, string>
                     {
-                        { "href", Url.Action("Index", "Sessioni", new { area = "Inventari" }) }
+                        { "onclick", $"location.href='{Url.Action("Index", "Sessioni", new { area = "Inventari" })}'" }
                     }
                 },
                 new SearchCardButton
@@ -215,7 +215,7 @@ public partial class SessioniController : AuthenticatedBaseController
         return View(model);
     }
 
-    [HttpGet] // Rimosso il doppione
+    [HttpGet]
     public virtual async Task<IActionResult> RilevamentoUbicazione(
         Guid sessioneId,
         Guid ubicazioneId,
