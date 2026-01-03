@@ -76,10 +76,10 @@ public partial class DettaglioController : AuthenticatedBaseController
                     Text = "Visualizza Discrepanze",
                     CssClass = "btn-primary",
                     IconClass = "fa-solid fa-triangle-exclamation",
-                    Type = "link",
+                    Type = "button",
                     HtmlAttributes = new Dictionary<string, string>
                     {
-                        { "href", Url.Action("Index", "Discrepanze", new { area = "Inventari", id = id }) }
+                        { "onclick", $"location.href='{Url.Action("Index", "Discrepanze", new { area = "Inventari", id = id })}'" }
                     }
                 }
             }
