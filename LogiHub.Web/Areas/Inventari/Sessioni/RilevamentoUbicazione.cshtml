@@ -1,0 +1,74 @@
+﻿@using LogiHub.Models.Shared
+@model LogiHub.Web.Areas.Inventari.Sessioni.RilevamentoUbicazioneViewModel
+
+@{
+    ViewData["Title"] = "Rilevamento " + Model.NomeUbicazione;
+}
+
+<div>
+    @await Html.PartialAsync("~/Features/SearchCard/_SearchCard.cshtml", Model.SearchCard)
+</div>
+
+<div class="container-fluid px-0 pb-5 mt-3">
+    @foreach (var pezzo in Model.Pezzi)
+    {
+        <div class="card shadow-sm mb-3 @(pezzo.Stato == StatoRigaInventario.Trovato ? "border-success" : pezzo.Stato == StatoRigaInventario.Mancante ? "border-danger" : "")">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <h5 class="mb-1 text-primary">@pezzo.Barcode</h5>
+                        <p class="small text-muted mb-0">@pezzo.Descrizione</p>
+                    </div>
+                    <span class="badge @(pezzo.Stato == StatoRigaInventario.InAttesa ? "bg-secondary" : pezzo.Stato == StatoRigaInventario.Trovato ? "bg-success" : "bg-danger")">
+                        @pezzo.Stato
+                    </span>
+                </div>
+
+                <div class="row g-2 mt-3">
+                    <div class="col-6">
+                        <button class="btn btn-lg btn-outline-success w-100 py-3" 
+                                data-post-action="true" 
+                                data-url="@Url.Action("SegnaPresente", new { rigaId = pezzo.RigaId })">
+                            <i class="fa-solid fa-check"></i> Presente
+                        </button>
+                    </div>
+                    <div class="col-6">
+                        <button class="btn btn-lg btn-outline-danger w-100 py-3" 
+                                data-post-action="true" 
+                                data-url="@Url.Action("SegnaMancante", new { rigaId = pezzo.RigaId })">
+                            <i class="fa-solid fa-xmark"></i> Mancante
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+@section Scripts {
+    <script>
+        document.addEventListener('click', function (e) {
+            const btn = e.target.closest('[data-post-action]');
+            if (!btn) return;
+            e.preventDefault();
+            const url = btn.getAttribute('data-url');
+            const confirmMsg = btn.getAttribute('data-confirm');
+            if (confirmMsg && !confirm(confirmMsg)) return;
+
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = url;
+            const token = document.querySelector('input[name="__RequestVerificationToken"]');
+            if (token) {
+                const hiddenInput = document.createElement('input');
+                hiddenInput.type = 'hidden';
+                hiddenInput.name = '__RequestVerificationToken';
+                hiddenInput.value = token.value;
+                form.appendChild(hiddenInput);
+            }
+            document.body.appendChild(form);
+            form.submit();
+        });
+    </script>
+}
+@Html.AntiForgeryToken()

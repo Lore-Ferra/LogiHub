@@ -8,87 +8,89 @@
     @await Html.PartialAsync("~/Features/SearchCard/_SearchCardSimple.cshtml", Model.SearchCard)
 </div>
 
-<div class="card shadow-sm">
+<div class="card shadow-sm mt-3">
     <div class="card-body p-1">
         <div class="table-responsive">
             <table class="table table-hover align-middle mb-0">
                 <thead class="bg-light">
                     <tr>
-                        <th class="ps-4" style="width: 1%; white-space: nowrap;">Ubicazione</th>
-                        <th class="text-center" style="width: 1%; white-space: nowrap;">Stato</th>
-                        <th>Dettagli</th>
+                        <th class="ps-4" style="width: 30%;">Ubicazione</th>
+                        <th class="text-center" style="width: 20%;">Stato</th>
+                        <th>Info / Azioni</th>
                     </tr>
                 </thead>
                 <tbody>
                     @{
-                        var ubicazioniDaFare = Model.UbicazioniFiltrate.Where(u => !u.Completata && !u.InLavorazione);
-                        var ubicazioniInLavorazione = Model.UbicazioniFiltrate.Where(u => u.InLavorazione);
-                        var ubicazioniCompletate = Model.UbicazioniFiltrate.Where(u => u.Completata);
+                        var ubiDaFare = Model.UbicazioniFiltrate.Where(u => !u.Completata && !u.InLavorazione);
+                        var ubiInLavorazione = Model.UbicazioniFiltrate.Where(u => u.InLavorazione);
+                        var ubiCompletate = Model.UbicazioniFiltrate.Where(u => u.Completata);
                     }
 
-                    @if (ubicazioniDaFare.Any())
+                    @if (ubiDaFare.Any())
                     {
                         <tr class="table-secondary">
-                            <td colspan="3" class="ps-4 fw-semibold text-muted text-center">Da Fare</td>
+                            <td colspan="3" class="ps-4 fw-semibold text-muted small uppercase">Da Fare</td>
                         </tr>
-                        @foreach (var ubicazione in ubicazioniDaFare)
+                        @foreach (var ubi in ubiDaFare)
                         {
                             <tr>
-                                <td class="ps-4">@ubicazione.Posizione</td>
-                                <td class="text-center">
-                                    <span class="badge rounded-pill bg-light text-dark border">Da Fare</span>
+                                <td class="ps-4">
+                                    <a href="@Url.Action("RilevamentoUbicazione", new { sessioneId = Model.SessioneId, ubicazioneId = ubi.UbicazioneId })" class="text-decoration-none fw-bold">
+                                        @ubi.Posizione
+                                    </a>
                                 </td>
-                                <td class="pe-4"></td>
-                            </tr>
-                        }
-                    }
-
-                    @if (ubicazioniInLavorazione.Any())
-                    {
-                        <tr class="table-secondary">
-                            <td colspan="3" class="ps-4 fw-semibold text-muted">In Lavorazione</td>
-                        </tr>
-                        @foreach (var ubicazione in ubicazioniInLavorazione)
-                        {
-                            <tr class="table-warning">
-                                <td class="ps-4">@ubicazione.Posizione</td>
                                 <td class="text-center">
-                                    <span class="badge bg-warning text-dark">In Lavorazione</span>
+                                    <span class="badge rounded-pill bg-light text-dark border">In attesa</span>
                                 </td>
                                 <td>
-                                    <small class="text-muted">In Lavorazione da: @ubicazione.OperatoreCorrente</small>
+                                    <a href="@Url.Action("RilevamentoUbicazione", new { sessioneId = Model.SessioneId, ubicazioneId = ubi.UbicazioneId })" class="btn btn-sm btn-outline-primary">
+                                        Inizia <i class="fa-solid fa-play ms-1"></i>
+                                    </a>
                                 </td>
                             </tr>
                         }
                     }
 
-                    @if (ubicazioniCompletate.Any())
+                    @if (ubiInLavorazione.Any())
                     {
                         <tr class="table-secondary">
-                            <td colspan="3" class="ps-4 fw-semibold text-muted">Completati</td>
+                            <td colspan="3" class="ps-4 fw-semibold text-muted small uppercase">In Lavorazione</td>
                         </tr>
-                        @foreach (var ubicazione in ubicazioniCompletate)
+                        @foreach (var ubi in ubiInLavorazione)
                         {
-                            <tr>
-                                <td class="ps-4">@ubicazione.Posizione</td>
+                            <tr class="table-warning">
+                                <td class="ps-4">
+                                    <a href="@Url.Action("RilevamentoUbicazione", new { sessioneId = Model.SessioneId, ubicazioneId = ubi.UbicazioneId })" class="text-decoration-none fw-bold text-dark">
+                                        @ubi.Posizione
+                                    </a>
+                                </td>
+                                <td class="text-center">
+                                    <span class="badge bg-warning text-dark">Occupato</span>
+                                </td>
+                                <td>
+                                    <small class="text-dark"><i class="fa-solid fa-user me-1"></i> @ubi.OperatoreCorrente</small>
+                                </td>
+                            </tr>
+                        }
+                    }
+
+                    @if (ubiCompletate.Any())
+                    {
+                        <tr class="table-secondary">
+                            <td colspan="3" class="ps-4 fw-semibold text-muted small uppercase">Completati</td>
+                        </tr>
+                        @foreach (var ubi in ubiCompletate)
+                        {
+                            <tr class="bg-light">
+                                <td class="ps-4 text-muted">@ubi.Posizione</td>
                                 <td class="text-center">
                                     <span class="badge bg-success">Completato</span>
                                 </td>
                                 <td>
-                                    <small class="text-muted">Completato da: @ubicazione.OperatoreCorrente</small>
+                                    <small class="text-muted">Finito da: @ubi.OperatoreCorrente</small>
                                 </td>
                             </tr>
                         }
-                    }
-
-                    @if (!Model.UbicazioniFiltrate.Any())
-                    {
-                        <tr>
-                            <td colspan="3" class="text-center py-4 text-muted">
-                                <i class="fa-solid fa-search me-2"></i>
-                                Nessuna ubicazione trovata.
-                            </td>
-                        </tr>
                     }
                 </tbody>
             </table>
