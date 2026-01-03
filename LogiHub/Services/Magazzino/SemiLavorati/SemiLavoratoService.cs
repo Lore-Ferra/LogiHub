@@ -52,6 +52,7 @@ public class SemiLavoratoService : ISemiLavoratoService
         sl.Descrizione = dto.Descrizione;
         sl.AziendaEsternaId = dto.AziendaEsternaId;
         sl.UltimaModifica = DateTime.Now;
+        sl.Uscito = dto.AziendaEsternaId.HasValue;
         
         var ubicazioneCambiata = sl.UbicazioneId != dto.UbicazioneId && dto.UbicazioneId != null;
         var rientro = aziendaOld.HasValue && dto.AziendaEsternaId == null;
