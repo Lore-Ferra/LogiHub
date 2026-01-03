@@ -1,0 +1,74 @@
+@using LogiHub.Models.Shared
+@model LogiHub.Web.Areas.Inventari.Sessioni.Discrepanze.DiscrepanzeViewModel
+
+@{
+    ViewData["Title"] = "Discrepanze Inventario";
+}
+
+<div>
+    @await Html.PartialAsync("~/Features/SearchCard/_SearchCardSimple.cshtml", Model.SearchCard)
+</div>
+
+<div class="card shadow-sm mt-3">
+    <div class="card-body p-1">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="bg-light">
+                <tr>
+                    <th class="ps-3">Barcode / Descrizione</th>
+                    <th>Ubicazione</th>
+                    <th class="text-center">Tipo Discrepanza</th>
+                    <th>Rilevato Da</th>
+                    <th class="text-end pe-3">Data</th>
+                </tr>
+                </thead>
+                <tbody>
+                @if (Model.Discrepanze != null && Model.Discrepanze.Any())
+                {
+                    foreach (var item in Model.Discrepanze)
+                    {
+                        <tr>
+                            <td class="ps-3">
+                                <div class="fw-bold text-primary">@item.Barcode</div>
+                                <div class="small text-muted">@item.Descrizione</div>
+                            </td>
+                            <td>
+                                <span class="badge bg-light text-dark border">
+                                    <i class="fa-solid fa-location-dot me-1 text-secondary"></i> @item.Ubicazione
+                                </span>
+                            </td>
+                            <td class="text-center">
+                                @if (item.TipoDiscrepanza == StatoRigaInventario.Mancante)
+                                {
+                                    <span class="badge bg-danger-subtle text-danger border border-danger-subtle">MANCANTE</span>
+                                }
+                                else if (item.TipoDiscrepanza == StatoRigaInventario.Extra)
+                                {
+                                    <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle">EXTRA</span>
+                                }
+                            </td>
+                            <td>
+                                <small>@item.RilevatoDa</small>
+                            </td>
+                            <td class="text-end pe-3">
+                                <small class="text-muted">@item.DataRilevamento?.ToString("dd/MM HH:mm")</small>
+                            </td>
+                        </tr>
+                    }
+                }
+                else
+                {
+                    <tr>
+                        <td colspan="5" class="text-center py-5 text-muted">
+                            <i class="fa-solid fa-check-circle fa-2x mb-3 text-success"></i>
+                            <p class="mb-0">Nessuna discrepanza rilevata finora.</p>
+                        </td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+@Html.AntiForgeryToken()
