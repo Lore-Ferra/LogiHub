@@ -93,7 +93,7 @@ public partial class SemiLavoratiController : AuthenticatedBaseController
             {
                 { "disabled", "disabled" },
                 { "title", "Magazzino bloccato per inventario" },
-                { "style", "cursor: not-allowed;" }
+                { "style", "cursor: not-allowed; pointer-events: auto !important;" }
             }
         };
 

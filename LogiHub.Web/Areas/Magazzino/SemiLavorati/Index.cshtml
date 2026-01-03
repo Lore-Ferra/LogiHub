@@ -58,9 +58,15 @@
                         </div>
                     </div>
                     <div class="d-flex gap-3 align-items-center text-black">
-                        <button type="button" class="btn btn-sm btn-outline-danger" data-delete data-id="@item.Id"
-                                data-label="@item.Barcode">
-                            <i class="bi bi-trash3"></i>
+                        <button type="button"
+                                class="btn btn-md btn-outline-danger @(isBloccato ? "disabled" : "")"
+                                data-delete
+                                data-id="@item.Id"
+                                data-label="@item.Barcode"
+                                title="Elimina"
+                                style="@(isBloccato ? "cursor: not-allowed; pointer-events: auto !important;" : "")"
+                                @(isBloccato ? "disabled" : "")>
+                            <i class="@(isBloccato ? "fa-solid fa-lock" : "fa-solid fa-trash")"></i>
                         </button>
                     </div>
                 </div>
@@ -112,12 +118,15 @@
                         <td>
                             <button
                                 type="button"
-                                class="btn btn-sm btn-outline-danger"
+                                class="btn btn-sm btn-outline-danger @(isBloccato ? "disabled" : "")"
                                 data-delete
                                 data-id="@item.Id"
                                 data-label="@item.Barcode"
-                                title="Elimina">
-                                <i class="bi bi-trash3"></i>
+                                title="Elimina"
+                                style="@(isBloccato ? "cursor: not-allowed; pointer-events: auto !important;" : "")"
+                                @(isBloccato ? "disabled" : "")>
+                                <i class="@(isBloccato ? "fa-solid fa-lock me-1" : "fa-solid fa-trash")"></i>
+                                Elimina 
                             </button>
                         </td>
 
