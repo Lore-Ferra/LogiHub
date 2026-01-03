@@ -39,7 +39,7 @@
                                 }
                             </td>
                             <td class="text-end">
-                                <a href="@Url.Action("Dettaglio", new { id = item.Id })"
+                                <a href="@Url.Action("Index", "Dettaglio", new { id = item.Id })"
                                    class="btn btn-sm @(item.Chiuso ? "btn-outline-primary" : "btn-primary")">
                                     <i class="fa-solid @(item.Chiuso ? "fa-eye" : "fa-arrow-right")"></i>
                                     @(item.Chiuso ? "Visualizza" : "Riprendi")

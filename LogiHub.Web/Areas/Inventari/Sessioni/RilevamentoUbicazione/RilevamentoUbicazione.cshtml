@@ -28,14 +28,14 @@
                     <div class="col-6">
                         <button class="btn btn-lg btn-outline-success w-100 py-3" 
                                 data-post-action="true" 
-                                data-url="@Url.Action("SegnaPresente", new { rigaId = pezzo.RigaId })">
+                                data-url="@Url.Action("SegnaPresente", "RilevamentoUbicazione", new { rigaId = pezzo.RigaId })">
                             <i class="fa-solid fa-check"></i> Presente
                         </button>
                     </div>
                     <div class="col-6">
                         <button class="btn btn-lg btn-outline-danger w-100 py-3" 
                                 data-post-action="true" 
-                                data-url="@Url.Action("SegnaMancante", new { rigaId = pezzo.RigaId })">
+                                data-url="@Url.Action("SegnaMancante", "RilevamentoUbicazione", new { rigaId = pezzo.RigaId })">
                             <i class="fa-solid fa-xmark"></i> Mancante
                         </button>
                     </div>

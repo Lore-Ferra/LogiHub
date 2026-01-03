@@ -18,16 +18,12 @@ public class DettaglioSessioneViewModel: PagingViewModel
     public IEnumerable<DettaglioSessioneDTO.UbicazioneConStato> UbicazioniFiltrate { get; set; }
     public override IActionResult GetRoute()
     {
-        return MVC.Inventari.Sessioni
-            .Dettaglio(
-                SessioneId,
-                SearchCard.Query,
-                SearchCard.Filters,
-                Page,
-                PageSize
-            )
-            .GetAwaiter()
-            .GetResult();
-        ;
+        return MVC.Inventari.Dettaglio.Index(
+            SessioneId,
+            SearchCard.Query,
+            SearchCard.Filters,
+            Page,
+            PageSize
+        ).GetAwaiter().GetResult();
     }
 }

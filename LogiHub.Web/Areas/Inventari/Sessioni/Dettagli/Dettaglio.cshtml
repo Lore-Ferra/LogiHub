@@ -52,7 +52,7 @@
                         {
                             <tr>
                                 <td class="ps-4">
-                                    <a href="@Url.Action("RilevamentoUbicazione", new { sessioneId = Model.SessioneId, ubicazioneId = ubi.UbicazioneId })" class="text-decoration-none fw-bold">
+                                    <a href="@Url.Action("Index", "RilevamentoUbicazione", new { sessioneId = Model.SessioneId, ubicazioneId = ubi.UbicazioneId })" class="text-decoration-none fw-bold">
                                         @ubi.Posizione
                                     </a>
                                 </td>
@@ -60,7 +60,7 @@
                                     <span class="badge rounded-pill bg-light text-dark border">In attesa</span>
                                 </td>
                                 <td>
-                                    <a href="@Url.Action("RilevamentoUbicazione", new { sessioneId = Model.SessioneId, ubicazioneId = ubi.UbicazioneId })" class="btn btn-sm btn-outline-primary">
+                                    <a href="@Url.Action("Index", "RilevamentoUbicazione", new { sessioneId = Model.SessioneId, ubicazioneId = ubi.UbicazioneId })" class="btn btn-sm btn-outline-primary">
                                         Inizia <i class="fa-solid fa-play ms-1"></i>
                                     </a>
                                 </td>
@@ -78,7 +78,7 @@
                             var isMyUbi = ubi.OperatoreCorrenteId == currentUserId;
                             <tr class="table-warning">
                                 <td class="ps-4">
-                                    <a href="@Url.Action("RilevamentoUbicazione", new { sessioneId = Model.SessioneId, ubicazioneId = ubi.UbicazioneId })" class="text-decoration-none fw-bold text-dark">
+                                    <a href="@Url.Action("Index", "RilevamentoUbicazione", new { sessioneId = Model.SessioneId, ubicazioneId = ubi.UbicazioneId })" class="text-decoration-none fw-bold text-dark">
                                         @ubi.Posizione
                                     </a>
                                 </td>
@@ -89,7 +89,7 @@
                                     <small class="text-dark"><i class="fa-solid fa-user me-1"></i> @ubi.OperatoreCorrente</small>
                                     @if (isMyUbi)
                                     {
-                                        <a href="@Url.Action("RilevamentoUbicazione", new { sessioneId = Model.SessioneId, ubicazioneId = ubi.UbicazioneId })" class="btn btn-sm btn-primary ms-2">
+                                        <a href="@Url.Action("Index", "RilevamentoUbicazione", new { sessioneId = Model.SessioneId, ubicazioneId = ubi.UbicazioneId })" class="btn btn-sm btn-primary ms-2">
                                             Riprendi <i class="fa-solid fa-arrow-right ms-1"></i>
                                         </a>
                                     }

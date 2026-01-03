@@ -18,15 +18,12 @@ public class RilevamentoUbicazioneViewModel : PagingViewModel
 
     public override IActionResult GetRoute()
     {
-        return MVC.Inventari.Sessioni
-            .RilevamentoUbicazione(
-                SessioneId,
-                UbicazioneId,
-                SearchCard.Query,
-                Page,
-                PageSize
-            )
-            .GetAwaiter()
-            .GetResult();
+        return MVC.Inventari.RilevamentoUbicazione.Index(
+            SessioneId,
+            UbicazioneId,
+            SearchCard.Query,
+            Page,
+            PageSize
+        ).GetAwaiter().GetResult();
     }
 }
