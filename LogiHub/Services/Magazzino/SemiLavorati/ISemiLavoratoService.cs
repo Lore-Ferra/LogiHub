@@ -2,7 +2,6 @@
 using LogiHub.Models.Shared;
 using LogiHub.Services.Magazzino.SemiLavorati.DTO;
 
-
 public interface ISemiLavoratoService
 {
     Task<SemiLavorato> AggiungiSemiLavoratoAsync(AggiungiSemiLavoratoDTO dto);

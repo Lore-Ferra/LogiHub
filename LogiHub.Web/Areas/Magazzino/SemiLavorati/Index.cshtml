@@ -1,11 +1,27 @@
 ﻿@model LogiHub.Web.Areas.Magazzino.Models.SemiLavoratiIndexViewModel
-
+@inject LogiHub.Services.Shared.IBloccoMagazzinoService BloccoService
+@{
+    bool isBloccato = await BloccoService.IsBloccatoAsync();
+}
 @{
     ViewData["Title"] = "Gestione Semilavorati";
 }
+
 @section Styles {
-    <link rel="stylesheet" href="~/css/magazzinosemilavorati.css" />
-    <link rel="stylesheet" href="~/css/offcanvas.css" />
+    <link rel="stylesheet" href="~/css/magazzinosemilavorati.css"/>
+    <link rel="stylesheet" href="~/css/offcanvas.css"/>
+}
+
+@if (isBloccato)
+{
+    <div class="alert alert-warning opacity-100 border-0 shadow-sm mb-3 d-flex align-items-center">
+        <i class="fa-solid fa-triangle-exclamation me-3 fa-lg"></i>
+        <div>
+            <strong>Magazzino Bloccato:</strong> Inventario in corso. Inserimento, modifica ed eliminazione
+            disabilitati.
+
+        </div>
+    </div>
 }
 <div>
     @await Html.PartialAsync("~/Features/SearchCard/_SearchCard.cshtml", Model.SearchCard)
@@ -24,7 +40,7 @@
                 <div class="fw-bold fs-5 mb-2 text-primary">
                     @item.Barcode
                 </div>
-                <hr class="my-2" />
+                <hr class="my-2"/>
                 <div class="d-flex justify-content-between align-items-start">
                     <div class="flex-grow-1 pe-3">
                         <div class="small text-muted mb-1">
@@ -42,7 +58,8 @@
                         </div>
                     </div>
                     <div class="d-flex gap-3 align-items-center text-black">
-                        <button type="button" class="btn btn-sm btn-outline-danger" data-delete data-id="@item.Id" data-label="@item.Barcode">
+                        <button type="button" class="btn btn-sm btn-outline-danger" data-delete data-id="@item.Id"
+                                data-label="@item.Barcode">
                             <i class="bi bi-trash3"></i>
                         </button>
                     </div>
@@ -59,77 +76,86 @@
     }
 </div>
 
-<div class="card shadow-sm mt-3">
+<div class="card shadow-sm mt-3 d-none d-md-block">
     <div class="card-body p-1">
         <div class="table-responsive">
             <table class="table table-hover align-middle mb-0">
                 <thead>
-                    <tr>
-                        <th class="ps-4">Barcode</th>
-                        <th>Descrizione</th>
-                        <th>Ubicazione</th>
-                        <th>Ultima Modifica</th>
-                        <th>Azioni</th>
-                    </tr>
+                <tr>
+                    <th class="ps-4">Barcode</th>
+                    <th>Descrizione</th>
+                    <th>Ubicazione</th>
+                    <th>Ultima Modifica</th>
+                    <th>Azioni</th>
+                </tr>
                 </thead>
                 <tbody>
-                    @foreach (var item in Model.SemiLavorati)
-                    {
-                        <tr style="cursor:pointer"
-                            data-offcanvas
-                            data-id="offcanvasDettagli"
-                            title="Dettagli Semilavorato"
-                            data-title="Dettagli Semilavorato"
-                            data-url="/Magazzino/SemiLavorati/Dettagli?id=@item.Id">
-                            <td class="ps-4 fw-bold text-primary">
-                                <div>@item.Barcode</div>
-                            </td>
-                            <td>@item.Descrizione</td>
-                            <td>
+                @foreach (var item in Model.SemiLavorati)
+                {
+                    <tr style="cursor:pointer"
+                        data-offcanvas
+                        data-id="offcanvasDettagli"
+                        title="Dettagli Semilavorato"
+                        data-title="Dettagli Semilavorato"
+                        data-url="/Magazzino/SemiLavorati/Dettagli?id=@item.Id">
+                        <td class="ps-4 fw-bold text-primary">
+                            <div>@item.Barcode</div>
+                        </td>
+                        <td>@item.Descrizione</td>
+                        <td>
                                 <span class="badge @(item.Uscito ? "bg-info text-dark" : "bg-secondary")">
                                     @(item.Uscito ? "Uscito" : item.CodiceUbicazione)
                                 </span>
-                            </td>
+                        </td>
 
-                            <td>@item.UltimaModifica.ToString("dd/MM/yyyy")</td>
-                            <td>
-                                <button
-                                    type="button"
-                                    class="btn btn-sm btn-outline-danger"
-                                    data-delete
-                                    data-id="@item.Id"
-                                    data-label="@item.Barcode"
-                                    title="Elimina">
-                                    <i class="bi bi-trash3"></i>
-                                </button>
-                            </td>
+                        <td>@item.UltimaModifica.ToString("dd/MM/yyyy")</td>
+                        <td>
+                            <button
+                                type="button"
+                                class="btn btn-sm btn-outline-danger"
+                                data-delete
+                                data-id="@item.Id"
+                                data-label="@item.Barcode"
+                                title="Elimina">
+                                <i class="bi bi-trash3"></i>
+                            </button>
+                        </td>
 
-                        </tr>
-                    }
+                    </tr>
+                }
 
-                    @if (!Model.SemiLavorati.Any())
-                    {
-                        <tr>
-                            <td colspan="6" class="text-center py-5 text-muted">
-                                <i class="fas fa-box-open fa-3x mb-3"></i>
-                                <p>Nessun semilavorato trovato.</p>
-                            </td>
-                        </tr>
-                    }
+                @if (!Model.SemiLavorati.Any())
+                {
+                    <tr>
+                        <td colspan="6" class="text-center py-5 text-muted">
+                            <i class="fas fa-box-open fa-3x mb-3"></i>
+                            <p>Nessun semilavorato trovato.</p>
+                        </td>
+                    </tr>
+                }
                 </tbody>
             </table>
         </div>
     </div>
 </div>
-
-<a class="fab d-md-none"
-   title="Aggiungi semilavorato"
-   data-title="Aggiungi Semilavorato"
-   data-offcanvas
-   data-id="offcanvasAggiungi"
-   data-url="/Magazzino/SemiLavorati/AggiungiSemilavorato">
-    <i class="fa-solid fa-plus"></i>
-</a>
+@if (!isBloccato)
+{
+    <button type="button"
+            class="fab d-md-none border-0"
+            data-offcanvas
+            data-id="offcanvasAggiungi"
+            data-title="Aggiungi Semilavorato"
+            data-url="/Magazzino/SemiLavorati/AggiungiSemilavorato">
+        <i class="fa-solid fa-plus"></i>
+    </button>
+}
+else
+{
+    <button class="fab d-md-none btn btn-primary disabled" title="Aggiunta bloccata"
+            style="cursor: not-allowed; pointer-events: auto !important;">
+        <i class="fa-solid fa-lock"></i>
+    </button>
+}
 
 
 @{
@@ -141,7 +167,7 @@
 }
 
 <partial name="~/Features/Offcanvas/_Offcanvas.cshtml"
-         model="offcanvasModel" />
+         model="offcanvasModel"/>
 
 @{
     var offcanvasAggiungiModel = new LogiHub.Web.Features.Offcanvas.OffcanvasViewModel
@@ -152,7 +178,7 @@
 }
 
 <partial name="~/Features/Offcanvas/_Offcanvas.cshtml"
-         model="offcanvasAggiungiModel" />
+         model="offcanvasAggiungiModel"/>
 
 <!-- Modal Conferma Eliminazione -->
 @{
@@ -164,16 +190,16 @@
 }
 
 <partial name="~/Features/Modals/_ConfirmDeleteModal.cshtml"
-         model="confirmDeleteModel" />
+         model="confirmDeleteModel"/>
 
 
 @section Scripts {
     <script src="./js/Features/Offcanvas/offcanvas.js"></script>
     <script src="./js/Features/Modals/confirmDeleteModal.js"></script>
-    
+
     <script>
         document.addEventListener('submit', function (e) {
-            
+
             const form = e.target;
             if (form.id !== 'formAggiungiSemilavorato') return;
 
@@ -186,123 +212,121 @@
             }
 
             const formData = new FormData(form);
-            
+
             fetch(form.action, {
                 method: 'POST',
                 body: formData
             })
-            .then(response => {
-                if (response.ok) {
-                    window.location.reload();
-                } else {
-                    return response.text().then(html => {
-                        const contentDiv = document.querySelector('#offcanvasAggiungi [data-offcanvas-content]');
-                        if(contentDiv) contentDiv.innerHTML = html;
-                    });
-                }
-            })
-            .catch(error => {
-                console.error('Errore:', error);
-                alert("Si è verificato un errore imprevisto.");
-                btn.disabled = false;
-                btn.innerHTML = originalText;
-            });
+                .then(response => {
+                    if (response.ok) {
+                        window.location.reload();
+                    } else {
+                        return response.text().then(html => {
+                            const contentDiv = document.querySelector('#offcanvasAggiungi [data-offcanvas-content]');
+                            if (contentDiv) contentDiv.innerHTML = html;
+                        });
+                    }
+                })
+                .catch(error => {
+                    console.error('Errore:', error);
+                    alert("Si è verificato un errore imprevisto.");
+                    btn.disabled = false;
+                    btn.innerHTML = originalText;
+                });
 
         }, true);
     </script>
-    
+
     <script>
-    document.addEventListener('click', async function (e) {
+        document.addEventListener('click', async function (e) {
 
-        const btn = e.target.closest('#btnScanBarcode');
-        if (!btn) return;
+            const btn = e.target.closest('#btnScanBarcode');
+            if (!btn || btn.disabled) return;
 
-        e.preventDefault();
+            e.preventDefault();
 
-        const container = btn.closest('form');
-        if (!container) return;
+            const container = btn.closest('form');
+            if (!container) return;
 
-        const barcodeInput = container.querySelector('#barcodeInput');
-        if (!barcodeInput) return;
+            const barcodeInput = container.querySelector('#barcodeInput');
+            if (!barcodeInput) return;
 
-        btn.disabled = true;
-        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Generazione...';
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Generazione...';
 
-        try {
-            const response = await fetch('/Magazzino/SemiLavorati/GeneraBarcodeUnivoco');
-            const barcode = await response.json();
+            try {
+                const response = await fetch('/Magazzino/SemiLavorati/GeneraBarcodeUnivoco');
+                const barcode = await response.json();
 
-            barcodeInput.value = barcode;
-            barcodeInput.focus();
-        }
-        catch {
-            alert('Errore durante la generazione del barcode');
-        }
-        finally {
-            btn.disabled = false;
-            btn.innerHTML = '<i class="bi bi-upc-scan me-1"></i>Scansiona Barcode';
-        }
+                barcodeInput.value = barcode;
+                barcodeInput.focus();
+            } catch {
+                alert('Errore durante la generazione del barcode');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="bi bi-upc-scan me-1"></i>Scansiona Barcode';
+            }
 
-    }, true);
+        }, true);
     </script>
-<script>
-    document.addEventListener('focusout', async function(e) {
+    <script>
+        document.addEventListener('focusout', async function (e) {
 
-        const input = e.target;
-        if (!input || (input.id !== 'barcodeInput' && input.name !== 'Barcode')) return;
+            const input = e.target;
+            if (!input || (input.id !== 'barcodeInput' && input.name !== 'Barcode')) return;
 
-        const barcode = input.value.trim();
-        
-        const feedbackDiv = input.parentElement.querySelector('.invalid-feedback') || 
-                            document.querySelector(`[data-valmsg-for="${input.name}"]`);
-        
-        const defaultMessage = "Codice Barcode obbligatorio";
+            const barcode = input.value.trim();
 
-        if (!barcode) {
-            input.setCustomValidity("");
-            input.classList.remove('is-invalid');
-            if(feedbackDiv) {
-                feedbackDiv.textContent = defaultMessage;
-                feedbackDiv.style.display = '';
-            }
-            return;
-        }
+            const feedbackDiv = input.parentElement.querySelector('.invalid-feedback') ||
+                document.querySelector(`[data-valmsg-for="${input.name}"]`);
 
-        const form = input.closest('form');
-        const idInput = form ? form.querySelector('input[name="Id"]') : null;
-        const currentId = idInput ? idInput.value : '';
+            const defaultMessage = "Codice Barcode obbligatorio";
 
-        try {
-            let url = `/Magazzino/SemiLavorati/VerificaEsistenzaBarcode?barcode=${encodeURIComponent(barcode)}`;
-            if (currentId) {
-                url += `&idEscluso=${currentId}`;
-            }
-
-            const response = await fetch(url);
-            const data = await response.json();
-
-            if (data.esiste) {
-                input.setCustomValidity("Esiste già");
-                input.classList.add('is-invalid');
-                
-                if(feedbackDiv) {
-                    feedbackDiv.textContent = "Barcode già presente nel sistema!";
-                    feedbackDiv.style.display = 'block'; 
-                    feedbackDiv.classList.add('text-danger');
-                }
-            } else {
+            if (!barcode) {
                 input.setCustomValidity("");
                 input.classList.remove('is-invalid');
-                
-                if(feedbackDiv) {
+                if (feedbackDiv) {
                     feedbackDiv.textContent = defaultMessage;
-                    feedbackDiv.style.display = ''; 
+                    feedbackDiv.style.display = '';
                 }
+                return;
             }
-        } catch (error) {
-            console.error("Errore verifica barcode", error);
-        }
 
-    }, true);
-</script>
+            const form = input.closest('form');
+            const idInput = form ? form.querySelector('input[name="Id"]') : null;
+            const currentId = idInput ? idInput.value : '';
+
+            try {
+                let url = `/Magazzino/SemiLavorati/VerificaEsistenzaBarcode?barcode=${encodeURIComponent(barcode)}`;
+                if (currentId) {
+                    url += `&idEscluso=${currentId}`;
+                }
+
+                const response = await fetch(url);
+                const data = await response.json();
+
+                if (data.esiste) {
+                    input.setCustomValidity("Esiste già");
+                    input.classList.add('is-invalid');
+
+                    if (feedbackDiv) {
+                        feedbackDiv.textContent = "Barcode già presente nel sistema!";
+                        feedbackDiv.style.display = 'block';
+                        feedbackDiv.classList.add('text-danger');
+                    }
+                } else {
+                    input.setCustomValidity("");
+                    input.classList.remove('is-invalid');
+
+                    if (feedbackDiv) {
+                        feedbackDiv.textContent = defaultMessage;
+                        feedbackDiv.style.display = '';
+                    }
+                }
+            } catch (error) {
+                console.error("Errore verifica barcode", error);
+            }
+
+        }, true);
+    </script>
 }

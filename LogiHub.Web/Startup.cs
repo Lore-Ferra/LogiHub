@@ -12,6 +12,7 @@ using System.Linq;
 using LogiHub.Services;
 using LogiHub.Services.Inventari.Sessioni;
 using LogiHub.Services.Magazzino.SemiLavorati;
+using LogiHub.Services.Shared;
 using LogiHub.Web.Infrastructure;
 using LogiHub.Web.SignalR.Hubs;
 
@@ -31,6 +32,7 @@ namespace LogiHub.Web
 
         public void ConfigureServices(IServiceCollection services)
         {
+            services.AddScoped<IBloccoMagazzinoService, BloccoMagazzinoService>();
             services.AddScoped<ISemiLavoratoService, SemiLavoratoService>();
             services.AddScoped<ISessioniService, SessioniService>();
             

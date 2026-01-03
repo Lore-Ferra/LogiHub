@@ -8,15 +8,13 @@ using LogiHub.Web.Areas.Magazzino.SemiLavorati;
 using LogiHub.Web.Features.SearchCard;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
-
-namespace LogiHub.Web.Areas.Magazzino;
-
 using LogiHub.Services.Shared;
 using LogiHub.Web.Areas.Magazzino.Models;
-using Web.Areas;
 using Microsoft.AspNetCore.Mvc;
 using System.Linq;
 using System.Threading.Tasks;
+
+namespace LogiHub.Web.Areas.Magazzino;
 
 [Area("Magazzino")]
 public partial class SemiLavoratiController : AuthenticatedBaseController
@@ -25,14 +23,21 @@ public partial class SemiLavoratiController : AuthenticatedBaseController
     private readonly TemplateDbContext _context;
 
     private readonly ISemiLavoratoService _service;
+    private readonly IBloccoMagazzinoService _bloccoService;
 
-    public SemiLavoratiController(SharedService queries, ISemiLavoratoService service, TemplateDbContext context)
+    public SemiLavoratiController(
+        SharedService queries,
+        ISemiLavoratoService service,
+        IBloccoMagazzinoService bloccoService,
+        TemplateDbContext context)
     {
         _queries = queries;
         _service = service;
         _context = context;
+        _bloccoService = bloccoService;
     }
 
+    [HttpGet]
     [HttpGet]
     public virtual async Task<IActionResult> Index(
         [FromQuery] string Query,
@@ -41,6 +46,8 @@ public partial class SemiLavoratiController : AuthenticatedBaseController
         int pageSize = 25
     )
     {
+        bool isBloccato = await _bloccoService.IsBloccatoAsync();
+
         if (Filters == null)
         {
             Filters = new SearchCardFiltersViewModel
@@ -61,31 +68,45 @@ public partial class SemiLavoratiController : AuthenticatedBaseController
 
         var dto = await _queries.GetSemiLavoratiListAsync(serviceQuery);
 
+        var bottoneAttivo = new SearchCardButton
+        {
+            Text = "Aggiungi",
+            CssClass = "btn-primary",
+            IconClass = "fa-solid fa-plus",
+            Type = "button",
+            HtmlAttributes = new Dictionary<string, string>
+            {
+                { "data-offcanvas", "" },
+                { "data-id", "offcanvasAggiungi" },
+                { "data-url", Url.Action("AggiungiSemilavorato") },
+                { "data-title", "Aggiungi Semilavorato" }
+            }
+        };
+
+        var bottoneDisabilitato = new SearchCardButton
+        {
+            Text = "Aggiungi",
+            CssClass = "btn-primary disabled",
+            IconClass = "fa-solid fa-lock",
+            Type = "button",
+            HtmlAttributes = new Dictionary<string, string>
+            {
+                { "disabled", "disabled" },
+                { "title", "Magazzino bloccato per inventario" },
+                { "style", "cursor: not-allowed;" }
+            }
+        };
+
         var searchCardModel = new SearchCardViewModel
         {
             Title = "📦 Magazzino Semilavorati",
             Placeholder = "Cerca barcode, descrizione...",
-
             Query = Query,
             Filters = Filters,
-
             HeaderButtons = new List<SearchCardButton>
             {
-                new SearchCardButton
-                {
-                    Text = "Aggiungi",
-                    CssClass = "btn-primary",
-                    IconClass = "fa-solid fa-plus",
-                    Type = "button",
-                    HtmlAttributes = new Dictionary<string, string>
-                    {
-                        { "data-offcanvas", "" },
-                        { "data-id", "offcanvasAggiungi" },
-                        { "data-url", Url.Action("AggiungiSemilavorato") },
-                        { "data-title", "Aggiungi Semilavorato" },
-                        { "title", "Aggiungi Semilavorato" }
-                    }
-                }
+                // Qui decidi quale dei due aggiungere, senza duplicazioni
+                isBloccato ? bottoneDisabilitato : bottoneAttivo
             }
         };
 
@@ -97,6 +118,7 @@ public partial class SemiLavoratiController : AuthenticatedBaseController
             TotalItems = dto.TotalCount,
             SemiLavorati = dto.Items
         };
+
         return View(model);
     }
 
@@ -111,10 +133,14 @@ public partial class SemiLavoratiController : AuthenticatedBaseController
         return PartialView("DettagliSemiLavorato", dto);
     }
 
-
     [HttpGet]
-    public virtual IActionResult AggiungiSemilavorato()
+    public virtual async Task<IActionResult> AggiungiSemilavorato()
     {
+        if (await _bloccoService.IsBloccatoAsync())
+        {
+            return RedirectToAction(nameof(Index));
+        }
+
         var model = new AggiungiSemiLavoratoViewModel
         {
             UbicazioniList = _context.Ubicazioni
@@ -129,6 +155,16 @@ public partial class SemiLavoratiController : AuthenticatedBaseController
     [ValidateAntiForgeryToken]
     public virtual async Task<IActionResult> AggiungiSemilavorato(AggiungiSemiLavoratoViewModel model)
     {
+        if (await _bloccoService.IsBloccatoAsync())
+        {
+            ModelState.AddModelError(string.Empty, "Magazzino bloccato per inventario.");
+
+            model.UbicazioniList = _context.Ubicazioni
+                .Select(u => new SelectListItem { Value = u.UbicazioneId.ToString(), Text = u.Posizione })
+                .ToList();
+            return View("AggiungiSemilavorato", model);
+        }
+
         bool esisteGia = await _context.SemiLavorati
             .AnyAsync(x => x.Barcode == model.Barcode && !x.Eliminato);
 
@@ -164,6 +200,11 @@ public partial class SemiLavoratiController : AuthenticatedBaseController
     [HttpPost]
     public virtual async Task<IActionResult> Elimina([FromBody] EliminaSemiLavoratoDTO dto)
     {
+        if (await _bloccoService.IsBloccatoAsync())
+        {
+            return BadRequest("Magazzino bloccato per inventario.");
+        }
+
         dto.UserId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
         var success = await _service.EliminaSemiLavoratoAsync(dto);
         return success ? Ok() : BadRequest();
@@ -172,6 +213,11 @@ public partial class SemiLavoratiController : AuthenticatedBaseController
     [HttpGet]
     public virtual async Task<IActionResult> Modifica(Guid id)
     {
+        if (await _bloccoService.IsBloccatoAsync())
+        {
+            return BadRequest("Magazzino bloccato per inventario.");
+        }
+
         var dto = await _queries.GetSemiLavoratoDetailsAsync(new SemiLavoratiDetailsQuery { Id = id });
         if (dto == null) return NotFound();
 
@@ -208,6 +254,11 @@ public partial class SemiLavoratiController : AuthenticatedBaseController
     [ValidateAntiForgeryToken]
     public virtual async Task<IActionResult> Modifica(ModificaSemiLavoratoViewModel model)
     {
+        if (await _bloccoService.IsBloccatoAsync())
+        {
+            return BadRequest("Magazzino bloccato per inventario.");
+        }
+
         bool duplicato = await _context.SemiLavorati
             .AnyAsync(x => x.Barcode == model.Barcode && x.Id != model.Id && !x.Eliminato);
 
