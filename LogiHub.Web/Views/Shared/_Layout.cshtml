@@ -1,12 +1,16 @@
 ﻿@inject IHtmlLocalizer<LogiHub.Web.SharedResource> SharedLocalizer
 @inject Microsoft.Extensions.Options.IOptions<AppSettings> appSettings
+
+@{
+    var currentArea = ViewContext.RouteData.Values["area"]?.ToString();
+}
 @{
     Layout = "_LayoutHtml";
     var version = System.Reflection.Assembly.GetAssembly(typeof(Startup)).GetName().Version;
 
     var identitaCorrente = (LogiHub.Web.Areas.IdentitaViewModel)ViewData[LogiHub.Web.Areas.IdentitaViewModel.VIEWDATA_IDENTITACORRENTE_KEY];
 
-    var paging = Model as LogiHub.Web.Infrastructure.PagingViewModel;
+    var paging = Model as PagingViewModel;
 }
 @section metas{
     @RenderSection("metas", false)
@@ -24,14 +28,18 @@
                 </button>
                 <div class="collapse navbar-collapse" id="navbarSupportedContent">
 
-                    <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
+                    <ul class="navbar-nav ms-auto">
                         <li class="nav-item">
-                            <a class="nav-link active" aria-current="page" asp-area="Magazzino" asp-controller="SemiLavorati" asp-action="Index">Magazzino</a>
+                            <a class="nav-link @(currentArea == "Magazzino" ? "active" : "")" 
+                               asp-area="Magazzino" asp-controller="SemiLavorati" asp-action="Index">
+                                Magazzino
+                            </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" asp-area="Inventari" asp-controller="Sessioni" asp-action="Index">Inventari</a>
-                        </li>
-                        <li class="nav-item dropdown">
+                            <a class="nav-link @(currentArea == "Inventari" ? "active" : "")" 
+                               asp-area="Inventari" asp-controller="Sessioni" asp-action="Index">
+                                Inventari
+                            </a>
                         </li>
                     </ul>
 
