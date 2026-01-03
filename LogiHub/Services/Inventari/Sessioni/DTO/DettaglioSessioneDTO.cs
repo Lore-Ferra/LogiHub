@@ -13,6 +13,7 @@ public class DettaglioSessioneDTO
     
     public class UbicazioneConStato
     {
+        public Guid? OperatoreCorrenteId { get; set; }
         public Guid UbicazioneId { get; set; }
         public string Posizione { get; set; }
         public bool Completata { get; set; }

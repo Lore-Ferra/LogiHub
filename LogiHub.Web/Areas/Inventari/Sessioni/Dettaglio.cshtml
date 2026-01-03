@@ -1,4 +1,5 @@
 @model LogiHub.Web.Areas.Inventari.Sessioni.DettaglioSessioneViewModel
+@using System.Security.Claims
 
 @{
     ViewData["Title"] = "Inventario - " + Model.NomeSessione;
@@ -39,6 +40,7 @@
                         var ubiDaFare = Model.UbicazioniFiltrate.Where(u => !u.Completata && !u.InLavorazione);
                         var ubiInLavorazione = Model.UbicazioniFiltrate.Where(u => u.InLavorazione);
                         var ubiCompletate = Model.UbicazioniFiltrate.Where(u => u.Completata);
+                        var currentUserId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
                     }
 
                     @if (ubiDaFare.Any())
@@ -73,6 +75,7 @@
                         </tr>
                         @foreach (var ubi in ubiInLavorazione)
                         {
+                            var isMyUbi = ubi.OperatoreCorrenteId == currentUserId;
                             <tr class="table-warning">
                                 <td class="ps-4">
                                     <a href="@Url.Action("RilevamentoUbicazione", new { sessioneId = Model.SessioneId, ubicazioneId = ubi.UbicazioneId })" class="text-decoration-none fw-bold text-dark">
@@ -84,6 +87,12 @@
                                 </td>
                                 <td>
                                     <small class="text-dark"><i class="fa-solid fa-user me-1"></i> @ubi.OperatoreCorrente</small>
+                                    @if (isMyUbi)
+                                    {
+                                        <a href="@Url.Action("RilevamentoUbicazione", new { sessioneId = Model.SessioneId, ubicazioneId = ubi.UbicazioneId })" class="btn btn-sm btn-primary ms-2">
+                                            Riprendi <i class="fa-solid fa-arrow-right ms-1"></i>
+                                        </a>
+                                    }
                                 </td>
                             </tr>
                         }
