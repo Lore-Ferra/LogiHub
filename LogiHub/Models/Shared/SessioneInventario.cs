@@ -55,15 +55,17 @@ public class RigaInventario
     public Guid SessioneInventarioId { get; set; }
     [ForeignKey(nameof(SessioneInventarioId))] public SessioneInventario Sessione { get; set; }
 
-    public Guid? UbicazionePrevistaId { get; set; }
-    [ForeignKey(nameof(UbicazionePrevistaId))] public Ubicazione UbicazionePrevista { get; set; }
-    
+    //public Guid? UbicazionePrevistaId { get; set; }
+    //[ForeignKey(nameof(UbicazionePrevistaId))] public Ubicazione UbicazionePrevista { get; set; }
+    public Guid UbicazioneId { get; set; }
+    [ForeignKey(nameof(UbicazioneId))] public Ubicazione Ubicazione { get; set; }
+
     [Required]
     public Guid SemiLavoratoId { get; set; } 
     [ForeignKey(nameof(SemiLavoratoId))] public SemiLavorato SemiLavorato { get; set; }
 
-    public Guid? UbicazioneRealeId { get; set; }
-    [ForeignKey(nameof(UbicazioneRealeId))] public Ubicazione UbicazioneReale { get; set; }
+    //public Guid? UbicazioneRealeId { get; set; }
+    //[ForeignKey(nameof(UbicazioneRealeId))] public Ubicazione UbicazioneReale { get; set; }
 
     public DateTime? DataRilevamento { get; set; }
     
