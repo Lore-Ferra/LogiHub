@@ -38,7 +38,6 @@ public class SessioniService : ISessioniService
             Id = Guid.NewGuid(),
             SessioneInventarioId = sessione.Id,
             SemiLavoratoId = sl.Id,
-            UbicazionePrevistaId = sl.UbicazioneId
         }).ToList();
 
         // 4. Snapshot Ubicazioni 
@@ -56,6 +55,39 @@ public class SessioniService : ISessioniService
         await _context.SessioniUbicazioni.AddRangeAsync(statiUbi);
 
         await _context.SaveChangesAsync();
+
+        return sessione;
+    }
+
+    public async Task<SessioneDashboardDTO> GetDashboardAsync(Guid sessioneId)
+    {
+        var sessione = await _context.SessioniInventario
+            .Where(s => s.Id == sessioneId)
+            .Select(s => new SessioneDashboardDTO
+            {
+                SessioneId = s.Id,
+                NomeSessione = s.NomeSessione,
+                Chiuso = s.Chiuso,
+                Ubicazioni = s.StatiUbicazioni
+                .Where(u => _context.SemiLavorati
+                .Any(sl => sl.UbicazioneId == u.UbicazioneId && !sl.Eliminato && !sl.Uscito))
+                    .Select(su => new SessioneDashboardDTO.UbicazioneConStato
+                    {
+                        UbicazioneId = su.UbicazioneId,
+                        Posizione = su.Ubicazione.Posizione,
+                        Completata = su.Completata,
+                        InLavorazione = su.OperatoreCorrenteId != null,
+                        OperatoreCorrente = su.OperatoreCorrente != null 
+                            ? su.OperatoreCorrente.FirstName + " " + su.OperatoreCorrente.LastName 
+                            : null
+                    })
+                    .OrderBy(u => u.Posizione)
+                    .ToList()
+            })
+            .FirstOrDefaultAsync();
+
+        if (sessione == null)
+            throw new InvalidOperationException("Sessione non trovata.");
 
         return sessione;
     }
