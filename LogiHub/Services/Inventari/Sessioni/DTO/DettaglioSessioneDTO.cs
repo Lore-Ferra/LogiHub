@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace LogiHub.Services.Inventari.Sessioni.DTO;
 
-public class SessioneDashboardDTO
+public class DettaglioSessioneDTO
 {
     public Guid SessioneId { get; set; }
     public string NomeSessione { get; set; }

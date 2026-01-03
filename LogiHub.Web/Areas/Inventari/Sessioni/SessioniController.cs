@@ -117,7 +117,7 @@ public partial class SessioniController : AuthenticatedBaseController
     }
 
     [HttpGet]
-    public virtual async Task<IActionResult> Dashboard(
+    public virtual async Task<IActionResult> Dettaglio(
         Guid id,
         [FromQuery] string query,
         [FromQuery] SearchCardFiltersViewModel Filters,
@@ -199,7 +199,7 @@ public partial class SessioniController : AuthenticatedBaseController
             });
         }
 
-        var model = new SessioniDashboardViewModel
+        var model = new DettaglioSessioneViewModel
         {
             SessioneId = data.SessioneId,
             NomeSessione = data.NomeSessione,

@@ -59,11 +59,11 @@ public class SessioniService : ISessioniService
         return sessione;
     }
 
-    public async Task<SessioneDashboardDTO> GetDashboardAsync(Guid sessioneId)
+    public async Task<DettaglioSessioneDTO> GetDashboardAsync(Guid sessioneId)
     {
         var sessione = await _context.SessioniInventario
             .Where(s => s.Id == sessioneId)
-            .Select(s => new SessioneDashboardDTO
+            .Select(s => new DettaglioSessioneDTO
             {
                 SessioneId = s.Id,
                 NomeSessione = s.NomeSessione,
@@ -71,7 +71,7 @@ public class SessioniService : ISessioniService
                 Ubicazioni = s.StatiUbicazioni
                 .Where(u => _context.SemiLavorati
                 .Any(sl => sl.UbicazioneId == u.UbicazioneId && !sl.Eliminato && !sl.Uscito))
-                    .Select(su => new SessioneDashboardDTO.UbicazioneConStato
+                    .Select(su => new DettaglioSessioneDTO.UbicazioneConStato
                     {
                         UbicazioneId = su.UbicazioneId,
                         Posizione = su.Ubicazione.Posizione,
