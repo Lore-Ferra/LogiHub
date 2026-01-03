@@ -65,22 +65,15 @@ public class SemiLavoratoService : ISemiLavoratoService
                 .Where(x => x.Id == aziendaOld)
                 .Select(x => x.Nome)
                 .FirstOrDefaultAsync();
+            sl.UbicazioneId = dto.UbicazioneId;
+            
+            var ubicazioneNew = await _context.Ubicazioni
+                .Where(u => u.UbicazioneId == dto.UbicazioneId)
+                .Select(u => u.Posizione)
+                .FirstOrDefaultAsync();
             
             GeneraAzione(dto.Id, dto.UserId, TipoOperazione.Entrata, 
-                $"Rientro da {nomeAzienda}");
-        
-            if (dto.UbicazioneId != null)
-            {
-                sl.UbicazioneId = dto.UbicazioneId;
-            
-                var ubicazioneNew = await _context.Ubicazioni
-                    .Where(u => u.UbicazioneId == dto.UbicazioneId)
-                    .Select(u => u.Posizione)
-                    .FirstOrDefaultAsync();
-            
-                GeneraAzione(dto.Id, dto.UserId, TipoOperazione.CambioUbicazione,
-                    $"Posizionato in {ubicazioneNew}");
-            }
+                $"Rientro da {nomeAzienda} - Posizionato in {ubicazioneNew}");
         }
         else if (dto.AziendaEsternaId != null)
         {
