@@ -27,7 +27,11 @@
     @await Html.PartialAsync("~/Features/SearchCard/_SearchCard.cshtml", Model.SearchCard)
 </div>
 
-<div class="d-md-none">
+<div class="mt-2 mb-2 ps-1">
+    <small class="text-muted">Trovati <strong id="semilavorati-counter">@Model.TotalItems</strong> semilavorati</small>
+</div>
+
+<div class="d-md-none" id="mobile-list-container">
     @foreach (var item in Model.SemiLavorati)
     {
         <div class="card shadow-sm semilavorato-card mb-2 "
@@ -95,7 +99,7 @@
                     <th>Azioni</th>
                 </tr>
                 </thead>
-                <tbody>
+                <tbody id="desktop-table-body">
                 @foreach (var item in Model.SemiLavorati)
                 {
                     <tr style="cursor:pointer"
@@ -337,5 +341,33 @@ else
             }
 
         }, true);
+    </script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            const counter = document.getElementById('semilavorati-counter');
+            
+            const updateCounter = () => {
+                if(!counter) return;
+                let count = parseInt(counter.innerText);
+                if (!isNaN(count) && count > 0) {
+                    counter.innerText = count - 1;
+                }
+            };
+
+            const observer = new MutationObserver((mutations) => {
+                mutations.forEach((mutation) => {
+                    if (mutation.removedNodes.length > 0) {
+                        updateCounter();
+                    }
+                });
+            });
+
+            const config = { childList: true };
+            const mobileContainer = document.getElementById('mobile-list-container');
+            const desktopBody = document.getElementById('desktop-table-body');
+
+            if (mobileContainer) observer.observe(mobileContainer, config);
+            if (desktopBody) observer.observe(desktopBody, config);
+        });
     </script>
 }
