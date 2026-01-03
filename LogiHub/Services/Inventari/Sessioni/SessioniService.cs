@@ -92,7 +92,8 @@ public class SessioniService : ISessioniService
                             ? su.OperatoreCorrente.FirstName + " " + su.OperatoreCorrente.LastName
                             : null
                     })
-                    .OrderBy(u => u.Posizione)
+                    .OrderBy(u => u.Completata ? 2 : (u.InLavorazione ? 1 : 0))
+                    .ThenBy(u => u.Posizione)
                     .ToList()
             })
             .FirstOrDefaultAsync();
