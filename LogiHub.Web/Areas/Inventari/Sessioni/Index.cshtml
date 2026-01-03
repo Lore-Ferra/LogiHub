@@ -9,54 +9,56 @@
 </div>
 
 <div class="card shadow-sm mt-3">
-    <div class="table-responsive">
-        <table class="table table-hover align-middle mb-0">
-            <thead class="table-light">
-            <tr>
-                <th>Data Inventario</th>
-                <th>Nome Sessione</th>
-                <th class="text-center">Stato</th>
-                <th class="text-end">Azioni</th>
-            </tr>
-            </thead>
-            <tbody>
-            @if (Model.Sessioni != null && Model.Sessioni.Any())
-            {
-                foreach (var item in Model.Sessioni)
+    <div class="card-body p-1">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead>
+                <tr>
+                    <th>Data Inventario</th>
+                    <th>Nome Sessione</th>
+                    <th class="text-center">Stato</th>
+                    <th class="text-end">Azioni</th>
+                </tr>
+                </thead>
+                <tbody>
+                @if (Model.Sessioni != null && Model.Sessioni.Any())
+                {
+                    foreach (var item in Model.Sessioni)
+                    {
+                        <tr>
+                            <td>@item.DataCreazione.ToString("dd/MM/yyyy HH:mm")</td>
+                            <td><strong>@item.NomeSessione</strong></td>
+                            <td class="text-center">
+                                @if (item.Chiuso)
+                                {
+                                    <span class="badge bg-secondary">Chiuso</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-success">In Corso</span>
+                                }
+                            </td>
+                            <td class="text-end">
+                                <a href="@Url.Action("Dettaglio", new { id = item.Id })"
+                                   class="btn btn-sm @(item.Chiuso ? "btn-outline-primary" : "btn-primary")">
+                                    <i class="fa-solid @(item.Chiuso ? "fa-eye" : "fa-arrow-right")"></i>
+                                    @(item.Chiuso ? "Visualizza" : "Riprendi")
+                                </a>
+                            </td>
+                        </tr>
+                    }
+                }
+                else
                 {
                     <tr>
-                        <td>@item.DataCreazione.ToString("dd/MM/yyyy HH:mm")</td>
-                        <td><strong>@item.NomeSessione</strong></td>
-                        <td class="text-center">
-                            @if (item.Chiuso)
-                            {
-                                <span class="badge bg-secondary">Chiuso</span>
-                            }
-                            else
-                            {
-                                <span class="badge bg-success">In Corso</span>
-                            }
-                        </td>
-                        <td class="text-end">
-                            <a href="@Url.Action("Dettaglio", new { id = item.Id })" 
-                               class="btn btn-sm @(item.Chiuso ? "btn-outline-primary" : "btn-primary")">
-                                <i class="fa-solid @(item.Chiuso ? "fa-eye" : "fa-arrow-right")"></i>
-                                @(item.Chiuso ? "Visualizza" : "Riprendi")
-                            </a>
+                        <td colspan="4" class="text-center py-4 text-muted">
+                            Nessun inventario trovato.
                         </td>
                     </tr>
                 }
-            }
-            else
-            {
-                <tr>
-                    <td colspan="4" class="text-center py-4 text-muted">
-                        Nessun inventario trovato.
-                    </td>
-                </tr>
-            }
-            </tbody>
-        </table>
+                </tbody>
+            </table>
+        </div>
     </div>
 </div>
 
