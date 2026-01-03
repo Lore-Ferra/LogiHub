@@ -193,8 +193,7 @@ public partial class SessioniController : AuthenticatedBaseController
                 HtmlAttributes = new Dictionary<string, string>
                 {
                     { "data-post-action", "true" },
-                    { "data-url", Url.Action("ChiudiSessione", "Sessioni", new { area = "Inventari", id = id }) },
-                    { "data-confirm", "Sei sicuro di voler chiudere questa sessione di inventario?" }
+                    { "data-url", Url.Action("ChiudiSessione", "Sessioni", new { area = "Inventari", id = id }) }
                 }
             });
         }
@@ -213,6 +212,22 @@ public partial class SessioniController : AuthenticatedBaseController
         };
 
         return View(model);
+    }
+
+    [HttpPost]
+    public virtual async Task<IActionResult> ChiudiSessione(Guid id)
+    {
+        try
+        {
+            var userId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
+            await _service.ChiudiSessioneAsync(id, userId);
+            return RedirectToAction(nameof(Index));
+        }
+        catch (InvalidOperationException ex)
+        {
+            TempData["ErrorMessage"] = ex.Message;
+            return RedirectToAction(nameof(Dettaglio), new { id });
+        }
     }
 
     [HttpGet]

@@ -102,6 +102,28 @@ public class SessioniService : ISessioniService
 
         return sessione;
     }
+
+    public async Task ChiudiSessioneAsync(Guid sessioneId, Guid userId)
+    {
+        // Verifichiamo se ci sono ubicazioni NON completate che però contengono righe di inventario.
+        // Usiamo lo stesso filtro della visualizzazione dettaglio per coerenza.
+        var ciSonoUbicazioniDaCompletare = await _context.SessioniUbicazioni
+            .AnyAsync(su => su.SessioneInventarioId == sessioneId 
+                            && !su.Completata
+                            && _context.RigheInventario.Any(r => r.SessioneInventarioId == sessioneId && r.UbicazioneSnapshotId == su.UbicazioneId));
+
+        if (ciSonoUbicazioniDaCompletare)
+        {
+            throw new InvalidOperationException("Impossibile chiudere l'inventario: ci sono ancora ubicazioni da completare.");
+        }
+
+        var sessione = await _context.SessioniInventario.FindAsync(sessioneId);
+        if (sessione != null)
+        {
+            sessione.Chiuso = true;
+            await _context.SaveChangesAsync();
+        }
+    }
     
     // Operatività - Gestione Accesso
     public async Task BloccaUbicazioneAsync(Guid sessioneId, Guid ubicazioneId, Guid userId)

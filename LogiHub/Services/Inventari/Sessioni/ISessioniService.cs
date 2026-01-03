@@ -13,7 +13,7 @@ public interface ISessioniService
     Task<SessioneInventario> AggiungiSessioneAsync(AggiungiSessioneInventarioDTO dto);
     Task<DettaglioSessioneDTO> OttieniDettaglioSessioneAsync(Guid sessioneId);
     // Task<bool> EliminaSessioneAsync(Guid id, Guid userId);
-    // Task<bool> ChiudiSessioneAsync(Guid id, Guid userId);
+    Task ChiudiSessioneAsync(Guid sessioneId, Guid userId);
     
     
     // Operatività - Gestione Accesso

@@ -4,6 +4,21 @@
     ViewData["Title"] = "Inventario - " + Model.NomeSessione;
 }
 
+<!-- Toast Container -->
+<div class="toast-container position-fixed end-0 p-3" style="z-index: 1050; top: 70px;">
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div id="errorToast" class="toast align-items-center text-bg-danger border-0" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="d-flex">
+                <div class="toast-body">
+                    <i class="fa-solid fa-circle-exclamation me-2"></i> @TempData["ErrorMessage"]
+                </div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+        </div>
+    }
+</div>
+
 <div>
     @await Html.PartialAsync("~/Features/SearchCard/_SearchCardSimple.cshtml", Model.SearchCard)
 </div>
@@ -97,3 +112,51 @@
         </div>
     </div>
 </div>
+
+@section Scripts {
+    <script>
+        document.addEventListener('click', function (e) {
+            // 1. Intercetta il click sui bottoni configurati
+            const btn = e.target.closest('[data-post-action]');
+            if (!btn) return;
+
+            e.preventDefault();
+
+            // 2. Legge i dati
+            const url = btn.getAttribute('data-url');
+            const confirmMsg = btn.getAttribute('data-confirm');
+
+            // 3. Chiede conferma
+            if (confirmMsg && !confirm(confirmMsg)) return;
+
+            // 4. Crea e invia il form POST
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = url;
+
+            const token = document.querySelector('input[name="__RequestVerificationToken"]');
+            if (token) {
+                const hiddenInput = document.createElement('input');
+                hiddenInput.type = 'hidden';
+                hiddenInput.name = '__RequestVerificationToken';
+                hiddenInput.value = token.value;
+                form.appendChild(hiddenInput);
+            }
+
+            document.body.appendChild(form);
+            form.submit();
+        });
+
+        @if (TempData["ErrorMessage"] != null)
+        {
+            <text>
+            document.addEventListener('DOMContentLoaded', function () {
+                var toastEl = document.getElementById('errorToast');
+                var toast = new bootstrap.Toast(toastEl, { delay: 5000 });
+                toast.show();
+            });
+            </text>
+        }
+    </script>
+}
+@Html.AntiForgeryToken()
