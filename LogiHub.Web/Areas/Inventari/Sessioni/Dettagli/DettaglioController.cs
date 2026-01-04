@@ -58,6 +58,7 @@ public partial class DettaglioController : AuthenticatedBaseController
             Placeholder = "Cerca Ubicazione...",
             Query = query,
             Filters = Filters,
+            ShowFilters = false,
             HeaderButtons = new List<SearchCardButton>
             {
                 new SearchCardButton

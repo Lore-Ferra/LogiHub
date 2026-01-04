@@ -72,7 +72,8 @@ public partial class SessioniController : AuthenticatedBaseController
             Placeholder = "Cerca sessione...",
             Query = Query,
             Filters = Filters,
-            HeaderButtons = isBloccato ? new List<SearchCardButton>() : new List<SearchCardButton> { bottoneAttivo }
+            HeaderButtons = isBloccato ? new List<SearchCardButton>() : new List<SearchCardButton> { bottoneAttivo },
+            ShowFilters = false
         };
         
 

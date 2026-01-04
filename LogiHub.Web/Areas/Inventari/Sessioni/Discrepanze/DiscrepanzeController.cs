@@ -54,6 +54,7 @@ public partial class DiscrepanzeController : AuthenticatedBaseController
             Placeholder = "Cerca barcode...",
             Query = query,
             Filters = Filters,
+            ShowFilters = false,
             HeaderButtons = new List<SearchCardButton>
             {
                 new SearchCardButton
