@@ -1,4 +1,5 @@
 ﻿@model LogiHub.Web.Areas.Inventari.Sessioni.SessioniIndexViewModel
+@using LogiHub.Web.Features.Modals
 @{
     bool isBloccato = await BloccoService.IsBloccatoAsync();
 }
@@ -47,8 +48,7 @@
             <table class="table table-hover align-middle mb-0">
                 <thead>
                 <tr class="text-secondary small text-uppercase">
-                    <th class="ps-3">Data</th>
-                    <th>Nome Sessione</th>
+                    <th class="ps-3">Sessione</th>
                     <th class="text-center">Stato</th>
                 </tr>
                 </thead>
@@ -59,10 +59,9 @@
                         style="cursor:pointer"
                         onclick="window.location.href='@Url.Action("Index", "Dettaglio", new { id = item.Id })'">
                         <td class="ps-3">
-                            @item.DataCreazione.ToString("dd/MM/yyyy")
-                            <small class="d-block opacity-75">@item.DataCreazione.ToString("HH:mm")</small>
+                            <div class="@(item.Chiuso ? "" : "text-primary") mb-1">@item.NomeSessione</div>
+                            <small class="text-muted opacity-75"><i class="fa-solid fa-calendar me-1"></i> @item.DataCreazione.ToString("dd/MM/yyyy HH:mm")</small>
                         </td>
-                        <td class="@(item.Chiuso ? "" : "text-primary")">@item.NomeSessione</td>
                         <td class="text-center">
                             @if (item.Chiuso) {
                                 <span class="badge bg-secondary border-0 opacity-75">Completato</span>
@@ -84,10 +83,10 @@
 {
     <button type="button"
             class="fab d-md-none border-0"
-            data-post-action="true"
-            data-title="Crea Inventario"
+            data-confirm-trigger
             data-url="@Url.Action("AggiungiSessioneInventario", "Sessioni", new { area = "Inventari" })"
-            data-confirm="Vuoi avviare una nuova sessione? Il magazzino verrà bloccato.">
+            data-type="form"
+            data-message="Vuoi avviare una nuova sessione? Il magazzino verrà bloccato.">
         <i class="fa-solid fa-plus"></i>
     </button>
 }
@@ -100,86 +99,17 @@ else
 }
 
 @* --- MODALE DI CONFERMA --- *@
-<div class="modal fade" id="actionConfirmModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-header border-0 pb-0">
-                <h5 class="modal-title fw-bold">Conferma Azione</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body py-4">
-                <p class="mb-0 text-secondary" id="actionConfirmMessage">Sei sicuro di voler procedere?</p>
-            </div>
-            <div class="modal-footer border-0 pt-0">
-                <button type="button" class="btn btn-light" data-bs-dismiss="modal">Annulla</button>
-                <button type="button" class="btn btn-primary px-4" id="actionConfirmBtn">
-                    Conferma
-                </button>
-            </div>
-        </div>
-    </div>
-</div>
+@await Html.PartialAsync("~/Features/Modals/_ConfirmModal.cshtml", new ConfirmModalViewModel {
+    ModalId = "actionConfirmModal",
+    Title = "Conferma Operazione",
+    ConfirmButtonText = "Conferma",
+    ConfirmButtonClass = "btn-primary",
+    IconClass = "fa-solid fa-circle-question text-primary"
+})
 
 @section Scripts {
-    <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            // Inizializzazione Modale Bootstrap
-            const confirmModalEl = document.getElementById('actionConfirmModal');
-            const confirmModal = new bootstrap.Modal(confirmModalEl);
-            const confirmMessageEl = document.getElementById('actionConfirmMessage');
-            const confirmBtn = document.getElementById('actionConfirmBtn');
-            
-            let pendingUrl = null;
-
-            // Gestione click sui pulsanti azione
-            document.addEventListener('click', function (e) {
-                const btn = e.target.closest('[data-post-action]');
-                if (!btn) return;
-
-                e.preventDefault();
-
-                const url = btn.getAttribute('data-url');
-                const confirmMsg = btn.getAttribute('data-confirm');
-
-                if (confirmMsg) {
-                    // Se c'è un messaggio di conferma, mostriamo la modale
-                    confirmMessageEl.textContent = confirmMsg;
-                    pendingUrl = url;
-                    confirmModal.show();
-                } else {
-                    // Altrimenti inviamo direttamente
-                    submitPost(url);
-                }
-            });
-
-            // Gestione click sul tasto "Conferma" della modale
-            confirmBtn.addEventListener('click', function () {
-                if (pendingUrl) {
-                    submitPost(pendingUrl);
-                    confirmModal.hide(); // Chiude la modale (estetico, dato che la pagina ricaricherà)
-                }
-            });
-
-            // Funzione helper per inviare il form POST
-            function submitPost(url) {
-                const form = document.createElement('form');
-                form.method = 'POST';
-                form.action = url;
-
-                const token = document.querySelector('input[name="__RequestVerificationToken"]');
-                if (token) {
-                    const hiddenInput = document.createElement('input');
-                    hiddenInput.type = 'hidden';
-                    hiddenInput.name = '__RequestVerificationToken';
-                    hiddenInput.value = token.value;
-                    form.appendChild(hiddenInput);
-                }
-
-                document.body.appendChild(form);
-                form.submit();
-            }
-        });
-    </script>
+    @* Assicurati che il percorso sia corretto in base a dove viene compilato il TS *@
+    <script src="~/js/Features/Modals/ConfirmModal.js"></script>
 }
 
 @Html.AntiForgeryToken()
