@@ -95,6 +95,7 @@ document.addEventListener('click', (e: MouseEvent) => {
 
     // Ignora click su btn-elimina
     if (target.closest('[data-delete]')) return;
+    if (target.closest('[data-confirm-trigger]')) return;
 
     const btn = target.closest('[data-offcanvas]') as HTMLElement | null;
     if (!btn) return;
