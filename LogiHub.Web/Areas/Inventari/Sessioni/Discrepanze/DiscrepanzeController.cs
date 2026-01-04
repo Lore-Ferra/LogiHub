@@ -36,8 +36,9 @@ public partial class DiscrepanzeController : AuthenticatedBaseController
         if (!string.IsNullOrWhiteSpace(query))
         {
             discrepanze = discrepanze
-                .Where(d => d.Barcode.Contains(query, StringComparison.OrdinalIgnoreCase) ||
-                            d.Descrizione.Contains(query, StringComparison.OrdinalIgnoreCase))
+                .Where(d => (d.Barcode != null && d.Barcode.Contains(query, StringComparison.OrdinalIgnoreCase)) ||
+                            (d.Descrizione != null && d.Descrizione.Contains(query, StringComparison.OrdinalIgnoreCase)) || 
+                            (d.Ubicazione != null && d.Ubicazione.Contains(query, StringComparison.OrdinalIgnoreCase)))
                 .ToList();
         }
 
