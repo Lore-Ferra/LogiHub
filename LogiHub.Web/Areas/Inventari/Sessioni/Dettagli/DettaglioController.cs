@@ -62,17 +62,6 @@ public partial class DettaglioController : AuthenticatedBaseController
             {
                 new SearchCardButton
                 {
-                    Text = "Torna allo Storico",
-                    CssClass = "btn-outline-secondary",
-                    IconClass = "fa-solid fa-arrow-left",
-                    Type = "button",
-                    HtmlAttributes = new Dictionary<string, string>
-                    {
-                        { "onclick", $"location.href='{Url.Action("Index", "Sessioni", new { area = "Inventari" })}'" }
-                    }
-                },
-                new SearchCardButton
-                {
                     Text = "Visualizza Discrepanze",
                     CssClass = "btn-primary",
                     IconClass = "fa-solid fa-triangle-exclamation",
