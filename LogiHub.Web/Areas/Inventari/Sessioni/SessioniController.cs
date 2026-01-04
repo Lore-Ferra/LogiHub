@@ -10,6 +10,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
+using LogiHub.Services.Shared;
 
 namespace LogiHub.Web.Areas.Inventari;
 
@@ -18,11 +19,16 @@ public partial class SessioniController : AuthenticatedBaseController
 {
     private readonly ISessioniService _service;
     private readonly TemplateDbContext _context;
+    private readonly IBloccoMagazzinoService _bloccoService;
 
-    public SessioniController(ISessioniService service, TemplateDbContext context)
+    public SessioniController(
+        ISessioniService service,
+        IBloccoMagazzinoService bloccoService,
+        TemplateDbContext context)
     {
         _service = service;
         _context = context;
+        _bloccoService = bloccoService;
     }
 
     [HttpGet]
@@ -33,30 +39,21 @@ public partial class SessioniController : AuthenticatedBaseController
         int pageSize = 25
     )
     {
+        bool isBloccato = await _bloccoService.IsBloccatoAsync();
+        
         // 1. Filtri
         if (Filters == null)
         {
             Filters = new SearchCardFiltersViewModel();
         }
-
+        
         // 2. Controllo se esiste già un inventario aperto (per la logica del bottone)
         bool inventarioAttivo = await _context.SessioniInventario.AnyAsync(s => !s.Chiuso);
 
-        // 3. Costruzione della SearchCard
-        var searchCardModel = new SearchCardViewModel
-        {
-            Title = "📋 Storico Inventari",
-            Placeholder = "Cerca sessione...",
-            Query = Query,
-            Filters = Filters,
-            HeaderButtons = new List<SearchCardButton>()
-        };
-
-
-        searchCardModel.HeaderButtons.Add(new SearchCardButton
+        var bottoneAttivo = new SearchCardButton
         {
             Text = "Crea Inventario",
-            CssClass = "btn-success",
+            CssClass = "btn-primary d-none d-md-inline-block",
             IconClass = "fa-solid fa-play",
             Type = "button",
             HtmlAttributes = new Dictionary<string, string>
@@ -65,8 +62,35 @@ public partial class SessioniController : AuthenticatedBaseController
                 { "data-url", Url.Action("AggiungiSessioneInventario", "Sessioni", new { area = "Inventari" }) },
                 { "data-confirm", "Vuoi avviare una nuova sessione? Il magazzino verrà bloccato." }
             }
-        });
-
+        };
+        
+        var bottoneDisabilitato = new SearchCardButton
+        {
+            Text = "Crea Inventario",
+            CssClass = "btn-primary disabled",
+            IconClass = "fa-solid fa-lock",
+            Type = "button",
+            HtmlAttributes = new Dictionary<string, string>
+            {
+                { "disabled", "disabled" },
+                { "style", "cursor: not-allowed; pointer-events: auto !important;" }
+            }
+        };
+        
+        
+        // 3. Costruzione della SearchCard
+        var searchCardModel = new SearchCardViewModel
+        {
+            Title = "📋 Storico Inventari",
+            Placeholder = "Cerca sessione...",
+            Query = Query,
+            Filters = Filters,
+            HeaderButtons = new List<SearchCardButton>
+            {
+                isBloccato ? bottoneDisabilitato : bottoneAttivo
+            }
+        };
+        
 
         // 4. Query per recuperare i dati 
         var queryBase = _context.SessioniInventario.AsNoTracking();

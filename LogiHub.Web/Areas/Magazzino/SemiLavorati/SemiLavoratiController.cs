@@ -105,7 +105,6 @@ public partial class SemiLavoratiController : AuthenticatedBaseController
             Filters = Filters,
             HeaderButtons = new List<SearchCardButton>
             {
-                // Qui decidi quale dei due aggiungere, senza duplicazioni
                 isBloccato ? bottoneDisabilitato : bottoneAttivo
             }
         };
