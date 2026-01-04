@@ -64,20 +64,6 @@ public partial class SessioniController : AuthenticatedBaseController
             }
         };
         
-        var bottoneDisabilitato = new SearchCardButton
-        {
-            Text = "Crea Inventario",
-            CssClass = "btn-primary disabled",
-            IconClass = "fa-solid fa-lock",
-            Type = "button",
-            HtmlAttributes = new Dictionary<string, string>
-            {
-                { "disabled", "disabled" },
-                { "style", "cursor: not-allowed; pointer-events: auto !important;" }
-            }
-        };
-        
-        
         // 3. Costruzione della SearchCard
         var searchCardModel = new SearchCardViewModel
         {
@@ -85,10 +71,7 @@ public partial class SessioniController : AuthenticatedBaseController
             Placeholder = "Cerca sessione...",
             Query = Query,
             Filters = Filters,
-            HeaderButtons = new List<SearchCardButton>
-            {
-                isBloccato ? bottoneDisabilitato : bottoneAttivo
-            }
+            HeaderButtons = isBloccato ? new List<SearchCardButton>() : new List<SearchCardButton> { bottoneAttivo }
         };
         
 
