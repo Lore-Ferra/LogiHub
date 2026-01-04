@@ -71,7 +71,7 @@ public partial class SemiLavoratiController : AuthenticatedBaseController
         var bottoneAttivo = new SearchCardButton
         {
             Text = "Aggiungi",
-            CssClass = "btn-primary",
+            CssClass = "btn-primary d-none d-md-inline-block",
             IconClass = "fa-solid fa-plus",
             Type = "button",
             HtmlAttributes = new Dictionary<string, string>
@@ -86,7 +86,7 @@ public partial class SemiLavoratiController : AuthenticatedBaseController
         var bottoneDisabilitato = new SearchCardButton
         {
             Text = "Aggiungi",
-            CssClass = "btn-primary disabled",
+            CssClass = "btn-primary d-none d-md-inline-block",
             IconClass = "fa-solid fa-lock",
             Type = "button",
             HtmlAttributes = new Dictionary<string, string>
