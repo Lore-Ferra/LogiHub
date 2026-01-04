@@ -90,7 +90,7 @@ public class SessioniService : ISessioniService
                         UbicazioneId = su.UbicazioneId,
                         Posizione = su.Ubicazione.Posizione,
                         Completata = su.Completata,
-                        InLavorazione = su.OperatoreCorrenteId != null,
+                        InLavorazione = !su.Completata && su.OperatoreCorrenteId != null,
                         OperatoreCorrenteId = su.OperatoreCorrenteId,
                         OperatoreCorrente = su.OperatoreCorrente != null
                             ? su.OperatoreCorrente.FirstName + " " + su.OperatoreCorrente.LastName
@@ -182,7 +182,6 @@ public class SessioniService : ISessioniService
         if (statoUbi != null)
         {
             statoUbi.Completata = true;
-            statoUbi.OperatoreCorrenteId = null;
             statoUbi.DataCompletamento = DateTime.Now;
         }
 
