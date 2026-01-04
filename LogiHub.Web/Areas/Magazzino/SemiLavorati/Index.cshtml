@@ -1,5 +1,4 @@
 ﻿@model LogiHub.Web.Areas.Magazzino.Models.SemiLavoratiIndexViewModel
-@inject LogiHub.Services.Shared.IBloccoMagazzinoService BloccoService
 @{
     bool isBloccato = await BloccoService.IsBloccatoAsync();
 }
@@ -8,7 +7,7 @@
 }
 
 @section Styles {
-    <link rel="stylesheet" href="~/css/magazzinosemilavorati.css"/>
+    <link rel="stylesheet" href="~/css/fab-button.css"/>
     <link rel="stylesheet" href="~/css/offcanvas.css"/>
 }
 
