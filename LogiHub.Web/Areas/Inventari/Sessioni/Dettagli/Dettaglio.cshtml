@@ -2,7 +2,7 @@
 @using System.Security.Claims
 
 @{
-    ViewData["Title"] = "Inventario - " + Model.NomeSessione;
+    ViewData["Title"] = Model.NomeSessione;
 }
 
 <!-- Toast Container -->
@@ -133,20 +133,16 @@
 @section Scripts {
     <script>
         document.addEventListener('click', function (e) {
-            // 1. Intercetta il click sui bottoni configurati
             const btn = e.target.closest('[data-post-action]');
             if (!btn) return;
 
             e.preventDefault();
 
-            // 2. Legge i dati
             const url = btn.getAttribute('data-url');
             const confirmMsg = btn.getAttribute('data-confirm');
 
-            // 3. Chiede conferma
             if (confirmMsg && !confirm(confirmMsg)) return;
 
-            // 4. Crea e invia il form POST
             const form = document.createElement('form');
             form.method = 'POST';
             form.action = url;
