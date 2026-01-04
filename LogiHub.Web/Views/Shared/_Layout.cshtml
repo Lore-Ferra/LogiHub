@@ -93,10 +93,10 @@
             <div class="d-flex d-md-none align-items-center gap-2 px-2 pb-2">
                 <span class="small text-muted text-nowrap">Mostra:</span>
                 <select class="form-select form-select-sm w-auto"
-                        onchange="location.href='@paging.ChangePageSizePageUrl(Url, 0)'.replace('0', this.value)">
+                        onchange="location.href=this.value">
                     @foreach (var size in paging.PageSizes)
                     {
-                        <option value="@size" selected="@(paging.PageSize == size)">
+                        <option value="@paging.ChangePageSizePageUrl(Url, size)" selected="@(paging.PageSize == size)">
                             @size
                         </option>
                     }
@@ -136,14 +136,15 @@
                 <div class="d-flex align-items-center gap-2">
                     <span class="small text-muted text-nowrap">Mostra:</span>
                     <select class="form-select form-select-sm"
-                            onchange="location.href='@paging.ChangePageSizePageUrl(Url, 0)'.replace('0', this.value)">
+                            onchange="location.href=this.value">
                         @foreach (var size in paging.PageSizes)
                         {
-                            <option value="@size" selected="@(paging.PageSize == size)">
+                            <option value="@paging.ChangePageSizePageUrl(Url, size)" selected="@(paging.PageSize == size)">
                                 @size
                             </option>
                         }
-                    </select>
+                    }
+                </select>
                 </div>
 
                 <nav aria-label="Navigazione pagine">

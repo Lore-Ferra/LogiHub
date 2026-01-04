@@ -22,9 +22,15 @@ public partial class DiscrepanzeController : AuthenticatedBaseController
     public virtual async Task<IActionResult> Index(
         Guid id,
         [FromQuery] string query,
+        [FromQuery] SearchCardFiltersViewModel Filters,
         int page = 1,
         int pageSize = 25)
     {
+        if (Filters == null)
+        {
+            Filters = new SearchCardFiltersViewModel();
+        }
+        
         var discrepanze = await _service.OttieniDiscrepanzeAsync(id);
 
         if (!string.IsNullOrWhiteSpace(query))
@@ -35,11 +41,18 @@ public partial class DiscrepanzeController : AuthenticatedBaseController
                 .ToList();
         }
 
+        var totalItems = discrepanze.Count;
+        var discrepanzePaginate = discrepanze
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .ToList();
+
         var searchCard = new SearchCardViewModel
         {
             Title = "⚠️ Discrepanze Rilevate",
             Placeholder = "Cerca barcode...",
             Query = query,
+            Filters = Filters,
             HeaderButtons = new List<SearchCardButton>
             {
                 new SearchCardButton
@@ -60,10 +73,11 @@ public partial class DiscrepanzeController : AuthenticatedBaseController
         {
             SessioneId = id,
             SearchCard = searchCard,
-            Discrepanze = discrepanze, // Paginazione potrebbe essere fatta qui se la lista è lunga
+            SearchQuery = query,
+            Discrepanze = discrepanzePaginate,
             Page = page,
             PageSize = pageSize,
-            TotalItems = discrepanze.Count
+            TotalItems = totalItems,
         };
 
         return View("Discrepanze", model);

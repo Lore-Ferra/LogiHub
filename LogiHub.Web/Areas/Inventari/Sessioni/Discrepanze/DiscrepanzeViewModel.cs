@@ -12,12 +12,15 @@ public class DiscrepanzeViewModel : PagingViewModel
     public Guid SessioneId { get; set; }
     public SearchCardViewModel SearchCard { get; set; }
     public IEnumerable<DiscrepanzaDTO> Discrepanze { get; set; }
+    public string Filter { get; set; }
+    public string SearchQuery { get; set; }
 
     public override IActionResult GetRoute()
     {
         return MVC.Inventari.Discrepanze.Index(
             SessioneId,
             SearchCard.Query,
+            SearchCard.Filters,
             Page,
             PageSize
         ).GetAwaiter().GetResult();
