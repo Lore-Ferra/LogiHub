@@ -30,9 +30,9 @@
             <table class="table table-hover align-middle mb-0">
                 <thead class="bg-light">
                     <tr>
-                        <th class="ps-4" style="width: 30%;">Ubicazione</th>
-                        <th class="text-center" style="width: 20%;">Stato</th>
-                        <th>Info / Azioni</th>
+                        <th class="ps-4">Ubicazione</th>
+                        <th class="text-center text-nowrap">Stato</th>
+                        <th class="text-end">Azioni</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -56,12 +56,13 @@
                                         @ubi.Posizione
                                     </a>
                                 </td>
-                                <td class="text-center">
+                                <td class="text-center text-nowrap">
                                     <span class="badge rounded-pill bg-light text-dark border">In attesa</span>
                                 </td>
-                                <td>
+                                <td class="text-end text-nowrap">
                                     <a href="@Url.Action("Index", "RilevamentoUbicazione", new { sessioneId = Model.SessioneId, ubicazioneId = ubi.UbicazioneId })" class="btn btn-sm btn-outline-primary">
-                                        Inizia <i class="fa-solid fa-play ms-1"></i>
+                                        <span class="d-none d-md-inline">Inizia</span>
+                                        <i class="fa-solid fa-play ms-1"></i>
                                     </a>
                                 </td>
                             </tr>
@@ -82,15 +83,18 @@
                                         @ubi.Posizione
                                     </a>
                                 </td>
-                                <td class="text-center">
+                                <td class="text-center text-nowrap">
                                     <span class="badge bg-warning text-dark">Occupato</span>
                                 </td>
-                                <td>
-                                    <small class="text-dark"><i class="fa-solid fa-user me-1"></i> @ubi.OperatoreCorrente</small>
+                                <td class="text-end">
+                                    <small class="text-dark d-block d-md-inline mb-1 mb-md-0">
+                                        <i class="fa-solid fa-user me-1"></i> @ubi.OperatoreCorrente
+                                    </small>
                                     @if (isMyUbi)
                                     {
                                         <a href="@Url.Action("Index", "RilevamentoUbicazione", new { sessioneId = Model.SessioneId, ubicazioneId = ubi.UbicazioneId })" class="btn btn-sm btn-primary ms-2">
-                                            Riprendi <i class="fa-solid fa-arrow-right ms-1"></i>
+                                            <span class="d-none d-md-inline">Riprendi</span>
+                                            <i class="fa-solid fa-arrow-right ms-1"></i>
                                         </a>
                                     }
                                 </td>
@@ -107,11 +111,15 @@
                         {
                             <tr class="bg-light">
                                 <td class="ps-4 text-muted">@ubi.Posizione</td>
-                                <td class="text-center">
+                                <td class="text-center text-nowrap">
                                     <span class="badge bg-success">Completato</span>
                                 </td>
-                                <td>
-                                    <small class="text-muted">Finito da: @ubi.OperatoreCorrente</small>
+                                <td class="text-end">
+                                    <small class="text-muted">
+                                        <span class="d-none d-md-inline">Finito da: </span>
+                                        <i class="fa-solid fa-check d-md-none me-1"></i>
+                                        @ubi.OperatoreCorrente
+                                    </small>
                                 </td>
                             </tr>
                         }

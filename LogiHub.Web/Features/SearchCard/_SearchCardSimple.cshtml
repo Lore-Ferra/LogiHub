@@ -1,7 +1,7 @@
 ﻿@using LogiHub.Web.Features.SearchCard
 @model LogiHub.Web.Features.SearchCard.SearchCardViewModel
 
-<div class="d-flex justify-content-between align-items-center p-3">
+<div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center p-3 gap-3">
     @* Titolo *@
     @if (!string.IsNullOrEmpty(Model.Title))
     {
@@ -10,7 +10,7 @@
 
     @if (Model.HeaderButtons != null && Model.HeaderButtons.Any())
     {
-        <div class="d-none d-md-flex gap-2">
+        <div class="d-flex flex-wrap gap-2">
             @foreach (var btn in Model.HeaderButtons)
             {
                 <button type="@btn.Type" class="btn @btn.CssClass"
