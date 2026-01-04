@@ -54,7 +54,7 @@ public partial class DettaglioController : AuthenticatedBaseController
         // Costruzione della SearchCard
         var searchCardModel = new SearchCardViewModel
         {
-            Title = "📋 Inventario",
+            Title = "📋 "+ data.NomeSessione,
             Placeholder = "Cerca Ubicazione...",
             Query = query,
             Filters = Filters,
