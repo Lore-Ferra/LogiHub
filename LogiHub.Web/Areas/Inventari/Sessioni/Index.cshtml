@@ -85,7 +85,7 @@
     <button type="button"
             class="fab d-md-none border-0"
             data-post-action="true"
-            data-title="Aggiungi Semilavorato"
+            data-title="Crea Inventario"
             data-url="@Url.Action("AggiungiSessioneInventario", "Sessioni", new { area = "Inventari" })"
             data-confirm="Vuoi avviare una nuova sessione? Il magazzino verrà bloccato.">
         <i class="fa-solid fa-plus"></i>
@@ -99,36 +99,85 @@ else
     </button>
 }
 
+@* --- MODALE DI CONFERMA --- *@
+<div class="modal fade" id="actionConfirmModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title fw-bold">Conferma Azione</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body py-4">
+                <p class="mb-0 text-secondary" id="actionConfirmMessage">Sei sicuro di voler procedere?</p>
+            </div>
+            <div class="modal-footer border-0 pt-0">
+                <button type="button" class="btn btn-light" data-bs-dismiss="modal">Annulla</button>
+                <button type="button" class="btn btn-primary px-4" id="actionConfirmBtn">
+                    Conferma
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 @section Scripts {
     <script>
-        document.addEventListener('click', function (e) {
+        document.addEventListener('DOMContentLoaded', function () {
+            // Inizializzazione Modale Bootstrap
+            const confirmModalEl = document.getElementById('actionConfirmModal');
+            const confirmModal = new bootstrap.Modal(confirmModalEl);
+            const confirmMessageEl = document.getElementById('actionConfirmMessage');
+            const confirmBtn = document.getElementById('actionConfirmBtn');
+            
+            let pendingUrl = null;
 
-            const btn = e.target.closest('[data-post-action]');
-            if (!btn) return;
+            // Gestione click sui pulsanti azione
+            document.addEventListener('click', function (e) {
+                const btn = e.target.closest('[data-post-action]');
+                if (!btn) return;
 
-            e.preventDefault();
+                e.preventDefault();
 
-            const url = btn.getAttribute('data-url');
-            const confirmMsg = btn.getAttribute('data-confirm');
+                const url = btn.getAttribute('data-url');
+                const confirmMsg = btn.getAttribute('data-confirm');
 
-            if (confirmMsg && !confirm(confirmMsg)) return;
+                if (confirmMsg) {
+                    // Se c'è un messaggio di conferma, mostriamo la modale
+                    confirmMessageEl.textContent = confirmMsg;
+                    pendingUrl = url;
+                    confirmModal.show();
+                } else {
+                    // Altrimenti inviamo direttamente
+                    submitPost(url);
+                }
+            });
 
-            const form = document.createElement('form');
-            form.method = 'POST';
-            form.action = url;
+            // Gestione click sul tasto "Conferma" della modale
+            confirmBtn.addEventListener('click', function () {
+                if (pendingUrl) {
+                    submitPost(pendingUrl);
+                    confirmModal.hide(); // Chiude la modale (estetico, dato che la pagina ricaricherà)
+                }
+            });
 
-            const token = document.querySelector('input[name="__RequestVerificationToken"]');
-            if (token) {
-                const hiddenInput = document.createElement('input');
-                hiddenInput.type = 'hidden';
-                hiddenInput.name = '__RequestVerificationToken';
-                hiddenInput.value = token.value;
-                form.appendChild(hiddenInput);
+            // Funzione helper per inviare il form POST
+            function submitPost(url) {
+                const form = document.createElement('form');
+                form.method = 'POST';
+                form.action = url;
+
+                const token = document.querySelector('input[name="__RequestVerificationToken"]');
+                if (token) {
+                    const hiddenInput = document.createElement('input');
+                    hiddenInput.type = 'hidden';
+                    hiddenInput.name = '__RequestVerificationToken';
+                    hiddenInput.value = token.value;
+                    form.appendChild(hiddenInput);
+                }
+
+                document.body.appendChild(form);
+                form.submit();
             }
-
-            // 6. Spediamo il form
-            document.body.appendChild(form);
-            form.submit();
         });
     </script>
 }
