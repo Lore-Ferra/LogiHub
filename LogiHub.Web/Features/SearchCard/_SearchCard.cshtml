@@ -16,20 +16,46 @@
         <div class="d-flex gap-2">
             @foreach (var btn in Model.HeaderButtons)
             {
-                <button type="@btn.Type" class="btn @btn.CssClass"
-                        @if (btn.HtmlAttributes != null)
-                        {
-                            foreach (var attr in btn.HtmlAttributes)
+                string postUrl = null;
+
+                var isPost =
+                    btn.HtmlAttributes != null
+                    && btn.HtmlAttributes.TryGetValue("data-post-action", out var postVal)
+                    && postVal == "true"
+                    && btn.HtmlAttributes.TryGetValue("data-url", out postUrl)
+                    && !string.IsNullOrWhiteSpace(postUrl);
+
+                if (isPost)
+                {
+                    <form method="post" action="@postUrl" class="d-inline">
+                        @Html.AntiForgeryToken()
+                        <button type="submit" class="btn @btn.CssClass">
+                            @if (!string.IsNullOrEmpty(btn.IconClass))
                             {
-                                @Html.Raw($"{attr.Key}=\"{attr.Value}\" ")
+                                <i class="@btn.IconClass me-2"></i>
                             }
-                        }>
-                    @if (!string.IsNullOrEmpty(btn.IconClass))
-                    {
-                        <i class="@btn.IconClass me-2"></i>
-                    }
-                    @btn.Text
-                </button>
+                            @btn.Text
+                        </button>
+                    </form>
+                }
+                else
+                {
+                    <button type="@btn.Type"
+                            class="btn @btn.CssClass"
+                            @if (btn.HtmlAttributes != null)
+                            {
+                                foreach (var attr in btn.HtmlAttributes)
+                                {
+                                    @Html.Raw($"{attr.Key}=\"{attr.Value}\" ")
+                                }
+                            }>
+                        @if (!string.IsNullOrEmpty(btn.IconClass))
+                        {
+                            <i class="@btn.IconClass me-2"></i>
+                        }
+                        @btn.Text
+                    </button>
+                }
             }
         </div>
     }
