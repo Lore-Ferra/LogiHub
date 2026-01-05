@@ -87,7 +87,6 @@ public partial class DiscrepanzeController : AuthenticatedBaseController
             SessioneId = id,
             SearchCard = searchCard,
             SearchQuery = query,
-            // Smistamento basato sul Tipo del DTO unificato
             DaSpostare = tutte.Where(x => x.Tipo == TipoDiscrepanzaOperativa.Spostato).ToList(),
             DaAggiungere = tutte.Where(x => x.Tipo == TipoDiscrepanzaOperativa.Extra).ToList(),
             DaRimuovere = tutte.Where(x => x.Tipo == TipoDiscrepanzaOperativa.Mancante).ToList(),
@@ -126,5 +125,16 @@ public partial class DiscrepanzeController : AuthenticatedBaseController
             success = true, 
             redirectUrl = Url.Action("Index", "Discrepanze", new { area = "Inventari", id = id }) 
         });
+    }
+    
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public virtual async Task<IActionResult> AnnullaDiscrepanza(Guid id, string barcode)
+    {
+        var userId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
+    
+        await _service.AnnullaDiscrepanzaAsync(id, barcode, userId);
+    
+        return Json(new { success = true });
     }
 }
