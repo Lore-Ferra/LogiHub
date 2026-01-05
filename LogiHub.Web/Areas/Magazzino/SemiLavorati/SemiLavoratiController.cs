@@ -13,6 +13,7 @@ using LogiHub.Web.Areas.Magazzino.Models;
 using Microsoft.AspNetCore.Mvc;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http;
 
 namespace LogiHub.Web.Areas.Magazzino;
 
@@ -36,16 +37,28 @@ public partial class SemiLavoratiController : AuthenticatedBaseController
         _context = context;
         _bloccoService = bloccoService;
     }
-
-    [HttpGet]
+    
     [HttpGet]
     public virtual async Task<IActionResult> Index(
         [FromQuery] string Query,
         [FromQuery] SearchCardFiltersViewModel Filters,
         int page = 1,
-        int pageSize = 25
+        int? pageSize = null
     )
     {
+        const string pageSizeKey = "Magazzino_SemiLavorati_PageSize";
+
+        int effectivePageSize;
+        if (pageSize.HasValue)
+        {
+            effectivePageSize = pageSize.Value;
+            HttpContext.Session.SetInt32(pageSizeKey, effectivePageSize);
+        }
+        else
+        {
+            effectivePageSize = HttpContext.Session.GetInt32(pageSizeKey) ?? 25;
+        }
+
         bool isBloccato = await _bloccoService.IsBloccatoAsync();
 
         if (Filters == null)
@@ -62,7 +75,7 @@ public partial class SemiLavoratiController : AuthenticatedBaseController
             Uscito = Filters.Uscito,
             SearchInColumns = Filters.SearchInColumns,
             Page = page,
-            PageSize = pageSize
+            PageSize = effectivePageSize
         };
 
         var dto = await _queries.GetSemiLavoratiListAsync(serviceQuery);
@@ -120,7 +133,7 @@ public partial class SemiLavoratiController : AuthenticatedBaseController
         {
             SearchCard = searchCardModel,
             Page = page,
-            PageSize = pageSize,
+            PageSize = effectivePageSize,
             TotalItems = dto.TotalCount,
             SemiLavorati = dto.Items
         };
