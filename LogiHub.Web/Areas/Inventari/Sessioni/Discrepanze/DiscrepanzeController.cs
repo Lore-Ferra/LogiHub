@@ -55,6 +55,7 @@ public partial class DiscrepanzeController : AuthenticatedBaseController
             Query = query,
             Filters = Filters,
             ShowFilters = false,
+            ShowUscitoFilter = false,
             HeaderButtons = new List<SearchCardButton>
             {
                 new SearchCardButton
