@@ -60,6 +60,7 @@ public partial class DettaglioController : AuthenticatedBaseController
             Filters = Filters,
             ShowFilters = false,
             ShowUscitoFilter = false,
+            ShowSearchInColumns = false,
             HeaderButtons = new List<SearchCardButton>
             {
                 new SearchCardButton
