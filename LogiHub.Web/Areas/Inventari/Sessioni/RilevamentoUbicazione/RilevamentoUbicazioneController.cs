@@ -64,6 +64,34 @@ public partial class RilevamentoUbicazioneController : AuthenticatedBaseControll
             UbicazioneId = ubicazioneId
         });
 
+        
+        var bottoneEsci = new SearchCardButton
+        {
+            Text = "Rilascia e Esci",
+            CssClass = "btn-outline-secondary",
+            IconClass = "fa-solid fa-door-open",
+            Type = "button",
+            HtmlAttributes = new Dictionary<string, string>
+            {
+                { "data-post-action", "true" },
+                { "data-url", Url.Action("Abbandona", "RilevamentoUbicazione", new { area = "Inventari", sessioneId, ubicazioneId }) },
+                { "data-confirm", "Vuoi rilasciare l'ubicazione? Altri operatori potranno lavorarci." }
+            }
+        };
+
+        // Bottone Indietro semplice (se è già Sola Lettura)
+        var bottoneIndietro = new SearchCardButton
+        {
+            Text = "Indietro",
+            CssClass = "btn-outline-secondary",
+            IconClass = "fa-solid fa-arrow-left",
+            Type = "button",
+            HtmlAttributes = new Dictionary<string, string>
+            {
+                { "onclick", $"location.href='{Url.Action("Index", "Dettaglio", new { area = "Inventari", id = sessioneId })}'" }            }
+        };
+        
+        
         var bottoneConcludi = new SearchCardButton
         {
             Text = "Concludi",
@@ -73,7 +101,7 @@ public partial class RilevamentoUbicazioneController : AuthenticatedBaseControll
             HtmlAttributes = new Dictionary<string, string>
             {
                 { "data-post-action", "true" },
-                { "data-url", Url.Action("ConcludiUbicazione", new { sessioneId, ubicazioneId }) },
+                { "data-url", Url.Action("ConcludiUbicazione", "RilevamentoUbicazione", new { area = "Inventari", sessioneId, ubicazioneId }) },
                 { "data-confirm",
                     "Sicuro di voler chiudere questa ubicazione? I pezzi non segnati saranno messi come mancanti."
                 }
@@ -111,7 +139,7 @@ public partial class RilevamentoUbicazioneController : AuthenticatedBaseControll
             ShowFilters = false,
             HeaderButtons = new List<SearchCardButton>
             {
-                // SE è sola lettura ? USA bottoneBloccato : ALTRIMENTI USA bottoneConcludi
+                isSolaLettura ? bottoneIndietro : bottoneEsci,
                 isSolaLettura ? bottoneBloccato : bottoneConcludi
             }
         };
@@ -161,5 +189,13 @@ public partial class RilevamentoUbicazioneController : AuthenticatedBaseControll
     public virtual async Task<IActionResult> ConcludiUbicazione(Guid sessioneId, Guid ubicazioneId)
     {
         await _service.CompletaUbicazioneAsync(sessioneId, ubicazioneId);
-        return RedirectToAction("Dettaglio", "Sessioni", new { area = "Inventari", id = sessioneId });    }
+        return RedirectToAction("Index", "Dettaglio", new { area = "Inventari", id = sessioneId });
+        
+    }
+    
+    [HttpPost]
+    public virtual async Task<IActionResult> Abbandona(Guid sessioneId, Guid ubicazioneId)
+    {
+        await _service.RilasciaUbicazioneAsync(sessioneId, ubicazioneId);
+        return RedirectToAction("Index", "Dettaglio", new { area = "Inventari", id = sessioneId });    }
 }
