@@ -89,7 +89,11 @@ public partial class DettaglioController : AuthenticatedBaseController
                 HtmlAttributes = new Dictionary<string, string>
                 {
                     { "data-post-action", "true" },
-                    { "data-url", Url.Action("ChiudiSessione", "Dettaglio", new { area = "Inventari", id = id }) }
+                    { "data-url", Url.Action("ChiudiSessione", "Dettaglio", new { area = "Inventari", id = id }) },
+                    { "data-confirm-modal", "true" },
+                    { "data-confirm-title", "Conferma chiusura inventario" },
+                    { "data-confirm-message", "Vuoi davvero chiudere l’inventario?" },
+                    { "data-confirm-label", data.NomeSessione }
                 }
             });
         }
@@ -111,6 +115,7 @@ public partial class DettaglioController : AuthenticatedBaseController
     }
 
     [HttpPost]
+    [ValidateAntiForgeryToken]
     public virtual async Task<IActionResult> ChiudiSessione(Guid id)
     {
         try
