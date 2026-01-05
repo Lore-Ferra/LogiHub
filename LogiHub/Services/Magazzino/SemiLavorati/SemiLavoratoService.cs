@@ -6,7 +6,6 @@ using LogiHub.Services.Magazzino.SemiLavorati.DTO;
 using LogiHub.Services.Shared;
 using Microsoft.EntityFrameworkCore;
 
-
 namespace LogiHub.Services.Magazzino.SemiLavorati;
 
 public class SemiLavoratoService : ISemiLavoratoService
@@ -20,11 +19,13 @@ public class SemiLavoratoService : ISemiLavoratoService
         _bloccoService = bloccoService;
     }
 
-    //METODI CRUD
+    // METODI CRUD
+
     public async Task<SemiLavorato> AggiungiSemiLavoratoAsync(AggiungiSemiLavoratoDTO dto)
     {
-        if (await _bloccoService.IsBloccatoAsync())
+        if (!dto.IsRettificaInventario && await _bloccoService.IsBloccatoAsync())
             throw new InvalidOperationException("Magazzino bloccato per inventario.");
+
         var semi = new SemiLavorato
         {
             Id = Guid.NewGuid(),
@@ -45,11 +46,12 @@ public class SemiLavoratoService : ISemiLavoratoService
 
     public async Task<bool> ModificaSemiLavorato(ModificaSemiLavoratoDTO dto)
     {
-        if (await _bloccoService.IsBloccatoAsync())
+        if (!dto.IsRettificaInventario && await _bloccoService.IsBloccatoAsync())
             throw new InvalidOperationException("Magazzino bloccato per inventario.");
 
         var sl = await _context.SemiLavorati.FirstOrDefaultAsync(x => x.Id == dto.Id);
         if (sl == null || sl.Eliminato) return false;
+        
         var ubicazioneOld = await _context.Ubicazioni
             .Where(x => x.UbicazioneId == sl.UbicazioneId)
             .Select(u => u.Posizione)
@@ -108,7 +110,7 @@ public class SemiLavoratoService : ISemiLavoratoService
 
     public async Task<bool> EliminaSemiLavoratoAsync(EliminaSemiLavoratoDTO dto)
     {
-        if (await _bloccoService.IsBloccatoAsync())
+        if (!dto.IsRettificaInventario && await _bloccoService.IsBloccatoAsync())
             throw new InvalidOperationException("Magazzino bloccato per inventario.");
 
         var sl = await _context.SemiLavorati.FindAsync(dto.SemiLavoratoId);
