@@ -102,7 +102,7 @@
                 {
                     <div class="col-4 col-md-2">
                         <div class="form-floating">
-                            <select class="form-select" id="filterUscito" name="Filters.Uscito">
+                            <select class="form-select" id="filterUscito" name="Filters.Uscito" onchange="this.form.submit()">
                                 <option value="0" selected="@(Model.Filters.Uscito == TriState.All)">Tutti</option>
                                 <option value="1" selected="@(Model.Filters.Uscito == TriState.True)">Sì</option>
                                 <option value="2" selected="@(Model.Filters.Uscito == TriState.False)">No</option>
