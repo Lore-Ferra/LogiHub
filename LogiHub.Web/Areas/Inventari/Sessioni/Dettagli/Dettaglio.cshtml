@@ -3,18 +3,21 @@
 
 @{
     ViewData["Title"] = Model.NomeSessione;
+    var currentUserId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
+    var ubiDaFare = Model.UbicazioniFiltrate.Where(u => !u.Completata).ToList();
+    var ubiCompletate = Model.UbicazioniFiltrate.Where(u => u.Completata).ToList();
 }
 
-<!-- Toast Container -->
 <div class="toast-container position-fixed end-0 p-3" style="z-index: 1050; top: 70px;">
     @if (TempData["ErrorMessage"] != null)
     {
-        <div id="errorToast" class="toast align-items-center text-bg-danger border-0" role="alert" aria-live="assertive" aria-atomic="true">
+        <div id="errorToast" class="toast align-items-center text-bg-danger border-0" role="alert" aria-live="assertive"
+             aria-atomic="true">
             <div class="d-flex">
-                <div class="toast-body">
-                    <i class="fa-solid fa-circle-exclamation me-2"></i> @TempData["ErrorMessage"]
+                <div class="toast-body"><i class="fa-solid fa-circle-exclamation me-2"></i> @TempData["ErrorMessage"]
                 </div>
-                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"
+                        aria-label="Close"></button>
             </div>
         </div>
     }
@@ -24,151 +27,168 @@
     @await Html.PartialAsync("~/Features/SearchCard/_SearchCard.cshtml", Model.SearchCard)
 </div>
 
-<div class="card shadow-sm mt-3">
+@* --- VERSIONE DESKTOP (TABLE) --- *@
+<div class="card shadow-sm mt-3 d-none d-md-block">
     <div class="card-body p-1">
         <div class="table-responsive">
             <table class="table table-hover align-middle mb-0">
                 <thead class="bg-light">
-                    <tr>
-                        <th class="ps-4">Ubicazione</th>
-                        <th class="text-center text-nowrap">Stato</th>
-                        <th>Dettagli</th>
-                        <th class="text-end">Azioni</th>
-                    </tr>
+                <tr>
+                    <th class="ps-4 text-start" style="width: 30%">Ubicazione</th>
+                    <th class="text-center" style="width: 20%">Stato</th>
+                    <th class="text-end pe-4" style="width: 50%">Dettagli Operatore</th>
+                </tr>
                 </thead>
                 <tbody>
-                    @{
-                        var ubiDaFare = Model.UbicazioniFiltrate.Where(u => !u.Completata);
-                        var ubiCompletate = Model.UbicazioniFiltrate.Where(u => u.Completata);
-                        var currentUserId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
-                    }
-
-                    @if (ubiDaFare.Any())
+                @if (ubiDaFare.Any())
+                {
+                    <tr class="table-secondary">
+                        <td colspan="3" class="ps-4 fw-bold bg-body-secondary text-muted small text-uppercase">Da Fare</td>
+                    </tr>
+                    @foreach (var ubi in ubiDaFare)
                     {
-                        <tr class="table-secondary">
-                            <td colspan="4" class="ps-4 fw-semibold text-muted small uppercase">Da Fare</td>
-                        </tr>
-                        @foreach (var ubi in ubiDaFare)
-                        {
-                            if (ubi.InLavorazione)
-                            {
-                                var isMyUbi = ubi.OperatoreCorrenteId == currentUserId;
-                                <tr class="table-warning">
-                                    <td class="ps-4">
-                                        <div class="text-primary fw-bold">
-                                            @ubi.Posizione
-                                        </div>
-                                    </td>
-                                    <td class="text-center text-nowrap">
-                                        <span class="badge bg-warning text-dark">Occupato</span>
-                                    </td>
-                                    <td>
-                                        <small class="text-dark">In lavorazione da: <i class="fa-solid fa-user me-1"></i>
-                                            <strong>@ubi.OperatoreCorrente</strong>
-                                            </small>
-                                    </td>
-                                    <td class="text-end">
-                                        @if (isMyUbi)
-                                        {
-                                            <a href="@Url.Action("Index", "RilevamentoUbicazione", new { sessioneId = Model.SessioneId, ubicazioneId = ubi.UbicazioneId })" class="btn btn-sm btn-primary">
-                                                <span class="d-none d-md-inline">Riprendi</span>
-                                                <i class="fa-solid fa-arrow-right ms-1"></i>
-                                            </a>
-                                        }
-                                    </td>
-                                </tr>
-                            }
-                            else
-                            {
-                                <tr>
-                                    <td class="ps-4">
-                                        <div class="text-primary fw-bold">
-                                            @ubi.Posizione
-                                        </div>
-                                    </td>
-                                    <td class="text-center text-nowrap">
-                                        <span class="badge rounded-pill bg-light text-dark border">In attesa</span>
-                                    </td>
-                                    <td></td>
-                                    <td class="text-end text-nowrap">
-                                        <a href="@Url.Action("Index", "RilevamentoUbicazione", new { sessioneId = Model.SessioneId, ubicazioneId = ubi.UbicazioneId })" class="btn btn-sm btn-outline-primary">
-                                            <span class="d-none d-md-inline">Inizia</span>
-                                            <i class="fa-solid fa-play ms-1"></i>
-                                        </a>
-                                    </td>
-                                </tr>
-                            }
-                        }
-                    }
+                        var isMyUbi = ubi.OperatoreCorrenteId == currentUserId;
+                        var canEnter = !ubi.InLavorazione || isMyUbi;
 
-                    @if (ubiCompletate.Any())
-                    {
-                        <tr class="table-secondary">
-                            <td colspan="4" class="ps-4 fw-semibold text-muted small uppercase">Completati</td>
-                        </tr>
-                        @foreach (var ubi in ubiCompletate)
-                        {
-                            <tr class="bg-light">
-                                <td class="ps-4 text-primary fw-bold">@ubi.Posizione</td>
-                                <td class="text-center text-nowrap">
-                                    <span class="badge bg-success">Completato</span>
-                                </td>
-                                <td>
-                                    <small class="text-muted">Finito da: <i class="fa-solid fa-user me-1"></i>
+                        <tr class="@(ubi.InLavorazione ? "table-warning" : "")"
+                            style="@(canEnter ? "cursor:pointer" : "")"
+                            @if (canEnter)
+                            {
+                            <text>onclick="window.location.href='@Url.Action("Index", "RilevamentoUbicazione", new { sessioneId = Model.SessioneId, ubicazioneId = ubi.UbicazioneId })'"
+                            </text>
+                            }>
+                            
+                            <td class="ps-4 text-start fw-bold text-primary">@ubi.Posizione</td>
+                            
+                            <td class="text-center">
+                                @if (ubi.InLavorazione)
+                                {
+                                    <span class="badge bg-warning text-dark">In Corso</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-light text-dark border">In attesa</span>
+                                }
+                            </td>
+                            
+                            <td class="text-end pe-4">
+                                @if (ubi.InLavorazione)
+                                {
+                                    <small><i class="fa-solid fa-user-gear me-1"></i> In lavorazione da:
                                         <strong>@ubi.OperatoreCorrente</strong></small>
-                                </td>
-                                <td class="text-end">
-                                </td>
-                            </tr>
-                        }
+                                }
+                            </td>
+                        </tr>
                     }
+                }
+                @if (ubiCompletate.Any())
+                {
+                    <tr class="table-secondary">
+                        <td colspan="3" class="ps-4 fw-bold bg-body-secondary text-muted small text-uppercase">Completati</td>
+                    </tr>
+                    @foreach (var ubi in ubiCompletate)
+                    {
+                        <tr class="bg-light" style="cursor:pointer"
+                            onclick="window.location.href='@Url.Action("Index", "RilevamentoUbicazione", new { sessioneId = Model.SessioneId, ubicazioneId = ubi.UbicazioneId })'">
+                            @* Allineamento SX *@
+                            <td class="ps-4 text-start fw-bold text-muted">@ubi.Posizione</td>
+
+                            @* Allineamento CENTRO *@
+                            <td class="text-center"><span class="badge bg-success">Completato</span></td>
+
+                            @* Allineamento DX *@
+                            <td class="text-end pe-4">
+                                <small class="text-muted"><i class="fa-solid fa-check-double me-1"></i> Chiuso da:
+                                    <strong>@ubi.OperatoreCorrente</strong></small>
+                            </td>
+                        </tr>
+                    }
+                }
                 </tbody>
             </table>
         </div>
     </div>
 </div>
 
+@* --- VERSIONE MOBILE (CARDS) --- *@
+<div class="d-md-none mt-3">
+    @foreach (var ubi in ubiDaFare)
+    {
+        var isMyUbi = ubi.OperatoreCorrenteId == currentUserId;
+        var canEnter = !ubi.InLavorazione || isMyUbi;
+
+        <div class="card shadow-sm mb-2"
+             style="@(canEnter ? "cursor:pointer" : "opacity:0.8")"
+             @if (canEnter)
+             {
+             <text>onclick="window.location.href='@Url.Action("Index", "RilevamentoUbicazione", new { sessioneId = Model.SessioneId, ubicazioneId = ubi.UbicazioneId })'"
+             </text>
+             }>
+            <div class="card-body p-3">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div class="fw-bold">
+                        <div class="text-primary mb-1">@ubi.Posizione</div>
+                        <small class="text-muted opacity-75">
+                            <i class="fa-solid fa-user me-1"></i> @(ubi.InLavorazione ? ubi.OperatoreCorrente : "Nessun operatore")
+                        </small>
+                    </div>
+                    <div>
+                        @if (ubi.InLavorazione)
+                        {
+                            <span class="badge text-bg-warning"><i class="fa-solid fa-circle fa-fade me-1"></i>In Corso</span>
+                        }
+                        else
+                        {
+                            <span class="badge border text-secondary bg-light">In attesa</span>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+
+    @if (ubiCompletate.Any())
+    {
+        <div class="text-muted small fw-bold text-uppercase mt-4 mb-2 ms-1">Completati</div>
+        @foreach (var ubi in ubiCompletate)
+        {
+            @* Modificato: Rimossa la barratura, badge verde, e aggiunto onclick *@
+            <div class="card shadow-sm mb-2 bg-light border-0"
+                 style="cursor:pointer"
+                 onclick="window.location.href='@Url.Action("Index", "RilevamentoUbicazione", new { sessioneId = Model.SessioneId, ubicazioneId = ubi.UbicazioneId })'">
+                <div class="card-body p-3">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div class="fw-bold">
+                            @* Rimossa classe text-decoration-line-through *@
+                            <div class="text-muted mb-1">@ubi.Posizione</div>
+                            <small class="text-muted opacity-75"><i class="fa-solid fa-check me-1"></i> Chiuso
+                                da: @ubi.OperatoreCorrente</small>
+                        </div>
+                        <div>
+                            @* Badge verde come desktop *@
+                            <span class="badge bg-success">Completato</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    }
+</div>
+
 @section Scripts {
     <script>
-        document.addEventListener('click', function (e) {
-            const btn = e.target.closest('[data-post-action]');
-            if (!btn) return;
-
-            e.preventDefault();
-
-            const url = btn.getAttribute('data-url');
-            const confirmMsg = btn.getAttribute('data-confirm');
-
-            if (confirmMsg && !confirm(confirmMsg)) return;
-
-            const form = document.createElement('form');
-            form.method = 'POST';
-            form.action = url;
-
-            const token = document.querySelector('input[name="__RequestVerificationToken"]');
-            if (token) {
-                const hiddenInput = document.createElement('input');
-                hiddenInput.type = 'hidden';
-                hiddenInput.name = '__RequestVerificationToken';
-                hiddenInput.value = token.value;
-                form.appendChild(hiddenInput);
-            }
-
-            document.body.appendChild(form);
-            form.submit();
-        });
 
         @if (TempData["ErrorMessage"] != null)
         {
             <text>
-            document.addEventListener('DOMContentLoaded', function () {
-                var toastEl = document.getElementById('errorToast');
-                var toast = new bootstrap.Toast(toastEl, { delay: 5000 });
-                toast.show();
-            });
+                document.addEventListener('DOMContentLoaded', function () {
+                    var toastEl = document.getElementById('errorToast');
+                    var toast = new bootstrap.Toast(toastEl, {delay: 5000});
+                    toast.show();
+                });
             </text>
         }
-        
+
         window.addEventListener('pageshow', function (event) {
             if (event.persisted) {
                 window.location.reload();
@@ -176,4 +196,5 @@
         });
     </script>
 }
+
 @Html.AntiForgeryToken()
