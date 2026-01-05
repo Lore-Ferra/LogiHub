@@ -27,8 +27,16 @@
     @await Html.PartialAsync("~/Features/SearchCard/_SearchCard.cshtml", Model.SearchCard)
 </div>
 
+@{
+    var count = Model.TotalItems;
+    var verbo = count == 1 ? "Trovato" : "Trovati";
+    var nome = count == 1 ? "semilavorato" : "semilavorati";
+}
+
 <div class="mt-2 mb-2 ps-1">
-    <small class="text-muted">Trovati <strong id="semilavorati-counter">@Model.TotalItems</strong> semilavorati</small>
+    <small class="text-muted">
+        @verbo <strong id="semilavorati-counter">@count</strong> @nome
+    </small>
 </div>
 
 <div class="d-md-none" id="mobile-list-container">

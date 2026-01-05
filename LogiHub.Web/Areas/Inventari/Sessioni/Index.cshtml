@@ -15,6 +15,18 @@
     @await Html.PartialAsync("~/Features/SearchCard/_SearchCard.cshtml", Model.SearchCard)
 </div>
 
+@{
+    var count = Model.TotalItems;
+    var verbo = count == 1 ? "Trovata" : "Trovate";
+    var nome = count == 1 ? "sessione" : "sessioni";
+}
+
+<div class="mt-2 mb-2 ps-1">
+    <small class="text-muted">
+        @verbo <strong>@count</strong> @nome
+    </small>
+</div>
+
 @* --- VERSIONE MOBILE (CARDS) --- *@
 <div class="d-md-none mt-3">
     @foreach (var item in Model.Sessioni)
@@ -39,6 +51,13 @@
             </div>
         </div>
     }
+    @if (!Model.Sessioni.Any())
+    {
+        <div class="text-center py-5 text-muted">
+            <i class="fas fa-box-open fa-3x mb-3"></i>
+            <p>Nessuna sessione trovata.</p>
+        </div>
+    }
 </div>
 
 @* --- VERSIONE DESKTOP (TABELLA) --- *@
@@ -60,7 +79,10 @@
                         onclick="window.location.href='@Url.Action("Index", "Dettaglio", new { id = item.Id })'">
                         <td class="ps-3">
                             <div class="@(item.Chiuso ? "" : "text-primary") mb-1">@item.NomeSessione</div>
-                            <small class="text-muted opacity-75"><i class="fa-solid fa-calendar me-1"></i> @item.DataCreazione.ToString("dd/MM/yyyy HH:mm")</small>
+                            <small class="text-muted opacity-75">
+                                <i class="fa-solid fa-calendar me-1"></i>
+                                @item.DataCreazione.ToString("dd/MM/yyyy HH:mm")
+                            </small>
                         </td>
                         <td class="text-center">
                             @if (item.Chiuso) {
@@ -70,6 +92,16 @@
                                     <i class="fa-solid fa-circle fa-fade me-2" style="font-size: 0.6rem;"></i>In Corso
                                 </span>
                             }
+                        </td>
+                    </tr>
+                }
+
+                @if (!Model.Sessioni.Any())
+                {
+                    <tr>
+                        <td colspan="2" class="text-center py-5 text-muted">
+                            <i class="fas fa-box-open fa-3x mb-3"></i>
+                            <p>Nessuna sessione trovata.</p>
                         </td>
                     </tr>
                 }

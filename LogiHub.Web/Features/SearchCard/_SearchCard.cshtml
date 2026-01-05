@@ -39,8 +39,13 @@
 <div class="card shadow-sm mb-3 border-0">
     <div class="card-body">
         <form method="get">
-            <div class="row g-2 @(Model.ShowFilters ? "mb-3" : "")">
-                <div class="@(Model.ShowFilters ? "col-8 col-md-8" : "col-12 col-md-10")">
+            @{
+                var anyRightFilter = Model.ShowUscitoFilter;
+                var addBottomSpacing = anyRightFilter || Model.ShowSearchInColumns;
+            }
+
+            <div class="row g-2 @(addBottomSpacing ? "mb-3" : "")">
+                <div class="@(anyRightFilter ? "col-8 col-md-8" : "col-12 col-md-10")">
                     <div class="input-group">
                         <span class="input-group-text bg-transparent border-end-0 text-muted">
                             <i class="fas fa-search"></i>
@@ -57,7 +62,7 @@
                     </div>
                 </div>
 
-                @if (Model.ShowFilters)
+                @if (Model.ShowUscitoFilter)
                 {
                     <div class="col-4 col-md-2">
                         <div class="form-floating">
@@ -79,27 +84,24 @@
                 </div>
             </div>
 
-            @if (Model.ShowFilters)
+            @if (Model.ShowSearchInColumns)
             {
                 <div class="d-flex align-items-center flex-wrap gap-2">
                     <span class="small text-uppercase text-muted fw-bold">Cerca in:</span>
+
                     @{
-                        var columns = new Dictionary<string, string>
-                        {
-                            { "Barcode", "Barcode" },
-                            { "Descrizione", "Descrizione" },
-                            { "Ubicazione", "Ubicazione" },
-                            { "UltimaModifica", "Ultima modifica" }
-                        };
-                        var currentFilters = Model.Filters.SearchInColumns ?? new List<string> { "Barcode", "Descrizione", "Ubicazione", "UltimaModifica" };
+                        var options = Model.SearchInColumns ?? new List<SearchInColumnOption>();
+                        var currentFilters = Model.Filters.SearchInColumns ?? new List<string>();
                     }
-                    @foreach (var col in columns)
+
+                    @foreach (var opt in options)
                     {
-                        var isChecked = currentFilters.Contains(col.Key);
-                        var id = $"col_{col.Key}";
-                        <input type="checkbox" class="btn-check" id="@id" name="Filters.SearchInColumns" value="@col.Key"
+                        var isChecked = currentFilters.Contains(opt.Key);
+                        var id = $"col_{opt.Key}";
+
+                        <input type="checkbox" class="btn-check" id="@id" name="Filters.SearchInColumns" value="@opt.Key"
                                autocomplete="off" @(isChecked ? "checked" : "")>
-                        <label class="btn btn-outline-primary btn-sm rounded-pill" for="@id">@col.Value</label>
+                        <label class="btn btn-outline-primary btn-sm rounded-pill" for="@id">@opt.Label</label>
                     }
                 </div>
             }

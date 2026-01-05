@@ -41,13 +41,12 @@ public partial class SessioniController : AuthenticatedBaseController
     {
         bool isBloccato = await _bloccoService.IsBloccatoAsync();
         
-        // 1. Filtri
         if (Filters == null)
         {
             Filters = new SearchCardFiltersViewModel();
         }
+        Filters.SearchInColumns ??= new List<string> { "NomeSessione", "DataCreazione" };
         
-        // 2. Controllo se esiste già un inventario aperto (per la logica del bottone)
         bool inventarioAttivo = await _context.SessioniInventario.AnyAsync(s => !s.Chiuso);
 
         var bottoneAttivo = new SearchCardButton
@@ -78,30 +77,86 @@ public partial class SessioniController : AuthenticatedBaseController
             }
         };
         
-        
-        // 3. Costruzione della SearchCard
         var searchCardModel = new SearchCardViewModel
         {
             Title = "📋 Storico Inventari",
             Placeholder = "Cerca sessione...",
             Query = Query,
             Filters = Filters,
+
+            ShowUscitoFilter = false,
+            ShowSearchInColumns = true,
+
+            SearchInColumns = new()
+            {
+                new() { Key = "NomeSessione", Label = "Nome sessione", DefaultSelected = true },
+                new() { Key = "DataCreazione", Label = "Data creazione", DefaultSelected = true },
+            },
+
             HeaderButtons = new List<SearchCardButton>
             {
                 isBloccato ? bottoneDisabilitato : bottoneAttivo
             }
         };
         
-
-        // 4. Query per recuperare i dati 
         var queryBase = _context.SessioniInventario.AsNoTracking();
 
-        if (!string.IsNullOrEmpty(Query))
+        if (!string.IsNullOrWhiteSpace(Query))
         {
-            queryBase = queryBase.Where(x => x.NomeSessione.Contains(Query));
+            var q = Query.Trim();
+            var cols = Filters.SearchInColumns ?? new List<string>();
+
+            if (cols.Count == 0)
+                cols = new List<string> { "NomeSessione", "DataCreazione" };
+
+            bool hasFullDate = DateTime.TryParseExact(
+                q,
+                "dd/MM/yyyy",
+                System.Globalization.CultureInfo.InvariantCulture,
+                System.Globalization.DateTimeStyles.None,
+                out var fullDate);
+
+            bool hasDayMonth = DateTime.TryParseExact(
+                q,
+                "dd/MM",
+                System.Globalization.CultureInfo.InvariantCulture,
+                System.Globalization.DateTimeStyles.None,
+                out var dayMonth);
+
+            int day = 0;
+
+            bool hasDayOnly =
+                q.Length == 2 &&
+                int.TryParse(q, out day) &&
+                day >= 1 && day <= 31;
+
+            queryBase = queryBase.Where(x =>
+                (cols.Contains("NomeSessione") &&
+                 x.NomeSessione != null &&
+                 x.NomeSessione.Contains(q))
+
+                ||
+
+                (cols.Contains("DataCreazione") &&
+                 (
+                     (hasFullDate &&
+                      x.DataCreazione >= fullDate.Date &&
+                      x.DataCreazione < fullDate.Date.AddDays(1))
+
+                     ||
+
+                     (hasDayMonth &&
+                      x.DataCreazione.Day == dayMonth.Day &&
+                      x.DataCreazione.Month == dayMonth.Month)
+
+                     ||
+
+                     (hasDayOnly &&
+                      (x.DataCreazione.Day == day || x.DataCreazione.Month == day))
+                 ))
+            );
         }
 
-        // Paginazione
         var totalItems = await queryBase.CountAsync();
         var items = await queryBase
             .OrderByDescending(x => x.DataCreazione)
@@ -116,7 +171,6 @@ public partial class SessioniController : AuthenticatedBaseController
             })
             .ToListAsync();
 
-        // 5. Costruzione ViewModel
         var model = new SessioniIndexViewModel
         {
             SearchCard = searchCardModel,
