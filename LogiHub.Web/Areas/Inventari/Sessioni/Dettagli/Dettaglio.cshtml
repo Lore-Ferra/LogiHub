@@ -177,10 +177,42 @@
 
 @section Scripts {
     <script>
+        document.addEventListener('click', function (e) {
+            const btn = e.target.closest('[data-post-action]');
+            if (!btn) return;
+
+            e.preventDefault();
+
+            const url = btn.getAttribute('data-url');
+            const confirmMsg = btn.getAttribute('data-confirm');
+
+            if (confirmMsg && !confirm(confirmMsg)) return;
+
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = url;
+
+            const token = document.querySelector('input[name="__RequestVerificationToken"]');
+            if (token) {
+                const hiddenInput = document.createElement('input');
+                hiddenInput.type = 'hidden';
+                hiddenInput.name = '__RequestVerificationToken';
+                hiddenInput.value = token.value;
+                form.appendChild(hiddenInput);
+            }
+
+            document.body.appendChild(form);
+            form.submit();
+        });
 
         @if (TempData["ErrorMessage"] != null)
         {
             <text>
+            document.addEventListener('DOMContentLoaded', function () {
+                var toastEl = document.getElementById('errorToast');
+                var toast = new bootstrap.Toast(toastEl, { delay: 5000 });
+                toast.show();
+            });
                 document.addEventListener('DOMContentLoaded', function () {
                     var toastEl = document.getElementById('errorToast');
                     var toast = new bootstrap.Toast(toastEl, {delay: 5000});
@@ -188,6 +220,7 @@
                 });
             </text>
         }
+        
 
         window.addEventListener('pageshow', function (event) {
             if (event.persisted) {
