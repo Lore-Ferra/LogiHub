@@ -59,6 +59,8 @@ public partial class DettaglioController : AuthenticatedBaseController
             Query = query,
             Filters = Filters,
             ShowFilters = false,
+            ShowUscitoFilter = false,
+            ShowSearchInColumns = false,
             HeaderButtons = new List<SearchCardButton>
             {
                 new SearchCardButton
