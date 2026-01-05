@@ -8,7 +8,7 @@ public class SearchCardViewModel
 
     public string Query { get; set; }
     public string Placeholder { get; set; } = "Cerca…";
-    
+    public string BackUrl { get; set; }
     public SearchCardFiltersViewModel Filters { get; set; } = new();
 
     public List<SearchCardButton> HeaderButtons { get; set; } = new();

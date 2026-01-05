@@ -33,8 +33,7 @@ public virtual async Task<IActionResult> Index(
 
     // Verifica se esistono ancora discrepanze da gestire
     bool haAperte = tutte.Any(x => x.Stato == StatoDiscrepanza.Aperta);
-
-    // 1. Bottone TORNA (Sempre uguale)
+    
     var btnTorna = new SearchCardButton
     {
         Text = "Torna al Dettaglio",
@@ -46,8 +45,7 @@ public virtual async Task<IActionResult> Index(
             { "onclick", $"location.href='{Url.Action("Dettaglio", "Sessioni", new { area = "Inventari", id = id })}'" }
         }
     };
-
-    // 2. Bottone RISOLVI ATTIVO
+    
     var btnRisolviAttivo = new SearchCardButton
     {
         Text = "Risolvi Tutto",

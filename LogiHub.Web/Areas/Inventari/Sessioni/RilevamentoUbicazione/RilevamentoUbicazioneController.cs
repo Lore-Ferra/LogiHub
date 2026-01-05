@@ -108,7 +108,7 @@ public partial class RilevamentoUbicazioneController : AuthenticatedBaseControll
             }
         };
 
-// 2. Definizione Bottone DISABILITATO (Bloccato)
+        // 2. Definizione Bottone DISABILITATO (Bloccato)
         var bottoneBloccato = new SearchCardButton
         {
             Text = "Concludi",
@@ -129,6 +129,14 @@ public partial class RilevamentoUbicazioneController : AuthenticatedBaseControll
         {
             TempData["WarningMessage"] = "Questa ubicazione è già stata completata. Modalità sola lettura.";
         }
+        
+        
+        var headerButtons = new List<SearchCardButton>();
+        if (!isSolaLettura)
+        {
+            headerButtons.Add(bottoneEsci);
+        }
+        headerButtons.Add(isSolaLettura ? bottoneBloccato : bottoneConcludi);
 
        // 4. Costruzione SearchCard con Logica Condizionale
         var searchCard = new SearchCardViewModel
@@ -137,11 +145,8 @@ public partial class RilevamentoUbicazioneController : AuthenticatedBaseControll
             Placeholder = "Cerca barcode o pezzo...",
             Query = query,
             ShowFilters = false,
-            HeaderButtons = new List<SearchCardButton>
-            {
-                isSolaLettura ? bottoneIndietro : bottoneEsci,
-                isSolaLettura ? bottoneBloccato : bottoneConcludi
-            }
+            BackUrl = Url.Action("Index", "Dettaglio", new { area = "Inventari", id = sessioneId }),
+            HeaderButtons = headerButtons
         };
 
         // 6. Creazione ViewModel
