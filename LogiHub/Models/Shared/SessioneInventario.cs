@@ -85,4 +85,11 @@ public class RigaInventario
     public Guid? RilevatoDaUserId { get; set; }
     [ForeignKey(nameof(RilevatoDaUserId))] 
     public User? RilevatoDaUser { get; set; }
+    
+    public StatoDiscrepanza StatoDiscrepanza { get; set; } = StatoDiscrepanza.Aperta;
+    public TipoRisoluzione? TipoRisoluzione { get; set; }
+    
+    public DateTime? DataRisoluzione { get; set; }
+    public Guid? RisoltoDaUserId { get; set; }
+    [ForeignKey(nameof(RisoltoDaUserId))] public User? RisoltoDaUser { get; set; }
 }
