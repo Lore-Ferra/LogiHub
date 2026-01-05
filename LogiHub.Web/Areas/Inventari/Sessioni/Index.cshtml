@@ -1,4 +1,5 @@
 ﻿@model LogiHub.Web.Areas.Inventari.Sessioni.SessioniIndexViewModel
+@using LogiHub.Web.Features.Modals
 @{
     bool isBloccato = await BloccoService.IsBloccatoAsync();
 }
@@ -11,7 +12,7 @@
 }
 
 <div>
-    @await Html.PartialAsync("~/Features/SearchCard/_SearchCardSimple.cshtml", Model.SearchCard)
+    @await Html.PartialAsync("~/Features/SearchCard/_SearchCard.cshtml", Model.SearchCard)
 </div>
 
 @* --- VERSIONE MOBILE (CARDS) --- *@
@@ -23,9 +24,9 @@
              onclick="window.location.href='@Url.Action("Index", "Dettaglio", new { id = item.Id })'">
             <div class="card-body p-3">
                 <div class="d-flex justify-content-between align-items-center">
-                    <div>
-                        <small class="text-muted">@item.DataCreazione.ToString("dd/MM/yyyy HH:mm")</small>
-                        <div class="@(item.Chiuso ? "" : "fw-bold text-primary")">@item.NomeSessione</div>
+                    <div class="fw-bold">
+                        <div class="@(item.Chiuso ? "" : "text-primary") mb-1">@item.NomeSessione</div>
+                        <small class="text-muted opacity-75"><i class="fa-solid fa-calendar me-1"></i> @item.DataCreazione.ToString("dd/MM/yyyy HH:mm")</small>
                     </div>
                     <div>
                         @if (item.Chiuso) {
@@ -47,8 +48,7 @@
             <table class="table table-hover align-middle mb-0">
                 <thead>
                 <tr class="text-secondary small text-uppercase">
-                    <th class="ps-3">Data</th>
-                    <th>Nome Sessione</th>
+                    <th class="ps-3">Sessione</th>
                     <th class="text-center">Stato</th>
                 </tr>
                 </thead>
@@ -59,10 +59,9 @@
                         style="cursor:pointer"
                         onclick="window.location.href='@Url.Action("Index", "Dettaglio", new { id = item.Id })'">
                         <td class="ps-3">
-                            @item.DataCreazione.ToString("dd/MM/yyyy")
-                            <small class="d-block opacity-75">@item.DataCreazione.ToString("HH:mm")</small>
+                            <div class="@(item.Chiuso ? "" : "text-primary") mb-1">@item.NomeSessione</div>
+                            <small class="text-muted opacity-75"><i class="fa-solid fa-calendar me-1"></i> @item.DataCreazione.ToString("dd/MM/yyyy HH:mm")</small>
                         </td>
-                        <td class="@(item.Chiuso ? "" : "text-primary")">@item.NomeSessione</td>
                         <td class="text-center">
                             @if (item.Chiuso) {
                                 <span class="badge bg-secondary border-0 opacity-75">Completato</span>
@@ -84,10 +83,10 @@
 {
     <button type="button"
             class="fab d-md-none border-0"
-            data-post-action="true"
-            data-title="Aggiungi Semilavorato"
+            data-confirm-trigger
             data-url="@Url.Action("AggiungiSessioneInventario", "Sessioni", new { area = "Inventari" })"
-            data-confirm="Vuoi avviare una nuova sessione? Il magazzino verrà bloccato.">
+            data-type="form"
+            data-message="Vuoi avviare una nuova sessione? Il magazzino verrà bloccato.">
         <i class="fa-solid fa-plus"></i>
     </button>
 }
@@ -99,38 +98,18 @@ else
     </button>
 }
 
+@* --- MODALE DI CONFERMA --- *@
+@await Html.PartialAsync("~/Features/Modals/_ConfirmModal.cshtml", new ConfirmModalViewModel {
+    ModalId = "actionConfirmModal",
+    Title = "Conferma Operazione",
+    ConfirmButtonText = "Conferma",
+    ConfirmButtonClass = "btn-primary",
+    IconClass = "fa-solid fa-circle-question text-primary"
+})
+
 @section Scripts {
-    <script>
-        document.addEventListener('click', function (e) {
-
-            const btn = e.target.closest('[data-post-action]');
-            if (!btn) return;
-
-            e.preventDefault();
-
-            const url = btn.getAttribute('data-url');
-            const confirmMsg = btn.getAttribute('data-confirm');
-
-            if (confirmMsg && !confirm(confirmMsg)) return;
-
-            const form = document.createElement('form');
-            form.method = 'POST';
-            form.action = url;
-
-            const token = document.querySelector('input[name="__RequestVerificationToken"]');
-            if (token) {
-                const hiddenInput = document.createElement('input');
-                hiddenInput.type = 'hidden';
-                hiddenInput.name = '__RequestVerificationToken';
-                hiddenInput.value = token.value;
-                form.appendChild(hiddenInput);
-            }
-
-            // 6. Spediamo il form
-            document.body.appendChild(form);
-            form.submit();
-        });
-    </script>
+    @* Assicurati che il percorso sia corretto in base a dove viene compilato il TS *@
+    <script src="~/js/Features/Modals/ConfirmModal.js"></script>
 }
 
 @Html.AntiForgeryToken()

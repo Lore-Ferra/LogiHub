@@ -2,7 +2,7 @@
 @using System.Security.Claims
 
 @{
-    ViewData["Title"] = "Inventario - " + Model.NomeSessione;
+    ViewData["Title"] = Model.NomeSessione;
 }
 
 <!-- Toast Container -->
@@ -21,7 +21,7 @@
 </div>
 
 <div>
-    @await Html.PartialAsync("~/Features/SearchCard/_SearchCardSimple.cshtml", Model.SearchCard)
+    @await Html.PartialAsync("~/Features/SearchCard/_SearchCard.cshtml", Model.SearchCard)
 </div>
 
 <div class="card shadow-sm mt-3">
@@ -32,13 +32,13 @@
                     <tr>
                         <th class="ps-4">Ubicazione</th>
                         <th class="text-center text-nowrap">Stato</th>
+                        <th>Dettagli</th>
                         <th class="text-end">Azioni</th>
                     </tr>
                 </thead>
                 <tbody>
                     @{
-                        var ubiDaFare = Model.UbicazioniFiltrate.Where(u => !u.Completata && !u.InLavorazione);
-                        var ubiInLavorazione = Model.UbicazioniFiltrate.Where(u => u.InLavorazione);
+                        var ubiDaFare = Model.UbicazioniFiltrate.Where(u => !u.Completata);
                         var ubiCompletate = Model.UbicazioniFiltrate.Where(u => u.Completata);
                         var currentUserId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
                     }
@@ -46,80 +46,78 @@
                     @if (ubiDaFare.Any())
                     {
                         <tr class="table-secondary">
-                            <td colspan="3" class="ps-4 fw-semibold text-muted small uppercase">Da Fare</td>
+                            <td colspan="4" class="ps-4 fw-semibold text-muted small uppercase">Da Fare</td>
                         </tr>
                         @foreach (var ubi in ubiDaFare)
                         {
-                            <tr>
-                                <td class="ps-4">
-                                    <a href="@Url.Action("Index", "RilevamentoUbicazione", new { sessioneId = Model.SessioneId, ubicazioneId = ubi.UbicazioneId })" class="text-decoration-none fw-bold">
-                                        @ubi.Posizione
-                                    </a>
-                                </td>
-                                <td class="text-center text-nowrap">
-                                    <span class="badge rounded-pill bg-light text-dark border">In attesa</span>
-                                </td>
-                                <td class="text-end text-nowrap">
-                                    <a href="@Url.Action("Index", "RilevamentoUbicazione", new { sessioneId = Model.SessioneId, ubicazioneId = ubi.UbicazioneId })" class="btn btn-sm btn-outline-primary">
-                                        <span class="d-none d-md-inline">Inizia</span>
-                                        <i class="fa-solid fa-play ms-1"></i>
-                                    </a>
-                                </td>
-                            </tr>
-                        }
-                    }
-
-                    @if (ubiInLavorazione.Any())
-                    {
-                        <tr class="table-secondary">
-                            <td colspan="3" class="ps-4 fw-semibold text-muted small uppercase">In Lavorazione</td>
-                        </tr>
-                        @foreach (var ubi in ubiInLavorazione)
-                        {
-                            var isMyUbi = ubi.OperatoreCorrenteId == currentUserId;
-                            <tr class="table-warning">
-                                <td class="ps-4">
-                                    <a href="@Url.Action("Index", "RilevamentoUbicazione", new { sessioneId = Model.SessioneId, ubicazioneId = ubi.UbicazioneId })" class="text-decoration-none fw-bold text-dark">
-                                        @ubi.Posizione
-                                    </a>
-                                </td>
-                                <td class="text-center text-nowrap">
-                                    <span class="badge bg-warning text-dark">Occupato</span>
-                                </td>
-                                <td class="text-end">
-                                    <small class="text-dark d-block d-md-inline mb-1 mb-md-0">
-                                        <i class="fa-solid fa-user me-1"></i> @ubi.OperatoreCorrente
-                                    </small>
-                                    @if (isMyUbi)
-                                    {
-                                        <a href="@Url.Action("Index", "RilevamentoUbicazione", new { sessioneId = Model.SessioneId, ubicazioneId = ubi.UbicazioneId })" class="btn btn-sm btn-primary ms-2">
-                                            <span class="d-none d-md-inline">Riprendi</span>
-                                            <i class="fa-solid fa-arrow-right ms-1"></i>
+                            if (ubi.InLavorazione)
+                            {
+                                var isMyUbi = ubi.OperatoreCorrenteId == currentUserId;
+                                <tr class="table-warning">
+                                    <td class="ps-4">
+                                        <div class="text-primary fw-bold">
+                                            @ubi.Posizione
+                                        </div>
+                                    </td>
+                                    <td class="text-center text-nowrap">
+                                        <span class="badge bg-warning text-dark">Occupato</span>
+                                    </td>
+                                    <td>
+                                        <small class="text-dark">In lavorazione da: <i class="fa-solid fa-user me-1"></i>
+                                            <strong>@ubi.OperatoreCorrente</strong>
+                                            </small>
+                                    </td>
+                                    <td class="text-end">
+                                        @if (isMyUbi)
+                                        {
+                                            <a href="@Url.Action("Index", "RilevamentoUbicazione", new { sessioneId = Model.SessioneId, ubicazioneId = ubi.UbicazioneId })" class="btn btn-sm btn-primary">
+                                                <span class="d-none d-md-inline">Riprendi</span>
+                                                <i class="fa-solid fa-arrow-right ms-1"></i>
+                                            </a>
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                            else
+                            {
+                                <tr>
+                                    <td class="ps-4">
+                                        <div class="text-primary fw-bold">
+                                            @ubi.Posizione
+                                        </div>
+                                    </td>
+                                    <td class="text-center text-nowrap">
+                                        <span class="badge rounded-pill bg-light text-dark border">In attesa</span>
+                                    </td>
+                                    <td></td>
+                                    <td class="text-end text-nowrap">
+                                        <a href="@Url.Action("Index", "RilevamentoUbicazione", new { sessioneId = Model.SessioneId, ubicazioneId = ubi.UbicazioneId })" class="btn btn-sm btn-outline-primary">
+                                            <span class="d-none d-md-inline">Inizia</span>
+                                            <i class="fa-solid fa-play ms-1"></i>
                                         </a>
-                                    }
-                                </td>
-                            </tr>
+                                    </td>
+                                </tr>
+                            }
                         }
                     }
 
                     @if (ubiCompletate.Any())
                     {
                         <tr class="table-secondary">
-                            <td colspan="3" class="ps-4 fw-semibold text-muted small uppercase">Completati</td>
+                            <td colspan="4" class="ps-4 fw-semibold text-muted small uppercase">Completati</td>
                         </tr>
                         @foreach (var ubi in ubiCompletate)
                         {
                             <tr class="bg-light">
-                                <td class="ps-4 text-muted">@ubi.Posizione</td>
+                                <td class="ps-4 text-primary fw-bold">@ubi.Posizione</td>
                                 <td class="text-center text-nowrap">
                                     <span class="badge bg-success">Completato</span>
                                 </td>
+                                <td>
+                                    <small class="text-muted">Finito da: <i class="fa-solid fa-user me-1"></i>
+                                        <strong>@ubi.OperatoreCorrente</strong></small>
+                                </td>
                                 <td class="text-end">
-                                    <small class="text-muted">
-                                        <span class="d-none d-md-inline">Finito da: </span>
-                                        <i class="fa-solid fa-check d-md-none me-1"></i>
-                                        @ubi.OperatoreCorrente
-                                    </small>
                                 </td>
                             </tr>
                         }
@@ -133,20 +131,16 @@
 @section Scripts {
     <script>
         document.addEventListener('click', function (e) {
-            // 1. Intercetta il click sui bottoni configurati
             const btn = e.target.closest('[data-post-action]');
             if (!btn) return;
 
             e.preventDefault();
 
-            // 2. Legge i dati
             const url = btn.getAttribute('data-url');
             const confirmMsg = btn.getAttribute('data-confirm');
 
-            // 3. Chiede conferma
             if (confirmMsg && !confirm(confirmMsg)) return;
 
-            // 4. Crea e invia il form POST
             const form = document.createElement('form');
             form.method = 'POST';
             form.action = url;

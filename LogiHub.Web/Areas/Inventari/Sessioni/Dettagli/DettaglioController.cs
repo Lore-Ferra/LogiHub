@@ -54,23 +54,13 @@ public partial class DettaglioController : AuthenticatedBaseController
         // Costruzione della SearchCard
         var searchCardModel = new SearchCardViewModel
         {
-            Title = "📋 Inventario",
+            Title = "📋 "+ data.NomeSessione,
             Placeholder = "Cerca Ubicazione...",
             Query = query,
             Filters = Filters,
+            ShowFilters = false,
             HeaderButtons = new List<SearchCardButton>
             {
-                new SearchCardButton
-                {
-                    Text = "Torna allo Storico",
-                    CssClass = "btn-outline-secondary",
-                    IconClass = "fa-solid fa-arrow-left",
-                    Type = "button",
-                    HtmlAttributes = new Dictionary<string, string>
-                    {
-                        { "onclick", $"location.href='{Url.Action("Index", "Sessioni", new { area = "Inventari" })}'" }
-                    }
-                },
                 new SearchCardButton
                 {
                     Text = "Visualizza Discrepanze",

@@ -58,9 +58,10 @@ public partial class SessioniController : AuthenticatedBaseController
             Type = "button",
             HtmlAttributes = new Dictionary<string, string>
             {
-                { "data-post-action", "true" },
+                { "data-confirm-trigger", "true" },
                 { "data-url", Url.Action("AggiungiSessioneInventario", "Sessioni", new { area = "Inventari" }) },
-                { "data-confirm", "Vuoi avviare una nuova sessione? Il magazzino verrà bloccato." }
+                { "data-type", "form" },
+                { "data-message", "Vuoi avviare una nuova sessione? Il magazzino verrà bloccato." }
             }
         };
         

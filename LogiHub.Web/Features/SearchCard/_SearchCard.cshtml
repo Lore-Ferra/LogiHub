@@ -39,8 +39,8 @@
 <div class="card shadow-sm mb-3 border-0">
     <div class="card-body">
         <form method="get">
-            <div class="row g-2 mb-3">
-                <div class="col-8 col-md-8">
+            <div class="row g-2 @(Model.ShowFilters ? "mb-3" : "")">
+                <div class="@(Model.ShowFilters ? "col-8 col-md-8" : "col-12 col-md-10")">
                     <div class="input-group">
                         <span class="input-group-text bg-transparent border-end-0 text-muted">
                             <i class="fas fa-search"></i>
@@ -57,16 +57,19 @@
                     </div>
                 </div>
 
-                <div class="col-4 col-md-2">
-                    <div class="form-floating">
-                        <select class="form-select" id="filterUscito" name="Filters.Uscito">
-                            <option value="0" selected="@(Model.Filters.Uscito == TriState.All)">Tutti</option>
-                            <option value="1" selected="@(Model.Filters.Uscito == TriState.True)">Sì</option>
-                            <option value="2" selected="@(Model.Filters.Uscito == TriState.False)">No</option>
-                        </select>
-                        <label for="filterUscito">Uscito</label>
+                @if (Model.ShowFilters)
+                {
+                    <div class="col-4 col-md-2">
+                        <div class="form-floating">
+                            <select class="form-select" id="filterUscito" name="Filters.Uscito">
+                                <option value="0" selected="@(Model.Filters.Uscito == TriState.All)">Tutti</option>
+                                <option value="1" selected="@(Model.Filters.Uscito == TriState.True)">Sì</option>
+                                <option value="2" selected="@(Model.Filters.Uscito == TriState.False)">No</option>
+                            </select>
+                            <label for="filterUscito">Uscito</label>
+                        </div>
                     </div>
-                </div>
+                }
 
                 <div class="col-12 col-md-2">
                     <button type="submit"
@@ -76,27 +79,30 @@
                 </div>
             </div>
 
-            <div class="d-flex align-items-center flex-wrap gap-2">
-                <span class="small text-uppercase text-muted fw-bold">Cerca in:</span>
-                @{
-                    var columns = new Dictionary<string, string>
+            @if (Model.ShowFilters)
+            {
+                <div class="d-flex align-items-center flex-wrap gap-2">
+                    <span class="small text-uppercase text-muted fw-bold">Cerca in:</span>
+                    @{
+                        var columns = new Dictionary<string, string>
+                        {
+                            { "Barcode", "Barcode" },
+                            { "Descrizione", "Descrizione" },
+                            { "Ubicazione", "Ubicazione" },
+                            { "UltimaModifica", "Ultima modifica" }
+                        };
+                        var currentFilters = Model.Filters.SearchInColumns ?? new List<string> { "Barcode", "Descrizione", "Ubicazione", "UltimaModifica" };
+                    }
+                    @foreach (var col in columns)
                     {
-                        { "Barcode", "Barcode" },
-                        { "Descrizione", "Descrizione" },
-                        { "Ubicazione", "Ubicazione" },
-                        { "UltimaModifica", "Ultima modifica" }
-                    };
-                    var currentFilters = Model.Filters.SearchInColumns ?? new List<string> { "Barcode", "Descrizione", "Ubicazione", "UltimaModifica" };
-                }
-                @foreach (var col in columns)
-                {
-                    var isChecked = currentFilters.Contains(col.Key);
-                    var id = $"col_{col.Key}";
-                    <input type="checkbox" class="btn-check" id="@id" name="Filters.SearchInColumns" value="@col.Key"
-                           autocomplete="off" @(isChecked ? "checked" : "")>
-                    <label class="btn btn-outline-primary btn-sm rounded-pill" for="@id">@col.Value</label>
-                }
-            </div>
+                        var isChecked = currentFilters.Contains(col.Key);
+                        var id = $"col_{col.Key}";
+                        <input type="checkbox" class="btn-check" id="@id" name="Filters.SearchInColumns" value="@col.Key"
+                               autocomplete="off" @(isChecked ? "checked" : "")>
+                        <label class="btn btn-outline-primary btn-sm rounded-pill" for="@id">@col.Value</label>
+                    }
+                </div>
+            }
         </form>
     </div>
 </div>

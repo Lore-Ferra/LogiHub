@@ -25,11 +25,14 @@ public class SessioniService : ISessioniService
         if (await _context.SessioniInventario.AnyAsync(s => !s.Chiuso))
             throw new InvalidOperationException("Esiste già una sessione aperta.");
 
+        // Calcolo un numero progressivo basato sul conteggio totale
+        var numeroProgressivo = await _context.SessioniInventario.CountAsync() + 1;
+
         // 2. Creazione Testata
         var sessione = new SessioneInventario
         {
             Id = Guid.NewGuid(),
-            NomeSessione = $"Inventario del {DateTime.Now:dd/MM/yyyy HH:mm}",
+            NomeSessione = $"Inventario #{numeroProgressivo}",
             CreatoDaUserId = dto.UserId,
             DataCreazione = DateTime.Now
         };
@@ -87,7 +90,7 @@ public class SessioniService : ISessioniService
                         UbicazioneId = su.UbicazioneId,
                         Posizione = su.Ubicazione.Posizione,
                         Completata = su.Completata,
-                        InLavorazione = su.OperatoreCorrenteId != null,
+                        InLavorazione = !su.Completata && su.OperatoreCorrenteId != null,
                         OperatoreCorrenteId = su.OperatoreCorrenteId,
                         OperatoreCorrente = su.OperatoreCorrente != null
                             ? su.OperatoreCorrente.FirstName + " " + su.OperatoreCorrente.LastName
@@ -179,7 +182,6 @@ public class SessioniService : ISessioniService
         if (statoUbi != null)
         {
             statoUbi.Completata = true;
-            statoUbi.OperatoreCorrenteId = null;
             statoUbi.DataCompletamento = DateTime.Now;
         }
 

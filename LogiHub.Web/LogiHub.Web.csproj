@@ -81,6 +81,10 @@
 	  <_ContentIncludedByDefault Remove="wwwroot\js2\Areas\Example\Users\Edit.js.map" />
 	  <_ContentIncludedByDefault Remove="wwwroot\js2\Features\Offcanvas\offcanvas.js" />
 	  <_ContentIncludedByDefault Remove="wwwroot\js2\Features\Offcanvas\offcanvas.js.map" />
+	  <_ContentIncludedByDefault Remove="wwwroot\js\wwwroot\js\signalRConnectionManager.js" />
+	  <_ContentIncludedByDefault Remove="wwwroot\js\wwwroot\js\signalRConnectionManager.js.map" />
+	  <_ContentIncludedByDefault Remove="wwwroot\js\wwwroot\js\site.js" />
+	  <_ContentIncludedByDefault Remove="wwwroot\js\wwwroot\js\site.js.map" />
 	</ItemGroup>
 
 	<ItemGroup>

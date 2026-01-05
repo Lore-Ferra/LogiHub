@@ -12,4 +12,6 @@ public class SearchCardViewModel
     public SearchCardFiltersViewModel Filters { get; set; } = new();
 
     public List<SearchCardButton> HeaderButtons { get; set; } = new();
+
+    public bool ShowFilters { get; set; } = true;
 }

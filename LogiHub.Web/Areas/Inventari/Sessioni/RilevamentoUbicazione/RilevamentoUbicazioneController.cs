@@ -57,6 +57,7 @@ public partial class RilevamentoUbicazioneController : AuthenticatedBaseControll
             Title = $"Rilevamento: {nomeUbi}",
             Placeholder = "Cerca barcode o pezzo...",
             Query = query,
+            ShowFilters = false,
             HeaderButtons = new List<SearchCardButton>
             {
                 new SearchCardButton
