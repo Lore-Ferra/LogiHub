@@ -28,6 +28,6 @@ public interface ISessioniService
     Task SegnaMancanteAsync(Guid rigaId, Guid userId);
     Task AggiungiExtraAsync(Guid sessioneId, Guid ubicazioneId, string barcode, Guid userId);
     Task<List<DiscrepanzaDTO>> OttieniDiscrepanzeAsync(Guid sessioneId);
-    Task RisolviDiscrepanzaAsync(Guid sessioneId, DiscrepanzaDTO d, TipoRisoluzione tipo);
-    Task RisolviTuttoAsync(Guid sessioneId);
+    Task RisolviDiscrepanzaAsync(Guid sessioneId, DiscrepanzaDTO d, TipoRisoluzione tipo, Guid userId);
+    Task RisolviTuttoAsync(Guid sessioneId, Guid userId);
 }

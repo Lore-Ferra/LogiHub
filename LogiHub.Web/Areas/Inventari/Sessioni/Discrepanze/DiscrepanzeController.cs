@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Claims;
 using System.Threading.Tasks;
 using LogiHub.Services.Inventari.Sessioni;
 using LogiHub.Web.Features.SearchCard;
@@ -102,12 +103,14 @@ public partial class DiscrepanzeController : AuthenticatedBaseController
     [ValidateAntiForgeryToken]
     public virtual async Task<IActionResult> Risolvi(Guid id, string barcode, TipoRisoluzione tipo)
     {
+        var userId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
+
         var tutte = await _service.OttieniDiscrepanzeAsync(id);
         var d = tutte.FirstOrDefault(x => x.Barcode == barcode);
 
         if (d == null) return Json(new { success = false, message = "Pezzo non trovato." });
 
-        await _service.RisolviDiscrepanzaAsync(id, d, tipo);
+        await _service.RisolviDiscrepanzaAsync(id, d, tipo, userId);
         return Json(new { success = true });
     }
 
@@ -115,7 +118,13 @@ public partial class DiscrepanzeController : AuthenticatedBaseController
     [ValidateAntiForgeryToken]
     public virtual async Task<IActionResult> RisolviTutto(Guid id)
     {
-        await _service.RisolviTuttoAsync(id);
-        return Json(new { success = true, redirectUrl = Url.Action("Index", new { id = id }) });
+        var userId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
+
+        await _service.RisolviTuttoAsync(id, userId);
+
+        return Json(new { 
+            success = true, 
+            redirectUrl = Url.Action("Index", "Discrepanze", new { area = "Inventari", id = id }) 
+        });
     }
 }
