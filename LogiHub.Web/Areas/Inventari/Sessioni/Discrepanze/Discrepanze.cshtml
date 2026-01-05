@@ -1,74 +1,226 @@
 @using LogiHub.Models.Shared
+@using LogiHub.Services.Inventari.Sessioni.DTO
 @model LogiHub.Web.Areas.Inventari.Sessioni.Discrepanze.DiscrepanzeViewModel
 
 @{
-    ViewData["Title"] = "Discrepanze Inventario";
+    ViewData["Title"] = "Analisi Discrepanze";
+    
+    var countSpostati = Model.DaSpostare?.Count ?? 0;
+    var countExtra = Model.DaAggiungere?.Count ?? 0;
+    var countMancanti = Model.DaRimuovere?.Count ?? 0;
 }
 
 <div>
     @await Html.PartialAsync("~/Features/SearchCard/_SearchCard.cshtml", Model.SearchCard)
 </div>
 
-<div class="card shadow-sm mt-3">
-    <div class="card-body p-1">
-        <div class="table-responsive">
-            <table class="table table-hover align-middle mb-0">
-                <thead class="bg-light">
-                <tr>
-                    <th class="ps-3">Barcode / Descrizione</th>
-                    <th>Ubicazione</th>
-                    <th class="text-center">Tipo Discrepanza</th>
-                    <th>Rilevato Da</th>
-                    <th class="text-end pe-3">Data</th>
-                </tr>
-                </thead>
-                <tbody>
-                @if (Model.Discrepanze != null && Model.Discrepanze.Any())
-                {
-                    foreach (var item in Model.Discrepanze)
-                    {
-                        <tr>
-                            <td class="ps-3">
-                                <div class="fw-bold text-primary">@item.Barcode</div>
-                                <div class="small text-muted">@item.Descrizione</div>
-                            </td>
-                            <td>
-                                <span class="badge bg-light text-dark border">
-                                    <i class="fa-solid fa-location-dot me-1 text-secondary"></i> @item.Ubicazione
-                                </span>
-                            </td>
-                            <td class="text-center">
-                                @if (item.TipoDiscrepanza == StatoRigaInventario.Mancante)
-                                {
-                                    <span class="badge bg-danger-subtle text-danger border border-danger-subtle">MANCANTE</span>
-                                }
-                                else if (item.TipoDiscrepanza == StatoRigaInventario.Extra)
-                                {
-                                    <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle">EXTRA</span>
-                                }
-                            </td>
-                            <td>
-                                <small>@item.RilevatoDa</small>
-                            </td>
-                            <td class="text-end pe-3">
-                                <small class="text-muted">@item.DataRilevamento?.ToString("dd/MM HH:mm")</small>
-                            </td>
-                        </tr>
-                    }
-                }
-                else
-                {
-                    <tr>
-                        <td colspan="5" class="text-center py-5 text-muted">
-                            <i class="fa-solid fa-check-circle fa-2x mb-3 text-success"></i>
-                            <p class="mb-0">Nessuna discrepanza rilevata finora.</p>
-                        </td>
-                    </tr>
-                }
-                </tbody>
-            </table>
+<div class="container-fluid mt-3">
+    
+    <ul class="nav nav-pills mb-3" id="pills-tab" role="tablist">
+        <li class="nav-item">
+            <button class="nav-link active" id="tab-spostati" data-bs-toggle="pill" data-bs-target="#content-spostati" type="button" role="tab">
+                <i class="fa-solid fa-right-left me-2"></i>Spostamenti
+                <span class="badge bg-white text-primary ms-2 rounded-pill">@countSpostati</span>
+            </button>
+        </li>
+        <li class="nav-item">
+            <button class="nav-link" id="tab-extra" data-bs-toggle="pill" data-bs-target="#content-extra" type="button" role="tab">
+                <i class="fa-solid fa-plus me-2"></i>Extra
+                <span class="badge bg-white text-primary ms-2 rounded-pill">@countExtra</span>
+            </button>
+        </li>
+        <li class="nav-item">
+            <button class="nav-link" id="tab-mancanti" data-bs-toggle="pill" data-bs-target="#content-mancanti" type="button" role="tab">
+                <i class="fa-solid fa-minus me-2"></i>Mancanti
+                <span class="badge bg-white text-primary ms-2 rounded-pill">@countMancanti</span>
+            </button>
+        </li>
+    </ul>
+
+    <div class="tab-content" id="pills-tabContent">
+        
+        <div class="tab-pane fade show active" id="content-spostati" role="tabpanel">
+            <div class="card shadow-sm border-0 border-start border-4 border-info">
+                <div class="card-body p-0">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="bg-light">
+                            <tr>
+                                <th class="ps-3">Pezzo</th>
+                                <th>Da (Snapshot)</th>
+                                <th>A (Rilevato)</th>
+                                <th class="text-end pe-3">Azione</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var item in Model.DaSpostare)
+                            {
+                                <tr>
+                                    <td class="ps-3">
+                                        <div class="fw-bold">@item.Barcode</div>
+                                        <div class="small text-muted">@item.Descrizione</div>
+                                    </td>
+                                    <td><span class="badge bg-secondary">@item.UbicazioneSnapshot</span></td>
+                                    <td><span class="badge bg-info text-dark">@item.UbicazioneRilevata</span></td>
+                                    <td class="text-end pe-3">
+                                        <button class="btn btn-sm btn-outline-info" 
+                                                data-post-action="@Url.Action("Risolvi", "Discrepanze", new { area = "Inventari", id = Model.SessioneId, barcode = item.Barcode, tipo = TipoRisoluzione.Sposta })"
+                                                data-confirm="Confermi di voler aggiornare l'ubicazione di questo pezzo?">
+                                            <i class="fa-solid fa-check me-1"></i> Risolvi
+                                        </button>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
         </div>
+
+        <div class="tab-pane fade" id="content-extra" role="tabpanel">
+            <div class="card shadow-sm border-0 border-start border-4 border-warning">
+                <div class="card-body p-0">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="bg-light">
+                            <tr>
+                                <th class="ps-3">Pezzo</th>
+                                <th>Ubicazione Rilevata</th>
+                                <th>Rilevato Da</th>
+                                <th class="text-end pe-3">Azione</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var item in Model.DaAggiungere)
+                            {
+                                <tr>
+                                    <td class="ps-3">
+                                        <div class="fw-bold">@item.Barcode</div>
+                                        <div class="small text-muted">@item.Descrizione</div>
+                                    </td>
+                                    <td><span class="badge bg-warning text-dark">@item.UbicazioneRilevata</span></td>
+                                    <td><small>@item.RilevatoDa</small></td>
+                                    <td class="text-end pe-3">
+                                        <button class="btn btn-sm btn-outline-warning" 
+                                                data-post-action="@Url.Action("Risolvi", "Discrepanze", new { area = "Inventari", id = Model.SessioneId, barcode = item.Barcode, tipo = TipoRisoluzione.Aggiungi })"
+                                                data-confirm="Confermi di voler creare questo nuovo semilavorato a sistema?">
+                                            <i class="fa-solid fa-plus me-1"></i> Aggiungi
+                                        </button>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="tab-pane fade" id="content-mancanti" role="tabpanel">
+            <div class="card shadow-sm border-0 border-start border-4 border-danger">
+                <div class="card-body p-0">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="bg-light">
+                            <tr>
+                                <th class="ps-3">Pezzo</th>
+                                <th>Ubicazione Snapshot</th>
+                                <th>Data Segnalazione</th>
+                                <th class="text-end pe-3">Azione</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var item in Model.DaRimuovere)
+                            {
+                                <tr>
+                                    <td class="ps-3">
+                                        <div class="fw-bold">@item.Barcode</div>
+                                        <div class="small text-muted">@item.Descrizione</div>
+                                    </td>
+                                    <td><span class="badge bg-light text-danger border border-danger">@item.UbicazioneSnapshot</span></td>
+                                    <td><small>@item.DataRilevamento?.ToString("g")</small></td>
+                                    <td class="text-end pe-3">
+                                        <button class="btn btn-sm btn-outline-danger" 
+                                                data-post-action="@Url.Action("Risolvi", "Discrepanze", new { area = "Inventari", id = Model.SessioneId, barcode = item.Barcode, tipo = TipoRisoluzione.Rimuovi })"
+                                                data-confirm="Attenzione: il pezzo verrà eliminato dal magazzino. Procedere?">
+                                            <i class="fa-solid fa-trash me-1"></i> Rimuovi
+                                        </button>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
     </div>
 </div>
 
 @Html.AntiForgeryToken()
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            
+            // Gestore universale per tutti i bottoni con data-post-action
+            document.body.addEventListener('click', async function (e) {
+                
+                // 1. Trova il bottone cliccato (o il genitore se hai cliccato l'icona dentro)
+                const button = e.target.closest('[data-post-action]');
+                if (!button) return; // Se non è un bottone speciale, ignora
+
+                e.preventDefault();
+
+                // 2. Gestione Conferma (se presente)
+                const confirmMessage = button.getAttribute('data-confirm');
+                if (confirmMessage) {
+                    if (!confirm(confirmMessage)) return; // Utente ha annullato
+                }
+
+                // 3. Recupera URL e Token Anti-Forgery
+                const url = button.getAttribute('data-post-action');
+                const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value;
+
+                // Mostra un feedback visivo (opzionale: disabilita il bottone)
+                const originalText = button.innerHTML;
+                button.disabled = true;
+                button.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> In corso...';
+
+                try {
+                    // 4. Esegue la chiamata POST al Controller
+                    const response = await fetch(url, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/x-www-form-urlencoded',
+                            'RequestVerificationToken': token
+                        }
+                    });
+
+                    // 5. Gestisce la risposta JSON del Controller
+                    if (response.ok) {
+                        const result = await response.json();
+                        
+                        if (result.success) {
+                            // Se il controller ci dà un URL di redirect, andiamo lì, altrimenti ricarichiamo
+                            if (result.redirectUrl) {
+                                window.location.href = result.redirectUrl;
+                            } else {
+                                window.location.reload();
+                            }
+                        } else {
+                            alert("Errore: " + (result.message || "Operazione fallita"));
+                            button.disabled = false;
+                            button.innerHTML = originalText;
+                        }
+                    } else {
+                        alert("Errore del server: " + response.statusText);
+                        button.disabled = false;
+                        button.innerHTML = originalText;
+                    }
+                } catch (error) {
+                    console.error('Errore fetch:', error);
+                    alert("Si è verificato un errore di comunicazione.");
+                    button.disabled = false;
+                    button.innerHTML = originalText;
+                }
+            });
+        });
+    </script>
+}

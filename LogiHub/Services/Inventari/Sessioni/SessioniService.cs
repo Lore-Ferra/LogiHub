@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using LogiHub.Models.Shared;
 using LogiHub.Services.Inventari.Sessioni.DTO;
 using LogiHub.Services.Inventari.Sessioni.Query;
+using LogiHub.Services.Magazzino.SemiLavorati.DTO;
 using Microsoft.EntityFrameworkCore;
 
 namespace LogiHub.Services.Inventari.Sessioni;
@@ -12,23 +13,23 @@ namespace LogiHub.Services.Inventari.Sessioni;
 public class SessioniService : ISessioniService
 {
     private readonly TemplateDbContext _context;
+    private readonly ISemiLavoratoService _slService;
 
-    public SessioniService(TemplateDbContext context)
+    public SessioniService(TemplateDbContext context, ISemiLavoratoService slService)
     {
         _context = context;
+        _slService = slService;
     }
 
-    // Gestione Sessione
+    #region Gestione Sessione
+
     public async Task<SessioneInventario> AggiungiSessioneAsync(AggiungiSessioneInventarioDTO dto)
     {
-        // 1. Controllo univocità sessione attiva
         if (await _context.SessioniInventario.AnyAsync(s => !s.Chiuso))
             throw new InvalidOperationException("Esiste già una sessione aperta.");
 
-        // Calcolo un numero progressivo basato sul conteggio totale
         var numeroProgressivo = await _context.SessioniInventario.CountAsync() + 1;
 
-        // 2. Creazione Testata
         var sessione = new SessioneInventario
         {
             Id = Guid.NewGuid(),
@@ -37,7 +38,6 @@ public class SessioniService : ISessioniService
             DataCreazione = DateTime.Now
         };
 
-        // 3. Snapshot SemiLavorati (Righe)
         var semiLavorati = await _context.SemiLavorati
             .Where(s => !s.Eliminato && !s.Uscito)
             .AsNoTracking()
@@ -52,7 +52,6 @@ public class SessioniService : ISessioniService
             Stato = StatoRigaInventario.InAttesa
         }).ToList();
 
-        // 4. Snapshot Ubicazioni (Stati)
         var tutteUbicazioni = await _context.Ubicazioni.AsNoTracking().ToListAsync();
         var statiUbi = tutteUbicazioni.Select(u => new SessioneUbicazione
         {
@@ -61,13 +60,11 @@ public class SessioniService : ISessioniService
             UbicazioneId = u.UbicazioneId
         }).ToList();
 
-        // 5. Salvataggio UNICO
         _context.SessioniInventario.Add(sessione);
-        _context.RigheInventario.AddRange(nuoveRighe); // Nota: AddRange è sufficiente, non serve Async qui
+        _context.RigheInventario.AddRange(nuoveRighe);
         _context.SessioniUbicazioni.AddRange(statiUbi);
 
         await _context.SaveChangesAsync();
-
         return sessione;
     }
 
@@ -81,7 +78,6 @@ public class SessioniService : ISessioniService
                 NomeSessione = s.NomeSessione,
                 Chiuso = s.Chiuso,
                 Ubicazioni = s.StatiUbicazioni
-                    // Filtriamo le ubicazioni guardando le RIGHE della sessione, non il magazzino reale
                     .Where(su => _context.RigheInventario.Any(r =>
                         r.SessioneInventarioId == sessioneId &&
                         r.UbicazioneSnapshotId == su.UbicazioneId))
@@ -102,25 +98,20 @@ public class SessioniService : ISessioniService
             })
             .FirstOrDefaultAsync();
 
-        if (sessione == null)
-            throw new InvalidOperationException("Sessione non trovata.");
-
+        if (sessione == null) throw new InvalidOperationException("Sessione non trovata.");
         return sessione;
     }
 
     public async Task ChiudiSessioneAsync(Guid sessioneId, Guid userId)
     {
-        // Verifichiamo se ci sono ubicazioni NON completate che però contengono righe di inventario.
-        // Usiamo lo stesso filtro della visualizzazione dettaglio per coerenza.
         var ciSonoUbicazioniDaCompletare = await _context.SessioniUbicazioni
-            .AnyAsync(su => su.SessioneInventarioId == sessioneId 
+            .AnyAsync(su => su.SessioneInventarioId == sessioneId
                             && !su.Completata
-                            && _context.RigheInventario.Any(r => r.SessioneInventarioId == sessioneId && r.UbicazioneSnapshotId == su.UbicazioneId));
+                            && _context.RigheInventario.Any(r =>
+                                r.SessioneInventarioId == sessioneId && r.UbicazioneSnapshotId == su.UbicazioneId));
 
         if (ciSonoUbicazioniDaCompletare)
-        {
             throw new InvalidOperationException("Impossibile chiudere l'inventario: ci sono ancora ubicazioni da completare.");
-        }
 
         var sessione = await _context.SessioniInventario.FindAsync(sessioneId);
         if (sessione != null)
@@ -129,27 +120,25 @@ public class SessioniService : ISessioniService
             await _context.SaveChangesAsync();
         }
     }
-    
-    // Operatività - Gestione Accesso
+
+    #endregion
+
+    #region Operatività - Gestione Accesso
+
     public async Task BloccaUbicazioneAsync(Guid sessioneId, Guid ubicazioneId, Guid userId)
     {
         var statoUbi = await _context.SessioniUbicazioni
             .FirstOrDefaultAsync(u => u.SessioneInventarioId == sessioneId && u.UbicazioneId == ubicazioneId);
 
-        if (statoUbi == null)
-            throw new InvalidOperationException("Ubicazione non configurata per questa sessione.");
-
-        if (statoUbi.Completata)
-            throw new InvalidOperationException("Questa ubicazione è già stata completata.");
-
-        // Se è già occupata da un altro
+        if (statoUbi == null) throw new InvalidOperationException("Ubicazione non configurata.");
+        if (statoUbi.Completata) throw new InvalidOperationException("Ubicazione già completata.");
         if (statoUbi.OperatoreCorrenteId != null && statoUbi.OperatoreCorrenteId != userId)
-            throw new InvalidOperationException("Ubicazione occupata da un altro operatore.");
+            throw new InvalidOperationException("Ubicazione occupata.");
 
         statoUbi.OperatoreCorrenteId = userId;
         await _context.SaveChangesAsync();
     }
-    
+
     public async Task RilasciaUbicazioneAsync(Guid sessioneId, Guid ubicazioneId)
     {
         var statoUbi = await _context.SessioniUbicazioni
@@ -165,17 +154,17 @@ public class SessioniService : ISessioniService
     public async Task CompletaUbicazioneAsync(Guid sessioneId, Guid ubicazioneId)
     {
         var righeResidue = await _context.RigheInventario
-            .Where(r => r.SessioneInventarioId == sessioneId && 
-                        r.UbicazioneSnapshotId == ubicazioneId && 
+            .Where(r => r.SessioneInventarioId == sessioneId &&
+                        r.UbicazioneSnapshotId == ubicazioneId &&
                         r.Stato == StatoRigaInventario.InAttesa)
             .ToListAsync();
-        
+
         foreach (var riga in righeResidue)
         {
             riga.Stato = StatoRigaInventario.Mancante;
             riga.DataRilevamento = DateTime.Now;
         }
-        
+
         var statoUbi = await _context.SessioniUbicazioni
             .FirstOrDefaultAsync(u => u.SessioneInventarioId == sessioneId && u.UbicazioneId == ubicazioneId);
 
@@ -187,8 +176,11 @@ public class SessioniService : ISessioniService
 
         await _context.SaveChangesAsync();
     }
-    
-    // Azioni sui Pezzi
+
+    #endregion
+
+    #region Azioni sui Pezzi
+
     public async Task<List<PezzoInventarioDTO>> OttieniPezziUbicazioneAsync(PezziUbicazioneQuery query)
     {
         return await _context.RigheInventario
@@ -204,7 +196,7 @@ public class SessioniService : ISessioniService
             .OrderBy(r => r.Barcode)
             .ToListAsync();
     }
-    
+
     public async Task SegnaPresenteAsync(Guid rigaId, Guid userId)
     {
         var riga = await _context.RigheInventario.FindAsync(rigaId);
@@ -232,13 +224,12 @@ public class SessioniService : ISessioniService
 
     public async Task AggiungiExtraAsync(Guid sessioneId, Guid ubicazioneId, string barcode, Guid userId)
     {
-        var giaRilevato = await _context.RigheInventario.AnyAsync(r => 
-            r.SessioneInventarioId == sessioneId && 
+        var giaRilevato = await _context.RigheInventario.AnyAsync(r =>
+            r.SessioneInventarioId == sessioneId &&
             r.SemiLavorato.Barcode == barcode &&
             (r.Stato == StatoRigaInventario.Trovato || r.Stato == StatoRigaInventario.Extra));
 
-        if (giaRilevato)
-            throw new InvalidOperationException("Questo barcode è già stato rilevato in questa sessione.");
+        if (giaRilevato) throw new InvalidOperationException("Barcode già rilevato.");
 
         var sl = await _context.SemiLavorati.FirstOrDefaultAsync(s => s.Barcode == barcode);
 
@@ -246,7 +237,7 @@ public class SessioniService : ISessioniService
         {
             Id = Guid.NewGuid(),
             SessioneInventarioId = sessioneId,
-            SemiLavoratoId = sl?.Id ?? Guid.Empty, 
+            SemiLavoratoId = sl?.Id ?? Guid.Empty,
             UbicazioneSnapshotId = null,
             UbicazioneRilevataId = ubicazioneId,
             Stato = StatoRigaInventario.Extra,
@@ -258,9 +249,13 @@ public class SessioniService : ISessioniService
         await _context.SaveChangesAsync();
     }
 
+    #endregion
+
+    #region Analisi e Risoluzione Discrepanze
+
     public async Task<List<DiscrepanzaDTO>> OttieniDiscrepanzeAsync(Guid sessioneId)
     {
-        var righe = await _context.RigheInventario
+        var righeGrezze = await _context.RigheInventario
             .Include(r => r.SemiLavorato)
             .Include(r => r.UbicazioneSnapshot)
             .Include(r => r.UbicazioneRilevata)
@@ -270,18 +265,111 @@ public class SessioniService : ISessioniService
             .AsNoTracking()
             .ToListAsync();
 
-        return righe.Select(r => new DiscrepanzaDTO
+        var gruppiPerBarcode = righeGrezze.GroupBy(r => r.SemiLavorato.Barcode);
+        var risultato = new List<DiscrepanzaDTO>();
+
+        foreach (var gruppo in gruppiPerBarcode)
         {
-            RigaId = r.Id,
-            Barcode = r.SemiLavorato.Barcode,
-            Descrizione = r.SemiLavorato.Descrizione,
-            // Se Mancante mostriamo dove doveva essere, se Extra dove è stato trovato
-            Ubicazione = r.Stato == StatoRigaInventario.Mancante 
-                ? r.UbicazioneSnapshot?.Posizione ?? "N/D" 
-                : r.UbicazioneRilevata?.Posizione ?? "N/D",
-            TipoDiscrepanza = r.Stato,
-            RilevatoDa = r.RilevatoDaUser != null ? $"{r.RilevatoDaUser.FirstName} {r.RilevatoDaUser.LastName}" : "Sistema",
-            DataRilevamento = r.DataRilevamento
-        }).OrderByDescending(x => x.DataRilevamento).ToList();
+            var righe = gruppo.ToList();
+            var haMancante = righe.Any(r => r.Stato == StatoRigaInventario.Mancante);
+            var haExtra = righe.Any(r => r.Stato == StatoRigaInventario.Extra);
+            var rif = haExtra ? righe.First(r => r.Stato == StatoRigaInventario.Extra) : righe.First();
+
+            var dto = new DiscrepanzaDTO
+            {
+                SemiLavoratoId = haExtra ? rif.SemiLavoratoId : righe.First(r => r.Stato == StatoRigaInventario.Mancante).SemiLavoratoId,
+                UbicazioneRilevataId = haExtra ? rif.UbicazioneRilevataId : null, // IMPORTANTE: Mappiamo l'ID per la risoluzione
+                Barcode = gruppo.Key,
+                Descrizione = rif.SemiLavorato.Descrizione,
+                RilevatoDa = rif.RilevatoDaUser != null ? $"{rif.RilevatoDaUser.FirstName} {rif.RilevatoDaUser.LastName}" : "Sistema",
+                DataRilevamento = righe.Max(r => r.DataRilevamento)
+            };
+
+            if (haMancante && haExtra)
+            {
+                dto.Tipo = TipoDiscrepanzaOperativa.Spostato;
+                dto.UbicazioneSnapshot = righe.First(r => r.Stato == StatoRigaInventario.Mancante).UbicazioneSnapshot?.Posizione ?? "N/D";
+                dto.UbicazioneRilevata = righe.First(r => r.Stato == StatoRigaInventario.Extra).UbicazioneRilevata?.Posizione ?? "N/D";
+            }
+            else if (haExtra)
+            {
+                dto.Tipo = TipoDiscrepanzaOperativa.Extra;
+                dto.UbicazioneRilevata = rif.UbicazioneRilevata?.Posizione ?? "N/D";
+            }
+            else
+            {
+                dto.Tipo = TipoDiscrepanzaOperativa.Mancante;
+                dto.UbicazioneSnapshot = rif.UbicazioneSnapshot?.Posizione ?? "N/D";
+            }
+
+            risultato.Add(dto);
+        }
+
+        return risultato.OrderByDescending(x => x.DataRilevamento).ToList();
     }
+
+    public async Task RisolviDiscrepanzaAsync(Guid sessioneId, DiscrepanzaDTO d, TipoRisoluzione tipo)
+    {
+        switch (tipo)
+        {
+            case TipoRisoluzione.Sposta:
+                if (!d.SemiLavoratoId.HasValue || !d.UbicazioneRilevataId.HasValue)
+                    throw new InvalidOperationException("Dati insufficienti per lo spostamento.");
+
+                await _slService.ModificaSemiLavorato(new ModificaSemiLavoratoDTO
+                {
+                    Id = d.SemiLavoratoId.Value,
+                    UbicazioneId = d.UbicazioneRilevataId.Value,
+                    Descrizione = d.Descrizione,
+                    IsRettificaInventario = true
+                });
+                break;
+
+            case TipoRisoluzione.Aggiungi:
+                if (!d.UbicazioneRilevataId.HasValue)
+                    throw new InvalidOperationException("Ubicazione mancante per l'aggiunta.");
+
+                await _slService.AggiungiSemiLavoratoAsync(new AggiungiSemiLavoratoDTO
+                {
+                    Barcode = d.Barcode,
+                    Descrizione = d.Descrizione ?? "Extra rilevato in inventario",
+                    UbicazioneId = d.UbicazioneRilevataId.Value,
+                    IsRettificaInventario = true
+                });
+                break;
+
+            case TipoRisoluzione.Rimuovi:
+                if (!d.SemiLavoratoId.HasValue)
+                    throw new InvalidOperationException("ID mancante per la rimozione.");
+
+                await _slService.EliminaSemiLavoratoAsync(new EliminaSemiLavoratoDTO
+                {
+                    SemiLavoratoId = d.SemiLavoratoId.Value,
+                    IsRettificaInventario = true
+                });
+                break;
+
+            default:
+                throw new ArgumentOutOfRangeException(nameof(tipo));
+        }
+    }
+
+    public async Task RisolviTuttoAsync(Guid sessioneId)
+    {
+        var discrepanze = await OttieniDiscrepanzeAsync(sessioneId);
+
+        foreach (var d in discrepanze)
+        {
+            var azione = d.Tipo switch
+            {
+                TipoDiscrepanzaOperativa.Spostato => TipoRisoluzione.Sposta,
+                TipoDiscrepanzaOperativa.Extra => TipoRisoluzione.Aggiungi,
+                _ => TipoRisoluzione.Rimuovi
+            };
+
+            await RisolviDiscrepanzaAsync(sessioneId, d, azione);
+        }
+    }
+
+    #endregion
 }

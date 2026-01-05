@@ -26,37 +26,30 @@ public partial class DiscrepanzeController : AuthenticatedBaseController
         int page = 1,
         int pageSize = 25)
     {
-        if (Filters == null)
-        {
-            Filters = new SearchCardFiltersViewModel();
-        }
-        
-        var discrepanze = await _service.OttieniDiscrepanzeAsync(id);
+        Filters ??= new SearchCardFiltersViewModel();
 
+        // 1. Il service ora restituisce già i DTO con il Tipo (Spostato, Extra, Mancante)
+        var tutte = await _service.OttieniDiscrepanzeAsync(id);
+
+        // 2. Filtro di ricerca
         if (!string.IsNullOrWhiteSpace(query))
         {
-            discrepanze = discrepanze
-                .Where(d => (d.Barcode != null && d.Barcode.Contains(query, StringComparison.OrdinalIgnoreCase)) ||
-                            (d.Descrizione != null && d.Descrizione.Contains(query, StringComparison.OrdinalIgnoreCase)) || 
-                            (d.Ubicazione != null && d.Ubicazione.Contains(query, StringComparison.OrdinalIgnoreCase)))
-                .ToList();
+            tutte = tutte.Where(d =>
+                (d.Barcode?.Contains(query, StringComparison.OrdinalIgnoreCase) ?? false) ||
+                (d.Descrizione?.Contains(query, StringComparison.OrdinalIgnoreCase) ?? false) ||
+                (d.UbicazioneSnapshot?.Contains(query, StringComparison.OrdinalIgnoreCase) ?? false) ||
+                (d.UbicazioneRilevata?.Contains(query, StringComparison.OrdinalIgnoreCase) ?? false)
+            ).ToList();
         }
 
-        var totalItems = discrepanze.Count;
-        var discrepanzePaginate = discrepanze
-            .Skip((page - 1) * pageSize)
-            .Take(pageSize)
-            .ToList();
-
+        // 3. Configurazione UI con tasto "Risolvi Tutto"
         var searchCard = new SearchCardViewModel
         {
-            Title = "⚠️ Discrepanze Rilevate",
-            Placeholder = "Cerca barcode...",
+            Title = "⚠️ Analisi Discrepanze",
+            Placeholder = "Cerca barcode o ubicazione...",
             Query = query,
             Filters = Filters,
             ShowFilters = false,
-            ShowUscitoFilter = false,
-            ShowSearchInColumns = false,
             HeaderButtons = new List<SearchCardButton>
             {
                 new SearchCardButton
@@ -67,7 +60,22 @@ public partial class DiscrepanzeController : AuthenticatedBaseController
                     Type = "button",
                     HtmlAttributes = new Dictionary<string, string>
                     {
-                        { "onclick", $"location.href='{Url.Action("Index", "Dettaglio", new { area = "Inventari", id = id })}'" }
+                        {
+                            "onclick",
+                            $"location.href='{Url.Action("Dettaglio", "Sessioni", new { area = "Inventari", id = id })}'"
+                        }
+                    }
+                },
+                new SearchCardButton
+                {
+                    Text = "Risolvi Tutto",
+                    CssClass = "btn-success",
+                    IconClass = "fa-solid fa-wand-magic-sparkles",
+                    Type = "button",
+                    HtmlAttributes = new Dictionary<string, string>
+                    {
+                        { "data-post-action", Url.Action("RisolviTutto", "Discrepanze", new { area = "Inventari", id = id }) },
+                        { "data-confirm", "Sei sicuro di voler allineare tutto il magazzino?" }
                     }
                 }
             }
@@ -78,12 +86,36 @@ public partial class DiscrepanzeController : AuthenticatedBaseController
             SessioneId = id,
             SearchCard = searchCard,
             SearchQuery = query,
-            Discrepanze = discrepanzePaginate,
+            // Smistamento basato sul Tipo del DTO unificato
+            DaSpostare = tutte.Where(x => x.Tipo == TipoDiscrepanzaOperativa.Spostato).ToList(),
+            DaAggiungere = tutte.Where(x => x.Tipo == TipoDiscrepanzaOperativa.Extra).ToList(),
+            DaRimuovere = tutte.Where(x => x.Tipo == TipoDiscrepanzaOperativa.Mancante).ToList(),
+            TotalItems = tutte.Count,
             Page = page,
-            PageSize = pageSize,
-            TotalItems = totalItems,
+            PageSize = pageSize
         };
 
         return View("Discrepanze", model);
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public virtual async Task<IActionResult> Risolvi(Guid id, string barcode, TipoRisoluzione tipo)
+    {
+        var tutte = await _service.OttieniDiscrepanzeAsync(id);
+        var d = tutte.FirstOrDefault(x => x.Barcode == barcode);
+
+        if (d == null) return Json(new { success = false, message = "Pezzo non trovato." });
+
+        await _service.RisolviDiscrepanzaAsync(id, d, tipo);
+        return Json(new { success = true });
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public virtual async Task<IActionResult> RisolviTutto(Guid id)
+    {
+        await _service.RisolviTuttoAsync(id);
+        return Json(new { success = true, redirectUrl = Url.Action("Index", new { id = id }) });
     }
 }
