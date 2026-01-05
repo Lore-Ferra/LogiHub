@@ -4,10 +4,20 @@
 @{
     ViewData["Title"] = "Rilevamento " + Model.NomeUbicazione;
 }
-
+@if (Model.IsSolaLettura)
+{
+    <div class="alert alert-warning opacity-100 border-0 shadow-sm mb-3 d-flex align-items-center">
+        <i class="fa-solid fa-lock me-3 fa-lg"></i>
+        <div>
+            <strong>Ubicazione Completata.</strong> Modalità sola lettura attiva.
+        </div>
+    </div>
+}
 <div>
     @await Html.PartialAsync("~/Features/SearchCard/_SearchCard.cshtml", Model.SearchCard)
 </div>
+
+
 
 <div class="container-fluid px-0 pb-5 mt-3">
     @foreach (var pezzo in Model.Pezzi)
@@ -26,17 +36,38 @@
 
                 <div class="row g-2 mt-3">
                     <div class="col-6">
+                        @* 2. LOGICA DISABILITAZIONE BOTTONE PRESENTE *@
                         <button class="btn btn-lg btn-outline-success w-100 py-3" 
                                 onclick="aggiornaStato(this, '@pezzo.RigaId', 'presente')"
-                                data-url="@Url.Action("SegnaPresente", "RilevamentoUbicazione", new { rigaId = pezzo.RigaId })">
-                            <i class="fa-solid fa-check"></i> Presente
+                                data-url="@Url.Action("SegnaPresente", "RilevamentoUbicazione", new { rigaId = pezzo.RigaId })"
+                                @(Model.IsSolaLettura ? "disabled" : "")>
+                            
+                            @if(Model.IsSolaLettura && pezzo.Stato == StatoRigaInventario.Trovato)
+                            {
+                                <i class="fa-solid fa-lock"></i> }
+                            else
+                            {
+                                <i class="fa-solid fa-check"></i>
+                            }
+                             Presente
                         </button>
                     </div>
                     <div class="col-6">
+                        @* 3. LOGICA DISABILITAZIONE BOTTONE MANCANTE *@
                         <button class="btn btn-lg btn-outline-danger w-100 py-3" 
                                 onclick="aggiornaStato(this, '@pezzo.RigaId', 'mancante')"
-                                data-url="@Url.Action("SegnaMancante", "RilevamentoUbicazione", new { rigaId = pezzo.RigaId })">
-                            <i class="fa-solid fa-xmark"></i> Mancante
+                                data-url="@Url.Action("SegnaMancante", "RilevamentoUbicazione", new { rigaId = pezzo.RigaId })"
+                                @(Model.IsSolaLettura ? "disabled" : "")>
+                            
+                            @if(Model.IsSolaLettura && pezzo.Stato == StatoRigaInventario.Mancante)
+                            {
+                                <i class="fa-solid fa-lock"></i>
+                            }
+                            else
+                            {
+                                <i class="fa-solid fa-xmark"></i>
+                            }
+                             Mancante
                         </button>
                     </div>
                 </div>
@@ -48,9 +79,9 @@
 @section Scripts {
     <script>
         async function aggiornaStato(btn, rigaId, tipo) {
+            if (btn.disabled) return;
+
             const url = btn.getAttribute('data-url');
-            
-            // Recupera il token CSRF per la sicurezza
             const tokenInput = document.querySelector('input[name="__RequestVerificationToken"]');
             const formData = new FormData();
             if (tokenInput) {
@@ -58,8 +89,9 @@
             }
 
             try {
-                // Disabilita il bottone per evitare doppi click rapidi
+                const originalText = btn.innerHTML;
                 btn.disabled = true;
+                btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
 
                 const response = await fetch(url, {
                     method: 'POST',
@@ -67,11 +99,9 @@
                 });
 
                 if (response.ok) {
-                    // Aggiorna UI in tempo reale
                     const card = document.getElementById('card-' + rigaId);
                     const badge = document.getElementById('badge-' + rigaId);
 
-                    // Rimuovi classi vecchie
                     card.classList.remove('border-success', 'border-danger');
                     badge.classList.remove('bg-secondary', 'bg-success', 'bg-danger');
 
@@ -86,12 +116,13 @@
                     }
                 } else {
                     console.error("Errore server:", response.statusText);
-                    alert("Errore durante l'aggiornamento dello stato.");
+                    alert("Impossibile aggiornare. Forse l'ubicazione è stata chiusa?");
                 }
             } catch (error) {
                 console.error('Errore:', error);
                 alert("Errore di connessione.");
             } finally {
+                btn.innerHTML = originalText;
                 btn.disabled = false;
             }
         }
@@ -100,6 +131,7 @@
             const btn = e.target.closest('[data-post-action]');
             if (!btn) return;
             e.preventDefault();
+            // ... (il tuo codice standard)
             const url = btn.getAttribute('data-url');
             const confirmMsg = btn.getAttribute('data-confirm');
             if (confirmMsg && !confirm(confirmMsg)) return;

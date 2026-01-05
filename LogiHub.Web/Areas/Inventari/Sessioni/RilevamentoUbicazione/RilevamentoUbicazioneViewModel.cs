@@ -15,6 +15,7 @@ public class RilevamentoUbicazioneViewModel : PagingViewModel
 
     public SearchCardViewModel SearchCard { get; set; }
     public IEnumerable<PezzoInventarioDTO> Pezzi { get; set; }
+    public bool IsSolaLettura { get; set; }
 
     public override IActionResult GetRoute()
     {

@@ -25,6 +25,7 @@ public partial class RilevamentoUbicazioneController : AuthenticatedBaseControll
         _context = context;
     }
 
+
     [HttpGet]
     public virtual async Task<IActionResult> Index(
         Guid sessioneId,
@@ -36,54 +37,95 @@ public partial class RilevamentoUbicazioneController : AuthenticatedBaseControll
         var userId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
 
         // 1. Lock dell'ubicazione
+        // (Grazie alla modifica fatta nel Service, questo NON lancia più eccezione se è già completata)
         await _service.BloccaUbicazioneAsync(sessioneId, ubicazioneId, userId);
 
-        // 2. Recupero dati pezzi
+        // 2. Recupero Info Stato (Nome e se è Completata)
+        // Interroghiamo SessioniUbicazioni per avere lo stato preciso
+        var infoUbicazione = await _context.SessioniUbicazioni
+            .Include(su => su.Ubicazione)
+            .Where(su => su.SessioneInventarioId == sessioneId && su.UbicazioneId == ubicazioneId)
+            .Select(su => new
+            {
+                Nome = su.Ubicazione.Posizione,
+                Completata = su.Completata
+            })
+            .FirstOrDefaultAsync();
+
+        if (infoUbicazione == null) return NotFound("Ubicazione non trovata nella sessione.");
+
+        // Flag Sola Lettura
+        bool isSolaLettura = infoUbicazione.Completata;
+
+        // 3. Recupero dati pezzi
         var datiPezzi = await _service.OttieniPezziUbicazioneAsync(new PezziUbicazioneQuery
         {
             SessioneId = sessioneId,
             UbicazioneId = ubicazioneId
         });
 
-        // OPTIONAL: Recupera il nome dell'ubicazione dal DB
-        var nomeUbi = await _context.Ubicazioni
-            .Where(u => u.UbicazioneId == ubicazioneId)
-            .Select(u => u.Posizione)
-            .FirstOrDefaultAsync() ?? "Ubicazione Ignota";
+        var bottoneConcludi = new SearchCardButton
+        {
+            Text = "Concludi",
+            CssClass = "btn-primary d-none d-md-inline-block",
+            IconClass = "fa-solid fa-check-double",
+            Type = "button",
+            HtmlAttributes = new Dictionary<string, string>
+            {
+                { "data-post-action", "true" },
+                { "data-url", Url.Action("ConcludiUbicazione", new { sessioneId, ubicazioneId }) },
+                { "data-confirm",
+                    "Sicuro di voler chiudere questa ubicazione? I pezzi non segnati saranno messi come mancanti."
+                }
+            }
+        };
 
-        // 3. Costruzione SearchCard
+// 2. Definizione Bottone DISABILITATO (Bloccato)
+        var bottoneBloccato = new SearchCardButton
+        {
+            Text = "Concludi",
+            // Uso btn-success con opacity per mantenere coerenza cromatica ma mostrare che è spento
+            CssClass = "btn-primary d-none d-md-inline-block",
+            IconClass = "fa-solid fa-lock",
+            Type = "button",
+            HtmlAttributes = new Dictionary<string, string>
+            {
+                { "disabled", "disabled" },
+                { "title", "Ubicazione già completata (Sola lettura)" },
+                { "style", "cursor: not-allowed; pointer-events: auto !important;" }
+            }
+        };
+
+// 3. Gestione Messaggio (opzionale, fuori dalla costruzione dell'oggetto)
+        if (isSolaLettura)
+        {
+            TempData["WarningMessage"] = "Questa ubicazione è già stata completata. Modalità sola lettura.";
+        }
+
+       // 4. Costruzione SearchCard con Logica Condizionale
         var searchCard = new SearchCardViewModel
         {
-            Title = $"Rilevamento: {nomeUbi}",
+            Title = $"Rilevamento: {infoUbicazione.Nome}",
             Placeholder = "Cerca barcode o pezzo...",
             Query = query,
             ShowFilters = false,
             HeaderButtons = new List<SearchCardButton>
             {
-                new SearchCardButton
-                {
-                    Text = "Concludi",
-                    CssClass = "btn-success",
-                    IconClass = "fa-solid fa-check-double",
-                    Type = "button",
-                    HtmlAttributes = new Dictionary<string, string>
-                    {
-                        { "data-post-action", "true" },
-                        { "data-url", Url.Action("ConcludiUbicazione", new { sessioneId, ubicazioneId }) },
-                        {
-                            "data-confirm",
-                            "Sicuro di voler chiudere questa ubicazione? I pezzi non segnati saranno messi come mancanti."
-                        }
-                    }
-                }
+                // SE è sola lettura ? USA bottoneBloccato : ALTRIMENTI USA bottoneConcludi
+                isSolaLettura ? bottoneBloccato : bottoneConcludi
             }
         };
 
+        // 6. Creazione ViewModel
         var model = new RilevamentoUbicazioneViewModel
         {
             SessioneId = sessioneId,
             UbicazioneId = ubicazioneId,
-            NomeUbicazione = nomeUbi,
+            NomeUbicazione = infoUbicazione.Nome,
+
+            // Assegnazione Flag fondamentale
+            IsSolaLettura = isSolaLettura,
+
             SearchCard = searchCard,
             Pezzi = datiPezzi
                 .Where(p => string.IsNullOrEmpty(query) || p.Barcode.Contains(query) ||
@@ -96,6 +138,7 @@ public partial class RilevamentoUbicazioneController : AuthenticatedBaseControll
         };
 
         return View("RilevamentoUbicazione", model);
+        
     }
 
     [HttpPost]
@@ -118,7 +161,5 @@ public partial class RilevamentoUbicazioneController : AuthenticatedBaseControll
     public virtual async Task<IActionResult> ConcludiUbicazione(Guid sessioneId, Guid ubicazioneId)
     {
         await _service.CompletaUbicazioneAsync(sessioneId, ubicazioneId);
-        // Torna al dettaglio della sessione (elenco ubicazioni)
-        return RedirectToAction("Index", "Dettaglio", new { id = sessioneId });
-    }
+        return RedirectToAction("Dettaglio", "Sessioni", new { area = "Inventari", id = sessioneId });    }
 }

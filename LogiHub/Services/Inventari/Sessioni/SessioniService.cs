@@ -131,7 +131,10 @@ public class SessioniService : ISessioniService
             .FirstOrDefaultAsync(u => u.SessioneInventarioId == sessioneId && u.UbicazioneId == ubicazioneId);
 
         if (statoUbi == null) throw new InvalidOperationException("Ubicazione non configurata.");
-        if (statoUbi.Completata) throw new InvalidOperationException("Ubicazione già completata.");
+        if (statoUbi.Completata) 
+        {
+            return; 
+        }
         if (statoUbi.OperatoreCorrenteId != null && statoUbi.OperatoreCorrenteId != userId)
             throw new InvalidOperationException("Ubicazione occupata.");
 
@@ -370,6 +373,5 @@ public class SessioniService : ISessioniService
             await RisolviDiscrepanzaAsync(sessioneId, d, azione);
         }
     }
-
     #endregion
 }
