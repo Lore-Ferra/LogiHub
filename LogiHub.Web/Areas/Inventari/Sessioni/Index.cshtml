@@ -38,9 +38,25 @@
                 <div class="d-flex justify-content-between align-items-center">
                     <div class="fw-bold">
                         <div class="@(item.Chiuso ? "" : "text-primary") mb-1">@item.NomeSessione</div>
-                        <small class="text-muted opacity-75"><i
-                                class="fa-solid fa-calendar me-1"></i> @item.DataCreazione.ToString("dd/MM/yyyy HH:mm")
-                        </small>
+                        <div class="text-muted opacity-75 small">
+                            <div>
+                                <i class="fa-solid fa-calendar-plus me-1"></i>
+                                Apertura: @item.DataCreazione.ToString("dd/MM/yyyy HH:mm")
+                            </div>
+
+                            <div>
+                                <i class="fa-solid fa-calendar-check me-1"></i>
+                                Chiusura:
+                                @if (item.DataChiusura.HasValue)
+                                {
+                                    @item.DataChiusura.Value.ToString("dd/MM/yyyy HH:mm")
+                                }
+                                else
+                                {
+                                    <span>---</span>
+                                }
+                            </div>
+                        </div>
                     </div>
                     <div>
                         @if (item.Chiuso)
@@ -73,6 +89,8 @@
                 <thead>
                 <tr>
                     <th class="ps-4">Sessione</th>
+                    <th class="text-center">Data Apertura</th>
+                    <th class="text-center">Data Chiusura</th>
                     <th class="text-center">Stato</th>
                 </tr>
                 </thead>
@@ -82,13 +100,34 @@
                     <tr class="@(item.Chiuso ? "bg-light text-muted" : "fw-bold")"
                         style="cursor:pointer"
                         onclick="window.location.href='@Url.Action("Index", "Dettaglio", new { id = item.Id })'">
+
+                        <!-- Sessione -->
                         <td class="ps-3">
-                            <div class="@(item.Chiuso ? "" : "text-primary") mb-1">@item.NomeSessione</div>
-                            <small class="text-muted opacity-75">
-                                <i class="fa-solid fa-calendar me-1"></i>
+                            <div class="@(item.Chiuso ? "" : "text-primary") mb-1">
+                                @item.NomeSessione
+                            </div>
+                        </td>
+
+                        <!-- Data Apertura -->
+                        <td class="text-center">
+                            <small class="text-muted">
                                 @item.DataCreazione.ToString("dd/MM/yyyy HH:mm")
                             </small>
                         </td>
+
+                        <td class="text-center">
+                            @if (item.DataChiusura.HasValue)
+                            {
+                                <small class="text-muted">
+                                    @item.DataChiusura.Value.ToString("dd/MM/yyyy HH:mm")
+                                </small>
+                            }
+                            else
+                            {
+                                <span class="text-muted">---</span>
+                            }
+                        </td>
+
                         <td class="text-center">
                             @if (item.Chiuso)
                             {
@@ -97,7 +136,8 @@
                             else
                             {
                                 <span class="badge bg-warning text-dark shadow-sm">
-                                    <i class="fa-solid fa-circle fa-fade me-2" style="font-size: 0.6rem;"></i>In Corso
+                                    <i class="fa-solid fa-circle fa-fade me-2" style="font-size: 0.6rem;"></i>
+                                    In Corso
                                 </span>
                             }
                         </td>
@@ -107,7 +147,7 @@
                 @if (!Model.Sessioni.Any())
                 {
                     <tr>
-                        <td colspan="2" class="text-center py-5 text-muted">
+                        <td colspan="4" class="text-center py-5 text-muted">
                             <i class="fas fa-box-open fa-3x mb-3"></i>
                             <p>Nessuna sessione trovata.</p>
                         </td>
