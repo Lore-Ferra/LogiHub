@@ -19,84 +19,98 @@ public partial class DiscrepanzeController : AuthenticatedBaseController
         _service = service;
     }
 
-    [HttpGet]
-    public virtual async Task<IActionResult> Index(
-        Guid id,
-        [FromQuery] string query,
-        [FromQuery] SearchCardFiltersViewModel Filters,
-        int page = 1,
-        int pageSize = 25)
+   [HttpGet]
+public virtual async Task<IActionResult> Index(
+    Guid id,
+    [FromQuery] string query,
+    [FromQuery] SearchCardFiltersViewModel Filters,
+    int page = 1,
+    int pageSize = 25)
+{
+    Filters ??= new SearchCardFiltersViewModel();
+
+    var tutte = await _service.OttieniDiscrepanzeAsync(id);
+
+    // Verifica se esistono ancora discrepanze da gestire
+    bool haAperte = tutte.Any(x => x.Stato == StatoDiscrepanza.Aperta);
+
+    // 1. Bottone TORNA (Sempre uguale)
+    var btnTorna = new SearchCardButton
     {
-        Filters ??= new SearchCardFiltersViewModel();
-
-        // 1. Il service ora restituisce già i DTO con il Tipo (Spostato, Extra, Mancante)
-        var tutte = await _service.OttieniDiscrepanzeAsync(id);
-
-        // 2. Filtro di ricerca
-        if (!string.IsNullOrWhiteSpace(query))
+        Text = "Torna al Dettaglio",
+        CssClass = "btn-outline-secondary",
+        IconClass = "fa-solid fa-arrow-left",
+        Type = "button",
+        HtmlAttributes = new Dictionary<string, string>
         {
-            tutte = tutte.Where(d =>
-                (d.Barcode?.Contains(query, StringComparison.OrdinalIgnoreCase) ?? false) ||
-                (d.Descrizione?.Contains(query, StringComparison.OrdinalIgnoreCase) ?? false) ||
-                (d.UbicazioneSnapshot?.Contains(query, StringComparison.OrdinalIgnoreCase) ?? false) ||
-                (d.UbicazioneRilevata?.Contains(query, StringComparison.OrdinalIgnoreCase) ?? false)
-            ).ToList();
+            { "onclick", $"location.href='{Url.Action("Dettaglio", "Sessioni", new { area = "Inventari", id = id })}'" }
         }
+    };
 
-        // 3. Configurazione UI con tasto "Risolvi Tutto"
-        var searchCard = new SearchCardViewModel
+    // 2. Bottone RISOLVI ATTIVO
+    var btnRisolviAttivo = new SearchCardButton
+    {
+        Text = "Risolvi Tutto",
+        CssClass = "btn-success",
+        IconClass = "fa-solid fa-wand-magic-sparkles",
+        Type = "button",
+        HtmlAttributes = new Dictionary<string, string>
         {
-            Title = "⚠️ Analisi Discrepanze",
-            Placeholder = "Cerca barcode o ubicazione...",
-            Query = query,
-            Filters = Filters,
-            ShowFilters = false,
-            HeaderButtons = new List<SearchCardButton>
-            {
-                new SearchCardButton
-                {
-                    Text = "Torna al Dettaglio",
-                    CssClass = "btn-outline-secondary",
-                    IconClass = "fa-solid fa-arrow-left",
-                    Type = "button",
-                    HtmlAttributes = new Dictionary<string, string>
-                    {
-                        {
-                            "onclick",
-                            $"location.href='{Url.Action("Dettaglio", "Sessioni", new { area = "Inventari", id = id })}'"
-                        }
-                    }
-                },
-                new SearchCardButton
-                {
-                    Text = "Risolvi Tutto",
-                    CssClass = "btn-success",
-                    IconClass = "fa-solid fa-wand-magic-sparkles",
-                    Type = "button",
-                    HtmlAttributes = new Dictionary<string, string>
-                    {
-                        { "data-post-action", Url.Action("RisolviTutto", "Discrepanze", new { area = "Inventari", id = id }) },
-                        { "data-confirm", "Sei sicuro di voler allineare tutto il magazzino?" }
-                    }
-                }
-            }
-        };
+            { "data-post-action", Url.Action("RisolviTutto", "Discrepanze", new { area = "Inventari", id = id }) },
+            { "data-confirm", "Sei sicuro di voler allineare tutto il magazzino?" }
+        }
+    };
 
-        var model = new DiscrepanzeViewModel
-        {
-            SessioneId = id,
-            SearchCard = searchCard,
-            SearchQuery = query,
-            DaSpostare = tutte.Where(x => x.Tipo == TipoDiscrepanzaOperativa.Spostato).ToList(),
-            DaAggiungere = tutte.Where(x => x.Tipo == TipoDiscrepanzaOperativa.Extra).ToList(),
-            DaRimuovere = tutte.Where(x => x.Tipo == TipoDiscrepanzaOperativa.Mancante).ToList(),
-            TotalItems = tutte.Count,
-            Page = page,
-            PageSize = pageSize
-        };
+    // 3. Bottone RISOLVI DISATTIVATO (Lucchetto)
+    var btnRisolviDisattivato = new SearchCardButton
+    {
+        Text = "Tutto Risolto",
+        CssClass = "btn-success disabled",
+        IconClass = "fa-solid fa-lock",
+        Type = "button",
+        HtmlAttributes = new Dictionary<string, string> { { "title", "Nessuna discrepanza aperta" } }
+    };
 
-        return View("Discrepanze", model);
+    // Filtro di ricerca (eseguito dopo il controllo haAperte per coerenza globale)
+    if (!string.IsNullOrWhiteSpace(query))
+    {
+        tutte = tutte.Where(d =>
+            (d.Barcode?.Contains(query, StringComparison.OrdinalIgnoreCase) ?? false) ||
+            (d.Descrizione?.Contains(query, StringComparison.OrdinalIgnoreCase) ?? false) ||
+            (d.UbicazioneSnapshot?.Contains(query, StringComparison.OrdinalIgnoreCase) ?? false) ||
+            (d.UbicazioneRilevata?.Contains(query, StringComparison.OrdinalIgnoreCase) ?? false)
+        ).ToList();
     }
+
+    var searchCard = new SearchCardViewModel
+    {
+        Title = "⚠️ Analisi Discrepanze",
+        Placeholder = "Cerca barcode o ubicazione...",
+        Query = query,
+        Filters = Filters,
+        ShowFilters = false,
+        HeaderButtons = new List<SearchCardButton>
+        {
+            btnTorna,
+            haAperte ? btnRisolviAttivo : btnRisolviDisattivato
+        }
+    };
+
+    var model = new DiscrepanzeViewModel
+    {
+        SessioneId = id,
+        SearchCard = searchCard,
+        SearchQuery = query,
+        DaSpostare = tutte.Where(x => x.Tipo == TipoDiscrepanzaOperativa.Spostato).ToList(),
+        DaAggiungere = tutte.Where(x => x.Tipo == TipoDiscrepanzaOperativa.Extra).ToList(),
+        DaRimuovere = tutte.Where(x => x.Tipo == TipoDiscrepanzaOperativa.Mancante).ToList(),
+        TotalItems = tutte.Count,
+        Page = page,
+        PageSize = pageSize
+    };
+
+    return View("Discrepanze", model);
+}
 
     [HttpPost]
     [ValidateAntiForgeryToken]

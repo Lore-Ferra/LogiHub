@@ -65,7 +65,7 @@ public partial class DettaglioController : AuthenticatedBaseController
             {
                 new SearchCardButton
                 {
-                    Text = "Visualizza Discrepanze",
+                    Text = "Discrepanze",
                     CssClass = "btn-primary",
                     IconClass = "fa-solid fa-triangle-exclamation",
                     Type = "button",
@@ -82,7 +82,7 @@ public partial class DettaglioController : AuthenticatedBaseController
         {
             searchCardModel.HeaderButtons.Add(new SearchCardButton
             {
-                Text = "Chiudi Inventario",
+                Text = "Termina",
                 CssClass = "btn-danger",
                 IconClass = "fa-solid fa-lock",
                 Type = "button",

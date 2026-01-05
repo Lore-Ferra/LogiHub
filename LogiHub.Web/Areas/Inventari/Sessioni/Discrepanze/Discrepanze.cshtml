@@ -2,7 +2,7 @@
 
 @{
     ViewData["Title"] = "Analisi Discrepanze";
-    
+
     // Conteggio solo delle pratiche ancora da gestire
     var countSpostati = Model.DaSpostare?.Count(x => x.Stato == StatoDiscrepanza.Aperta) ?? 0;
     var countExtra = Model.DaAggiungere?.Count(x => x.Stato == StatoDiscrepanza.Aperta) ?? 0;
@@ -10,74 +10,88 @@
 }
 
 @functions {
-    string GetStatoBadge(StatoDiscrepanza stato) => stato switch {
+
+    string GetStatoBadge(StatoDiscrepanza stato) => stato switch
+    {
         StatoDiscrepanza.Risolta => "bg-success",
         StatoDiscrepanza.Annullata => "bg-secondary",
         _ => "bg-warning text-dark"
     };
 
     // Helper per renderizzare la tabella in modo uniforme
-    async Task RenderTabella(IEnumerable<DiscrepanzaDTO> items, string colorClass, TipoRisoluzione tipoDefault) {
+    async Task RenderTabella(IEnumerable<DiscrepanzaDTO> items, string colorClass, TipoRisoluzione tipoDefault)
+    {
         <div class="card shadow-sm border-0 border-start border-4 border-@colorClass">
             <div class="card-body p-0">
                 <table class="table table-hover align-middle mb-0">
                     <thead class="bg-light">
-                        <tr>
-                            <th>Pezzo</th>
-                            <th>Info</th>
-                            <th>Stato</th>
-                            <th>Azioni</th>
-                        </tr>
+                    <tr>
+                        <th>Pezzo</th>
+                        <th>Info</th>
+                        <th>Stato</th>
+                        <th>Azioni</th>
+                    </tr>
                     </thead>
                     <tbody>
-                        @foreach (var item in items) {
-                            <tr class="@(item.Stato != StatoDiscrepanza.Aperta ? "opacity-75 bg-light" : "")">
-                                <td>
-                                    <div class="fw-bold">@item.Barcode</div>
-                                    <div class="small text-muted">@item.Descrizione</div>
-                                </td>
-                                <td>
-                                    @if (item.Tipo == TipoDiscrepanzaOperativa.Spostato) {
-                                        <small>Da <b>@item.UbicazioneSnapshot</b> a <b>@item.UbicazioneRilevata</b></small>
-                                    } else if (item.Tipo == TipoDiscrepanzaOperativa.Extra) {
-                                        <small>Trovato in <b>@item.UbicazioneRilevata</b></small>
-                                    } else {
-                                        <small>Mancante da <b>@item.UbicazioneSnapshot</b></small>
-                                    }
-                                </td>
-                                <td>
-                                    <span class="badge @GetStatoBadge(item.Stato)">@item.Stato</span>
-                                    @if (item.Stato != StatoDiscrepanza.Aperta) {
-                                        <div class="x-small text-muted mt-1" style="font-size: 0.7rem;">
-                                            @item.GestitaDa il @item.DataGestione?.ToString("dd/MM HH:mm")
-                                        </div>
-                                    }
-                                </td>
-                                <td>
-                                    @if (item.Stato == StatoDiscrepanza.Aperta) {
-                                        <div class="btn-group">
-                                            <button class="btn btn-sm btn-outline-@colorClass" 
-                                                    data-post-action="@Url.Action("Risolvi", "Discrepanze", new { area = "Inventari", id = Model.SessioneId, barcode = item.Barcode, tipo = tipoDefault })"
-                                                    data-confirm="Confermi la risoluzione (aggiornamento magazzino)?">
-                                                <i class="fa-solid fa-check"></i>
-                                            </button>
-                                            <button class="btn btn-sm btn-outline-secondary" 
-                                                    data-post-action="@Url.Action("AnnullaDiscrepanza", "Discrepanze", new { area = "Inventari", id = Model.SessioneId, barcode = item.Barcode })"
-                                                    data-confirm="Vuoi annullare la segnalazione? Non verrà fatta alcuna modifica fisica.">
-                                                <i class="fa-solid fa-ban"></i>
-                                            </button>
-                                        </div>
-                                    } else {
-                                        <i class="fa-solid fa-lock text-muted" title="Gestita"></i>
-                                    }
-                                </td>
-                            </tr>
-                        }
+                    @foreach (var item in items)
+                    {
+                        <tr class="@(item.Stato != StatoDiscrepanza.Aperta ? "opacity-75 bg-light" : "")">
+                            <td>
+                                <div class="fw-bold">@item.Barcode</div>
+                                <div class="small text-muted">@item.Descrizione</div>
+                            </td>
+                            <td>
+                                @if (item.Tipo == TipoDiscrepanzaOperativa.Spostato)
+                                {
+                                    <small>Da <b>@item.UbicazioneSnapshot</b> a <b>@item.UbicazioneRilevata</b></small>
+                                }
+                                else if (item.Tipo == TipoDiscrepanzaOperativa.Extra)
+                                {
+                                    <small>Trovato in <b>@item.UbicazioneRilevata</b></small>
+                                }
+                                else
+                                {
+                                    <small>Mancante da <b>@item.UbicazioneSnapshot</b></small>
+                                }
+                            </td>
+                            <td>
+                                <span class="badge @GetStatoBadge(item.Stato)">@item.Stato</span>
+                                @if (item.Stato != StatoDiscrepanza.Aperta)
+                                {
+                                    <div class="x-small text-muted mt-1" style="font-size: 0.7rem;">
+                                        @item.GestitaDa il @item.DataGestione?.ToString("dd/MM HH:mm")
+                                    </div>
+                                }
+                            </td>
+                            <td>
+                                @if (item.Stato == StatoDiscrepanza.Aperta)
+                                {
+                                    <div class="btn-group">
+                                        <button class="btn btn-sm btn-outline-@colorClass"
+                                                data-post-action="@Url.Action("Risolvi", "Discrepanze", new { area = "Inventari", id = Model.SessioneId, barcode = item.Barcode, tipo = tipoDefault })"
+                                                data-confirm="Confermi la risoluzione (aggiornamento magazzino)?">
+                                            <i class="fa-solid fa-check"></i>
+                                        </button>
+                                        <button class="btn btn-sm btn-outline-secondary"
+                                                data-post-action="@Url.Action("AnnullaDiscrepanza", "Discrepanze", new { area = "Inventari", id = Model.SessioneId, barcode = item.Barcode })"
+                                                data-confirm="Vuoi annullare la segnalazione? Non verrà fatta alcuna modifica fisica.">
+                                            <i class="fa-solid fa-ban"></i>
+                                        </button>
+                                    </div>
+                                }
+                                else
+                                {
+                                    <i class="fa-solid fa-lock text-muted" title="Gestita"></i>
+                                }
+                            </td>
+                        </tr>
+                    }
                     </tbody>
                 </table>
             </div>
         </div>
     }
+
 }
 
 <div>
@@ -88,18 +102,24 @@
     @* --- TABS --- *@
     <ul class="nav nav-pills mb-3" id="pills-tab" role="tablist">
         <li class="nav-item">
-            <button class="nav-link active" id="tab-spostati" data-bs-toggle="pill" data-bs-target="#content-spostati" type="button" role="tab">
-                <i class="fa-solid fa-right-left me-2"></i>Spostamenti <span class="badge bg-white text-primary ms-1">@countSpostati</span>
+            <button class="nav-link active" id="tab-spostati" data-bs-toggle="pill" data-bs-target="#content-spostati"
+                    type="button" role="tab">
+                <i class="fa-solid fa-right-left me-2"></i>Spostamenti <span
+                    class="badge bg-white text-primary ms-1">@countSpostati</span>
             </button>
         </li>
         <li class="nav-item">
-            <button class="nav-link" id="tab-extra" data-bs-toggle="pill" data-bs-target="#content-extra" type="button" role="tab">
-                <i class="fa-solid fa-plus me-2"></i>Extra <span class="badge bg-white text-primary ms-1">@countExtra</span>
+            <button class="nav-link" id="tab-extra" data-bs-toggle="pill" data-bs-target="#content-extra" type="button"
+                    role="tab">
+                <i class="fa-solid fa-plus me-2"></i>Extra <span
+                    class="badge bg-white text-primary ms-1">@countExtra</span>
             </button>
         </li>
         <li class="nav-item">
-            <button class="nav-link" id="tab-mancanti" data-bs-toggle="pill" data-bs-target="#content-mancanti" type="button" role="tab">
-                <i class="fa-solid fa-minus me-2"></i>Mancanti <span class="badge bg-white text-primary ms-1">@countMancanti</span>
+            <button class="nav-link" id="tab-mancanti" data-bs-toggle="pill" data-bs-target="#content-mancanti"
+                    type="button" role="tab">
+                <i class="fa-solid fa-minus me-2"></i>Mancanti <span
+                    class="badge bg-white text-primary ms-1">@countMancanti</span>
             </button>
         </li>
     </ul>
@@ -121,51 +141,60 @@
 
 @section Scripts {
     <script>
-      document.addEventListener('DOMContentLoaded', function () {
-        document.body.addEventListener('click', async function (e) {
-          const button = e.target.closest('[data-post-action]');
-          if (!button) return;
-    
-          e.preventDefault();
-          if (button.getAttribute('data-confirm') && !confirm(button.getAttribute('data-confirm'))) return;
-    
-          const url = button.getAttribute('data-post-action');
-          const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value;
-    
-          button.disabled = true;
-          const originalHtml = button.innerHTML;
-          button.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
-    
-          try {
-            const response = await fetch(url, {
-              method: 'POST',
-              credentials: 'same-origin',
-              headers: { 'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8' },
-              body: new URLSearchParams({ "__RequestVerificationToken": token })
+        document.addEventListener('DOMContentLoaded', function () {
+            // 1. All'avvio, se c'è un hash nell'URL, attiva il tab corrispondente
+            const hash = window.location.hash;
+            if (hash) {
+                const tabTriggerEl = document.querySelector(`button[data-bs-target="${hash}"]`);
+                if (tabTriggerEl) {
+                    new bootstrap.Tab(tabTriggerEl).show();
+                }
+            }
+
+            // 2. Ogni volta che si cambia tab, aggiorna l'hash nell'URL
+            const tabs = document.querySelectorAll('button[data-bs-toggle="pill"]');
+            tabs.forEach(tab => {
+                tab.addEventListener('shown.bs.tab', (e) => {
+                    const target = e.target.getAttribute('data-bs-target');
+                    history.replaceState(null, null, target); // Aggiorna URL senza ricaricare
+                });
             });
-    
-            if (!response.ok) {
-              const text = await response.text();
-              alert("Errore HTTP " + response.status + "\n" + text);
-              return;
-            }
-    
-            const result = await response.json();
-    
-            if (result?.success) {
-              if (result.redirectUrl) window.location.href = result.redirectUrl;
-              else window.location.reload();
-            } else {
-              alert(result?.message || "Errore");
-            }
-    
-          } catch (error) {
-            alert("Errore di connessione");
-          } finally {
-            button.disabled = false;
-            button.innerHTML = originalHtml;
-          }
+
+            // 3. Gestione click azioni
+            document.body.addEventListener('click', async function (e) {
+                const button = e.target.closest('[data-post-action]');
+                if (!button) return;
+
+                e.preventDefault();
+                if (button.getAttribute('data-confirm') && !confirm(button.getAttribute('data-confirm'))) return;
+
+                const url = button.getAttribute('data-post-action');
+                const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value;
+
+                button.disabled = true;
+                const originalHtml = button.innerHTML;
+                button.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
+
+                try {
+                    const response = await fetch(url, {
+                        method: 'POST',
+                        credentials: 'same-origin',
+                        headers: {'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8'},
+                        body: new URLSearchParams({"__RequestVerificationToken": token})
+                    });
+
+                    if (response.ok) {
+                        const result = await response.json();
+                        if (result?.success) window.location.reload(); // Il refresh ora manterrà l'hash
+                        else alert(result?.message || "Errore");
+                    }
+                } catch (error) {
+                    alert("Errore di connessione");
+                } finally {
+                    button.disabled = false;
+                    button.innerHTML = originalHtml;
+                }
+            });
         });
-      });
     </script>
 }

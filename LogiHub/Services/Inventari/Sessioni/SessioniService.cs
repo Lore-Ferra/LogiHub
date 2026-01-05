@@ -267,73 +267,76 @@ public class SessioniService : ISessioniService
     #region Analisi e Risoluzione Discrepanze
 
     public async Task<List<DiscrepanzaDTO>> OttieniDiscrepanzeAsync(Guid sessioneId)
-{
-    // 1. Prendiamo tutte le righe che sono state segnalate come anomalie
-    var righeGrezze = await _context.RigheInventario
-        .Include(r => r.SemiLavorato)
-        .Include(r => r.UbicazioneSnapshot)
-        .Include(r => r.UbicazioneRilevata)
-        .Include(r => r.RilevatoDaUser)
-        .Include(r => r.RisoltoDaUser)
-        .Where(r => r.SessioneInventarioId == sessioneId &&
-                    (r.Stato == StatoRigaInventario.Mancante || r.Stato == StatoRigaInventario.Extra))
-        .AsNoTracking()
-        .ToListAsync();
-
-    var risultato = new List<DiscrepanzaDTO>();
-    var gruppiPerBarcode = righeGrezze.GroupBy(r => r.SemiLavorato?.Barcode ?? "(Sconosciuto)");
-
-    foreach (var gruppo in gruppiPerBarcode)
     {
-        var righe = gruppo.ToList();
-        
-        // Determiniamo il tipo in base alla presenza storica delle righe nel gruppo
-        var haMancante = righe.Any(r => r.Stato == StatoRigaInventario.Mancante);
-        var haExtra = righe.Any(r => r.Stato == StatoRigaInventario.Extra);
-        
-        // La riga di riferimento deve essere quella "Aperta". 
-        // Se sono tutte chiuse, prendiamo l'ultima gestita.
-        var rif = righe.FirstOrDefault(r => r.StatoDiscrepanza == StatoDiscrepanza.Aperta)
-                  ?? righe.OrderByDescending(r => r.DataRisoluzione).First();
+        // 1. Prendiamo tutte le righe che sono state segnalate come anomalie
+        var righeGrezze = await _context.RigheInventario
+            .IgnoreQueryFilters()
+            .Include(r => r.SemiLavorato)
+            .Include(r => r.UbicazioneSnapshot)
+            .Include(r => r.UbicazioneRilevata)
+            .Include(r => r.RilevatoDaUser)
+            .Include(r => r.RisoltoDaUser)
+            .Where(r => r.SessioneInventarioId == sessioneId &&
+                        (r.Stato == StatoRigaInventario.Mancante || r.Stato == StatoRigaInventario.Extra))
+            .AsNoTracking()
+            .ToListAsync();
 
-        var dto = new DiscrepanzaDTO
-        {
-            Barcode = gruppo.Key,
-            Descrizione = rif.SemiLavorato.Descrizione,
-            SemiLavoratoId = rif.SemiLavoratoId,
-            Stato = rif.StatoDiscrepanza,
-            DataRilevamento = righe.Max(r => r.DataRilevamento),
-            DataGestione = rif.DataRisoluzione,
-            GestitaDa = rif.RisoltoDaUser != null 
-                ? $"{rif.RisoltoDaUser.FirstName} {rif.RisoltoDaUser.LastName}" 
-                : null
-        };
+        var risultato = new List<DiscrepanzaDTO>();
+        var gruppiPerBarcode = righeGrezze.GroupBy(r => r.SemiLavorato?.Barcode ?? "(Sconosciuto)");
 
-        // Logica fissa per il Tipo (non cambia anche se risolto)
-        if (haMancante && haExtra)
+        foreach (var gruppo in gruppiPerBarcode)
         {
-            dto.Tipo = TipoDiscrepanzaOperativa.Spostato;
-            dto.UbicazioneSnapshot = righe.First(r => r.Stato == StatoRigaInventario.Mancante).UbicazioneSnapshot?.Posizione ?? "N/D";
-            dto.UbicazioneRilevata = righe.First(r => r.Stato == StatoRigaInventario.Extra).UbicazioneRilevata?.Posizione ?? "N/D";
-            dto.UbicazioneRilevataId = righe.First(r => r.Stato == StatoRigaInventario.Extra).UbicazioneRilevataId;
-        }
-        else if (haExtra)
-        {
-            dto.Tipo = TipoDiscrepanzaOperativa.Extra;
-            dto.UbicazioneRilevata = rif.UbicazioneRilevata?.Posizione ?? "N/D";
-            dto.UbicazioneRilevataId = rif.UbicazioneRilevataId;
-        }
-        else
-        {
-            dto.Tipo = TipoDiscrepanzaOperativa.Mancante;
-            dto.UbicazioneSnapshot = rif.UbicazioneSnapshot?.Posizione ?? "N/D";
+            var righe = gruppo.ToList();
+
+            // Determiniamo il tipo in base alla presenza storica delle righe nel gruppo
+            var haMancante = righe.Any(r => r.Stato == StatoRigaInventario.Mancante);
+            var haExtra = righe.Any(r => r.Stato == StatoRigaInventario.Extra);
+
+            // La riga di riferimento deve essere quella "Aperta". 
+            // Se sono tutte chiuse, prendiamo l'ultima gestita.
+            var rif = righe.FirstOrDefault(r => r.StatoDiscrepanza == StatoDiscrepanza.Aperta)
+                      ?? righe.OrderByDescending(r => r.DataRisoluzione).First();
+
+            var dto = new DiscrepanzaDTO
+            {
+                Barcode = gruppo.Key,
+                Descrizione = rif.SemiLavorato.Descrizione,
+                SemiLavoratoId = rif.SemiLavoratoId,
+                Stato = rif.StatoDiscrepanza,
+                DataRilevamento = righe.Max(r => r.DataRilevamento),
+                DataGestione = rif.DataRisoluzione,
+                GestitaDa = rif.RisoltoDaUser != null
+                    ? $"{rif.RisoltoDaUser.FirstName} {rif.RisoltoDaUser.LastName}"
+                    : null
+            };
+
+            // Logica fissa per il Tipo (non cambia anche se risolto)
+            if (haMancante && haExtra)
+            {
+                dto.Tipo = TipoDiscrepanzaOperativa.Spostato;
+                dto.UbicazioneSnapshot =
+                    righe.First(r => r.Stato == StatoRigaInventario.Mancante).UbicazioneSnapshot?.Posizione ?? "N/D";
+                dto.UbicazioneRilevata =
+                    righe.First(r => r.Stato == StatoRigaInventario.Extra).UbicazioneRilevata?.Posizione ?? "N/D";
+                dto.UbicazioneRilevataId = righe.First(r => r.Stato == StatoRigaInventario.Extra).UbicazioneRilevataId;
+            }
+            else if (haExtra)
+            {
+                dto.Tipo = TipoDiscrepanzaOperativa.Extra;
+                dto.UbicazioneRilevata = rif.UbicazioneRilevata?.Posizione ?? "N/D";
+                dto.UbicazioneRilevataId = rif.UbicazioneRilevataId;
+            }
+            else
+            {
+                dto.Tipo = TipoDiscrepanzaOperativa.Mancante;
+                dto.UbicazioneSnapshot = rif.UbicazioneSnapshot?.Posizione ?? "N/D";
+            }
+
+            risultato.Add(dto);
         }
 
-        risultato.Add(dto);
+        return risultato.OrderByDescending(x => x.DataRilevamento).ToList();
     }
-
-    return risultato.OrderByDescending(x => x.DataRilevamento).ToList();
-}
 
     public async Task AnnullaDiscrepanzaAsync(Guid sessioneId, string barcode, Guid userId)
     {
@@ -351,85 +354,88 @@ public class SessioniService : ISessioniService
         await _context.SaveChangesAsync();
     }
 
-  public async Task RisolviDiscrepanzaAsync(Guid sessioneId, DiscrepanzaDTO d, TipoRisoluzione tipo, Guid userId)
-{
-    // 1. RECUPERO TUTTE LE RIGHE PER QUEL BARCODE
-    // Invece di FirstOrDefault (una sola), usiamo Where + ToListAsync (tutte)
-    // Usiamo il Barcode come chiave di ricerca perché è l'elemento comune tra Missing ed Extra
-    var righeCoinvolte = await _context.RigheInventario
-        .Include(r => r.SemiLavorato)
-        .Where(r => r.SessioneInventarioId == sessioneId &&
-                    r.SemiLavorato.Barcode == d.Barcode)
-        .ToListAsync();
-
-    // Se non trovo nulla e non è un'aggiunta (nuovo pezzo), errore
-    if (!righeCoinvolte.Any() && tipo != TipoRisoluzione.Aggiungi)
-        throw new InvalidOperationException("Nessuna riga inventario trovata per questo barcode.");
-
-    // 2. LOGICA OPERATIVA SUL MAGAZZINO (rimane quasi uguale)
-    switch (tipo)
+    public async Task RisolviDiscrepanzaAsync(Guid sessioneId, DiscrepanzaDTO d, TipoRisoluzione tipo, Guid userId)
     {
-        case TipoRisoluzione.Sposta:
-            if (d.SemiLavoratoId.HasValue && d.UbicazioneRilevataId.HasValue)
-            {
-                await _slService.ModificaSemiLavorato(new ModificaSemiLavoratoDTO
-                {
-                    Id = d.SemiLavoratoId.Value,
-                    UbicazioneId = d.UbicazioneRilevataId.Value,
-                    IsRettificaInventario = true
-                });
-            }
-            break;
+        // 1. RECUPERO TUTTE LE RIGHE PER QUEL BARCODE
+        // Invece di FirstOrDefault (una sola), usiamo Where + ToListAsync (tutte)
+        // Usiamo il Barcode come chiave di ricerca perché è l'elemento comune tra Missing ed Extra
+        var righeCoinvolte = await _context.RigheInventario
+            .Include(r => r.SemiLavorato)
+            .Where(r => r.SessioneInventarioId == sessioneId &&
+                        r.SemiLavorato.Barcode == d.Barcode)
+            .ToListAsync();
 
-        case TipoRisoluzione.Aggiungi:
-            if (d.UbicazioneRilevataId.HasValue)
-            {
-                await _slService.AggiungiSemiLavoratoAsync(new AggiungiSemiLavoratoDTO
-                {
-                    Barcode = d.Barcode,
-                    UbicazioneId = d.UbicazioneRilevataId.Value,
-                    IsRettificaInventario = true
-                });
-            }
-            // Se era un extra appena creato, ricarichiamo le righe perché potrebbero 
-            // essere state create/aggiornate dall'operazione precedente se non esistevano
-            if (!righeCoinvolte.Any())
-            {
-                righeCoinvolte = await _context.RigheInventario
-                    .Include(r => r.SemiLavorato)
-                    .Where(r => r.SessioneInventarioId == sessioneId && r.SemiLavorato.Barcode == d.Barcode)
-                    .ToListAsync();
-            }
-            break;
+        // Se non trovo nulla e non è un'aggiunta (nuovo pezzo), errore
+        if (!righeCoinvolte.Any() && tipo != TipoRisoluzione.Aggiungi)
+            throw new InvalidOperationException("Nessuna riga inventario trovata per questo barcode.");
 
-        case TipoRisoluzione.Rimuovi:
-            if (d.SemiLavoratoId.HasValue)
-            {
-                await _slService.EliminaSemiLavoratoAsync(new EliminaSemiLavoratoDTO
-                {
-                    SemiLavoratoId = d.SemiLavoratoId.Value,
-                    IsRettificaInventario = true
-                });
-            }
-            break;
-    }
-
-    // 3. AGGIORNAMENTO STATO SU TUTTE LE RIGHE
-    // Ciclo su tutte le righe trovate (Mancante + Extra) e le chiudo tutte.
-    foreach (var riga in righeCoinvolte)
-    {
-        // Aggiorno solo se è ancora aperta
-        if (riga.StatoDiscrepanza == StatoDiscrepanza.Aperta)
+        // 2. LOGICA OPERATIVA SUL MAGAZZINO (rimane quasi uguale)
+        switch (tipo)
         {
-            riga.StatoDiscrepanza = StatoDiscrepanza.Risolta;
-            riga.TipoRisoluzione = tipo;
-            riga.RisoltoDaUserId = userId;
-            riga.DataRisoluzione = DateTime.Now;
+            case TipoRisoluzione.Sposta:
+                if (d.SemiLavoratoId.HasValue && d.UbicazioneRilevataId.HasValue)
+                {
+                    await _slService.ModificaSemiLavorato(new ModificaSemiLavoratoDTO
+                    {
+                        Id = d.SemiLavoratoId.Value,
+                        UbicazioneId = d.UbicazioneRilevataId.Value,
+                        IsRettificaInventario = true
+                    });
+                }
+
+                break;
+
+            case TipoRisoluzione.Aggiungi:
+                if (d.UbicazioneRilevataId.HasValue)
+                {
+                    var nuovoSl = await _slService.AggiungiSemiLavoratoAsync(new AggiungiSemiLavoratoDTO
+                    {
+                        Barcode = d.Barcode,
+                        Descrizione = d.Descrizione,
+                        UbicazioneId = d.UbicazioneRilevataId.Value,
+                        IsRettificaInventario = true,
+                        UserId = userId
+                    });
+
+                    // Colleghiamo le righe al nuovo ID
+                    foreach (var riga in righeCoinvolte)
+                    {
+                        riga.SemiLavoratoId = nuovoSl.Id;
+                    }
+                }
+
+                break;
+
+            case TipoRisoluzione.Rimuovi:
+                if (d.SemiLavoratoId.HasValue)
+                {
+                    await _slService.EliminaSemiLavoratoAsync(new EliminaSemiLavoratoDTO
+                    {
+                        SemiLavoratoId = d.SemiLavoratoId.Value,
+                        IsRettificaInventario = true
+                    });
+                }
+
+                break;
         }
+
+        // 3. AGGIORNAMENTO STATO SU TUTTE LE RIGHE
+        // Ciclo su tutte le righe trovate (Mancante + Extra) e le chiudo tutte.
+        foreach (var riga in righeCoinvolte)
+        {
+            // Aggiorno solo se è ancora aperta
+            if (riga.StatoDiscrepanza == StatoDiscrepanza.Aperta)
+            {
+                riga.StatoDiscrepanza = StatoDiscrepanza.Risolta;
+                riga.TipoRisoluzione = tipo;
+                riga.RisoltoDaUserId = userId;
+                riga.DataRisoluzione = DateTime.Now;
+            }
+        }
+
+        await _context.SaveChangesAsync();
     }
 
-    await _context.SaveChangesAsync();
-}
     public async Task RisolviTuttoAsync(Guid sessioneId, Guid userId)
     {
         var discrepanze = (await OttieniDiscrepanzeAsync(sessioneId))
