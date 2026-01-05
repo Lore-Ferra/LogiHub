@@ -52,8 +52,7 @@ public partial class SemiLavoratiController : AuthenticatedBaseController
         {
             Filters = new SearchCardFiltersViewModel
             {
-                Uscito = TriState.All,
-                SearchInColumns = new List<string> { "Barcode", "Descrizione", "Ubicazione", "UltimaModifica" }
+                Uscito = TriState.All
             };
         }
 
@@ -106,6 +105,14 @@ public partial class SemiLavoratiController : AuthenticatedBaseController
             HeaderButtons = new List<SearchCardButton>
             {
                 isBloccato ? bottoneDisabilitato : bottoneAttivo
+            },
+
+            SearchInColumns = new()
+            {
+                new() { Key = "Barcode", Label = "Barcode", DefaultSelected = true },
+                new() { Key = "Descrizione", Label = "Descrizione", DefaultSelected = true },
+                new() { Key = "Ubicazione", Label = "Ubicazione", DefaultSelected = true },
+                new() { Key = "UltimaModifica", Label = "Ultima modifica", DefaultSelected = true },
             }
         };
 
