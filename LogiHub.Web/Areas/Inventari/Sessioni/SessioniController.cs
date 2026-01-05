@@ -45,7 +45,7 @@ public partial class SessioniController : AuthenticatedBaseController
         {
             Filters = new SearchCardFiltersViewModel();
         }
-        Filters.SearchInColumns ??= new List<string> { "NomeSessione", "DataCreazione" };
+        Filters.SearchInColumns ??= new List<string> { "NomeSessione", "DataCreazione", "DataChiusura" };
         
         bool inventarioAttivo = await _context.SessioniInventario.AnyAsync(s => !s.Chiuso);
 
@@ -91,6 +91,7 @@ public partial class SessioniController : AuthenticatedBaseController
             {
                 new() { Key = "NomeSessione", Label = "Nome sessione", DefaultSelected = true },
                 new() { Key = "DataCreazione", Label = "Data creazione", DefaultSelected = true },
+                new() { Key = "DataChiusura", Label = "Data chiusura", DefaultSelected = false }
             },
 
             HeaderButtons = new List<SearchCardButton>
@@ -107,7 +108,7 @@ public partial class SessioniController : AuthenticatedBaseController
             var cols = Filters.SearchInColumns ?? new List<string>();
 
             if (cols.Count == 0)
-                cols = new List<string> { "NomeSessione", "DataCreazione" };
+                cols = new List<string> { "NomeSessione", "DataCreazione", "DataChiusura" };
 
             bool hasFullDate = DateTime.TryParseExact(
                 q,
@@ -154,6 +155,26 @@ public partial class SessioniController : AuthenticatedBaseController
                      (hasDayOnly &&
                       (x.DataCreazione.Day == day || x.DataCreazione.Month == day))
                  ))
+                ||
+
+                (cols.Contains("DataChiusura") &&
+                 x.DataChiusura.HasValue &&
+                 (
+                     (hasFullDate &&
+                      x.DataChiusura.Value >= fullDate.Date &&
+                      x.DataChiusura.Value < fullDate.Date.AddDays(1))
+
+                     ||
+
+                     (hasDayMonth &&
+                      x.DataChiusura.Value.Day == dayMonth.Day &&
+                      x.DataChiusura.Value.Month == dayMonth.Month)
+
+                     ||
+
+                     (hasDayOnly &&
+                      (x.DataChiusura.Value.Day == day || x.DataChiusura.Value.Month == day))
+                 ))
             );
         }
 
@@ -167,6 +188,7 @@ public partial class SessioniController : AuthenticatedBaseController
                 Id = x.Id,
                 NomeSessione = x.NomeSessione,
                 DataCreazione = x.DataCreazione,
+                DataChiusura = x.DataChiusura,
                 Chiuso = x.Chiuso,
             })
             .ToListAsync();
