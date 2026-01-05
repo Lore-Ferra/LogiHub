@@ -281,7 +281,7 @@ public class SessioniService : ISessioniService
         .ToListAsync();
 
     var risultato = new List<DiscrepanzaDTO>();
-    var gruppiPerBarcode = righeGrezze.GroupBy(r => r.SemiLavorato.Barcode);
+    var gruppiPerBarcode = righeGrezze.GroupBy(r => r.SemiLavorato?.Barcode ?? "(Sconosciuto)");
 
     foreach (var gruppo in gruppiPerBarcode)
     {
