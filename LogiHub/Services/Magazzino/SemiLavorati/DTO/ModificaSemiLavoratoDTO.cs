@@ -16,4 +16,6 @@ public class ModificaSemiLavoratoDTO
 
     public Guid UserId { get; set; }
     public bool Uscito { get; set; }
+    
+    public bool IsRettificaInventario { get; set; } = false;
 }
