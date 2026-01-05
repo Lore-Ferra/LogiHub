@@ -29,7 +29,17 @@
                 {
                     <form method="post" action="@postUrl" class="d-inline">
                         @Html.AntiForgeryToken()
-                        <button type="submit" class="btn @btn.CssClass">
+
+                        <button type="button"
+                                class="btn @btn.CssClass"
+                                data-confirm-modal-trigger="true"
+                                @if (btn.HtmlAttributes != null)
+                                {
+                                    foreach (var attr in btn.HtmlAttributes)
+                                    {
+                                        @Html.Raw($"{attr.Key}=\"{attr.Value}\" ")
+                                    }
+                                }>
                             @if (!string.IsNullOrEmpty(btn.IconClass))
                             {
                                 <i class="@btn.IconClass me-2"></i>
