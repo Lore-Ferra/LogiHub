@@ -37,7 +37,7 @@ public partial class SemiLavoratiController : AuthenticatedBaseController
         _context = context;
         _bloccoService = bloccoService;
     }
-    
+
     [HttpGet]
     public virtual async Task<IActionResult> Index(
         [FromQuery] string Query,
@@ -137,6 +137,10 @@ public partial class SemiLavoratiController : AuthenticatedBaseController
             TotalItems = dto.TotalCount,
             SemiLavorati = dto.Items
         };
+
+        SetBreadcrumb(
+            ("Magazzino", "") 
+        );
 
         return View(model);
     }

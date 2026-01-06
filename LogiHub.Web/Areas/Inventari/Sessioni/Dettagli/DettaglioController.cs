@@ -110,7 +110,11 @@ public partial class DettaglioController : AuthenticatedBaseController
             PageSize = pageSize,
             TotalItems = totalItems
         };
-
+        
+        SetBreadcrumb(
+            ("Inventari", Url.Action("Index", "Sessioni")),
+            (data.NomeSessione, "")
+        );
         return View("Dettaglio", model);
     }
 

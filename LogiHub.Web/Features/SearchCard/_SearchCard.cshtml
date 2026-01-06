@@ -1,29 +1,10 @@
 ﻿@using LogiHub.Services.Shared
 @using LogiHub.Web.Features.SearchCard
 @model LogiHub.Web.Features.SearchCard.SearchCardViewModel
-@if (!string.IsNullOrEmpty(Model.BackUrl))
-{
-    <div>
-        <a href="@Model.BackUrl"
-           class="text-decoration-none text-muted d-none d-md-inline-flex align-items-center">
-            <i class="fa-solid fa-chevron-left me-2 "></i>
-            <span class="fw-medium">Indietro</span>
-        </a>
-    </div>
-}
+
 <div class="d-flex justify-content-between align-items-center p-3">
     @* GRUPPO TITOLO + INDIETRO *@
     <div class="d-flex align-items-center">
-
-        @if (!string.IsNullOrEmpty(Model.BackUrl))
-        {
-            @* VERSIONE MOBILE: Solo Icona (Touch target ottimizzato) *@
-            <a href="@Model.BackUrl"
-               class="p-2 text text-decoration-none d-inline-flex d-md-none text-muted me-2">
-                <i class="fa-solid fa-chevron-left" style="font-size: 1.5em;"></i>
-            </a>
-        }
-
         @* Titolo *@
         @if (!string.IsNullOrEmpty(Model.Title))
         {

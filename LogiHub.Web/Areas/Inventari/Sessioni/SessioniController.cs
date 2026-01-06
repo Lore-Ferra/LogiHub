@@ -201,6 +201,10 @@ public partial class SessioniController : AuthenticatedBaseController
             TotalItems = totalItems,
             Sessioni = items
         };
+        
+        SetBreadcrumb(
+            ("Inventari", "") 
+        );
 
         return View(model);
     }

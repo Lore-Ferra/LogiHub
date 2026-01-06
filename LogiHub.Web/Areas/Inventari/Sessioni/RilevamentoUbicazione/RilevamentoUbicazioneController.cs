@@ -39,7 +39,7 @@ public partial class RilevamentoUbicazioneController : AuthenticatedBaseControll
         // 1. Lock dell'ubicazione
         // (Grazie alla modifica fatta nel Service, questo NON lancia più eccezione se è già completata)
         await _service.BloccaUbicazioneAsync(sessioneId, ubicazioneId, userId);
-
+        var sessione = await _service.OttieniDettaglioSessioneAsync(sessioneId);
         // 2. Recupero Info Stato (Nome e se è Completata)
         // Interroghiamo SessioniUbicazioni per avere lo stato preciso
         var infoUbicazione = await _context.SessioniUbicazioni
@@ -145,7 +145,6 @@ public partial class RilevamentoUbicazioneController : AuthenticatedBaseControll
             Placeholder = "Cerca barcode o pezzo...",
             Query = query,
             ShowFilters = false,
-            BackUrl = Url.Action("Index", "Dettaglio", new { area = "Inventari", id = sessioneId }),
             HeaderButtons = headerButtons
         };
 
@@ -169,7 +168,11 @@ public partial class RilevamentoUbicazioneController : AuthenticatedBaseControll
             PageSize = pageSize,
             TotalItems = datiPezzi.Count
         };
-
+        SetBreadcrumb(
+            ("Inventari", Url.Action("Index", "Sessioni", new { area = "Inventari" })),
+            (sessione.NomeSessione, Url.Action("Index", "Dettaglio", new { area = "Inventari", id = sessioneId })),
+            ($"Ubicazione {infoUbicazione.Nome}", "")
+        );
         return View("RilevamentoUbicazione", model);
         
     }

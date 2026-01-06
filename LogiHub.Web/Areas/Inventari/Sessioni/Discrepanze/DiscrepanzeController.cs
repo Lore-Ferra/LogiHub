@@ -30,7 +30,7 @@ public virtual async Task<IActionResult> Index(
     Filters ??= new SearchCardFiltersViewModel();
 
     var tutte = await _service.OttieniDiscrepanzeAsync(id);
-
+    var sessione = await _service.OttieniDettaglioSessioneAsync(id);
     // Verifica se esistono ancora discrepanze da gestire
     bool haAperte = tutte.Any(x => x.Stato == StatoDiscrepanza.Aperta);
     
@@ -106,7 +106,11 @@ public virtual async Task<IActionResult> Index(
         Page = page,
         PageSize = pageSize
     };
-
+    SetBreadcrumb(
+        ("Inventari", Url.Action("Index", "Sessioni", new { area = "Inventari" })),
+        (sessione.NomeSessione, Url.Action("Index", "Dettaglio", new { area = "Inventari", id = id })),
+        ("Discrepanze", "")
+    );
     return View("Discrepanze", model);
 }
 

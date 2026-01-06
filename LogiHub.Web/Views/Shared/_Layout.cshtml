@@ -1,5 +1,7 @@
-﻿@inject IHtmlLocalizer<LogiHub.Web.SharedResource> SharedLocalizer
+﻿@inject IHtmlLocalizer<SharedResource> SharedLocalizer
 @inject Microsoft.Extensions.Options.IOptions<AppSettings> appSettings
+@using LogiHub.Web.Features.Breadcrumb
+
 
 @{
     var currentArea = ViewContext.RouteData.Values["area"]?.ToString();
@@ -11,6 +13,7 @@
     var identitaCorrente = (LogiHub.Web.Areas.IdentitaViewModel)ViewData[LogiHub.Web.Areas.IdentitaViewModel.VIEWDATA_IDENTITACORRENTE_KEY];
 
     var paging = Model as PagingViewModel;
+    var breadcrumbs = ViewData["Breadcrumbs"] as List<BreadcrumbItem>;
 }
 @section metas{
     @RenderSection("metas", false)
@@ -65,6 +68,16 @@
         </nav>
         @RenderSection("pageTitle", false)
     </div>
+    @* --- INIZIO BREADCRUMB --- *@
+    @if (breadcrumbs != null && breadcrumbs.Any())
+    {
+        <div class="bg-light border-bottom py-2">
+            <div class="container-xl px-3"> 
+                <partial name="~/Features/Breadcrumb/_Breadcrumb.cshtml" model="breadcrumbs" />
+            </div>
+        </div>
+    }
+    @* --- FINE BREADCRUMB --- *@
     @RenderSection("pageSubtitle", false)
     <div class="container-xl p-3">
         @RenderBody()
