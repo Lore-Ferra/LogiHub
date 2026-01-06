@@ -1,155 +1,244 @@
-﻿@using LogiHub.Models.Shared
+﻿@using System.Linq
+@using LogiHub.Models.Shared
 @model LogiHub.Web.Areas.Inventari.Sessioni.RilevamentoUbicazioneViewModel
 
 @{
-    ViewData["Title"] = "Rilevamento " + Model.NomeUbicazione;
+ViewData["Title"] = "Rilevamento " + Model.NomeUbicazione;
 }
+
 @if (Model.IsSolaLettura)
 {
-    <div class="alert alert-warning opacity-100 border-0 shadow-sm mb-3 d-flex align-items-center">
-        <i class="fa-solid fa-lock me-3 fa-lg"></i>
-        <div>
-            <strong>Ubicazione Completata.</strong> Modalità sola lettura attiva.
-        </div>
+<div class="alert alert-warning opacity-100 border-0 shadow-sm mb-3 d-flex align-items-center">
+    <i class="fa-solid fa-lock me-3 fa-lg"></i>
+    <div>
+        <strong>Ubicazione Completata.</strong> Modalità sola lettura attiva.
     </div>
+</div>
 }
+
 <div>
     @await Html.PartialAsync("~/Features/SearchCard/_SearchCard.cshtml", Model.SearchCard)
 </div>
 
-
-
 <div class="container-fluid px-0 pb-5 mt-3">
-    @foreach (var pezzo in Model.Pezzi)
-    {
-        <div id="card-@pezzo.RigaId" class="card shadow-sm mb-3 @(pezzo.Stato == StatoRigaInventario.Trovato ? "border-success" : pezzo.Stato == StatoRigaInventario.Mancante ? "border-danger" : "")">
+
+    @* --- VERSIONE DESKTOP (TABLE) --- *@
+    <div class="card shadow-sm d-none d-md-block">
+        <div class="card-body p-1 pb-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="bg-light">
+                    <tr>
+                        <th class="ps-4" style="width: 20%">Barcode</th>
+                        <th style="width: 50%">Descrizione</th>
+                        <th class="text-center" style="width: 10%">Stato</th>
+                        <th class="text-end pe-4" style="width: 20%">Azioni</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    @if (Model.Pezzi != null && Model.Pezzi.Any())
+                    {
+                    @foreach (var pezzo in Model.Pezzi)
+                    {
+                    <tr id="row-@pezzo.RigaId">
+                        <td class="ps-4 fw-bold text-primary">@pezzo.Barcode</td>
+                        <td class="text-muted">@pezzo.Descrizione</td>
+
+                        <td class="text-center">
+                                        <span id="badge-d-@pezzo.RigaId"
+                                              class="badge @(pezzo.Stato == StatoRigaInventario.InAttesa ? "bg-secondary" : pezzo.Stato == StatoRigaInventario.Trovato ? "bg-success" : "bg-danger")">
+                                            @pezzo.Stato
+                                        </span>
+                        </td>
+
+                        <td class="text-end pe-4">
+                            <div class="btn-group" role="group">
+                                <button class="btn btn-sm btn-outline-primary"
+                                        onclick="aggiornaStato(this, '@pezzo.RigaId', 'presente')"
+                                        data-url="@Url.Action("SegnaPresente", "RilevamentoUbicazione", new { rigaId = pezzo.RigaId })"
+                                        @(Model.IsSolaLettura ? "disabled" : "")>
+                                    @if (Model.IsSolaLettura && pezzo.Stato == StatoRigaInventario.Trovato)
+                                    {
+                                    <i class="fa-solid fa-lock"></i>
+                                    }
+                                    else
+                                    {
+                                    <i class="fa-solid fa-check"></i>
+                                    }
+                                    <span class="ms-1">Presente</span>
+                                </button>
+
+                                <button class="btn btn-sm btn-outline-danger"
+                                        onclick="aggiornaStato(this, '@pezzo.RigaId', 'mancante')"
+                                        data-url="@Url.Action("SegnaMancante", "RilevamentoUbicazione", new { rigaId = pezzo.RigaId })"
+                                        @(Model.IsSolaLettura ? "disabled" : "")>
+                                    @if (Model.IsSolaLettura && pezzo.Stato == StatoRigaInventario.Mancante)
+                                    {
+                                    <i class="fa-solid fa-lock"></i>
+                                    }
+                                    else
+                                    {
+                                    <i class="fa-solid fa-xmark"></i>
+                                    }
+                                    <span class="ms-1">Mancante</span>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    }
+                    }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    @* --- VERSIONE MOBILE (CARDS) --- *@
+    <div class="d-md-none">
+        @foreach (var pezzo in Model.Pezzi)
+        {
+        <div id="card-@pezzo.RigaId"
+             class="card shadow-sm mb-3 @(pezzo.Stato == StatoRigaInventario.Trovato ? "border-success" : pezzo.Stato == StatoRigaInventario.Mancante ? "border-danger" : "")">
             <div class="card-body">
                 <div class="d-flex justify-content-between align-items-start">
                     <div>
                         <h5 class="mb-1 text-primary">@pezzo.Barcode</h5>
                         <p class="small text-muted mb-0">@pezzo.Descrizione</p>
                     </div>
-                    <span id="badge-@pezzo.RigaId" class="badge @(pezzo.Stato == StatoRigaInventario.InAttesa ? "bg-secondary" : pezzo.Stato == StatoRigaInventario.Trovato ? "bg-success" : "bg-danger")">
-                        @pezzo.Stato
-                    </span>
+                    <span id="badge-m-@pezzo.RigaId"
+                          class="badge @(pezzo.Stato == StatoRigaInventario.InAttesa ? "bg-secondary" : pezzo.Stato == StatoRigaInventario.Trovato ? "bg-success" : "bg-danger")">
+                            @pezzo.Stato
+                        </span>
                 </div>
 
                 <div class="row g-2 mt-3">
                     <div class="col-6">
-                        @* 2. LOGICA DISABILITAZIONE BOTTONE PRESENTE *@
-                        <button class="btn btn-lg btn-outline-success w-100 py-3" 
+                        <button class="btn btn-lg btn-outline-primary w-100 py-3"
                                 onclick="aggiornaStato(this, '@pezzo.RigaId', 'presente')"
                                 data-url="@Url.Action("SegnaPresente", "RilevamentoUbicazione", new { rigaId = pezzo.RigaId })"
                                 @(Model.IsSolaLettura ? "disabled" : "")>
-                            
-                            @if(Model.IsSolaLettura && pezzo.Stato == StatoRigaInventario.Trovato)
+                            @if (Model.IsSolaLettura && pezzo.Stato == StatoRigaInventario.Trovato)
                             {
-                                <i class="fa-solid fa-lock"></i> }
+                            <i class="fa-solid fa-lock"></i>
+                            }
                             else
                             {
-                                <i class="fa-solid fa-check"></i>
+                            <i class="fa-solid fa-check"></i>
                             }
-                             Presente
+                            Presente
                         </button>
                     </div>
+
                     <div class="col-6">
-                        @* 3. LOGICA DISABILITAZIONE BOTTONE MANCANTE *@
-                        <button class="btn btn-lg btn-outline-danger w-100 py-3" 
+                        <button class="btn btn-lg btn-outline-danger w-100 py-3"
                                 onclick="aggiornaStato(this, '@pezzo.RigaId', 'mancante')"
                                 data-url="@Url.Action("SegnaMancante", "RilevamentoUbicazione", new { rigaId = pezzo.RigaId })"
                                 @(Model.IsSolaLettura ? "disabled" : "")>
-                            
-                            @if(Model.IsSolaLettura && pezzo.Stato == StatoRigaInventario.Mancante)
+                            @if (Model.IsSolaLettura && pezzo.Stato == StatoRigaInventario.Mancante)
                             {
-                                <i class="fa-solid fa-lock"></i>
+                            <i class="fa-solid fa-lock"></i>
                             }
                             else
                             {
-                                <i class="fa-solid fa-xmark"></i>
+                            <i class="fa-solid fa-xmark"></i>
                             }
-                             Mancante
+                            Mancante
                         </button>
                     </div>
                 </div>
             </div>
         </div>
-    }
+        }
+    </div>
+
 </div>
 
+@Html.AntiForgeryToken()
+
 @section Scripts {
-    <script>
-        async function aggiornaStato(btn, rigaId, tipo) {
-            if (btn.disabled) return;
+<script>
+    async function aggiornaStato(btn, rigaId, tipo) {
+        if (btn.disabled) return;
 
-            const url = btn.getAttribute('data-url');
-            const tokenInput = document.querySelector('input[name="__RequestVerificationToken"]');
-            const formData = new FormData();
-            if (tokenInput) {
-                formData.append('__RequestVerificationToken', tokenInput.value);
+        const originalText = btn.innerHTML;
+        const url = btn.getAttribute('data-url');
+
+        const tokenInput = document.querySelector('input[name="__RequestVerificationToken"]');
+        const formData = new FormData();
+        if (tokenInput) formData.append('__RequestVerificationToken', tokenInput.value);
+
+        try {
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
+
+            const response = await fetch(url, {
+                method: 'POST',
+                body: formData
+            });
+
+            if (!response.ok) {
+                console.error("Errore server:", response.statusText);
+                alert("Impossibile aggiornare. Forse l'ubicazione è stata chiusa?");
+                return;
             }
 
-            try {
-                const originalText = btn.innerHTML;
-                btn.disabled = true;
-                btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
+            const card = document.getElementById('card-' + rigaId);
+            if (card) {
+                card.classList.remove('border-success', 'border-danger');
+                card.classList.add(tipo === 'presente' ? 'border-success' : 'border-danger');
+            }
 
-                const response = await fetch(url, {
-                    method: 'POST',
-                    body: formData
-                });
+            const badgeDesktop = document.getElementById('badge-d-' + rigaId);
+            const badgeMobile = document.getElementById('badge-m-' + rigaId);
 
-                if (response.ok) {
-                    const card = document.getElementById('card-' + rigaId);
-                    const badge = document.getElementById('badge-' + rigaId);
+            [badgeDesktop, badgeMobile].forEach(badge => {
+                if (!badge) return;
 
-                    card.classList.remove('border-success', 'border-danger');
-                    badge.classList.remove('bg-secondary', 'bg-success', 'bg-danger');
-
-                    if (tipo === 'presente') {
-                        card.classList.add('border-success');
-                        badge.classList.add('bg-success');
-                        badge.textContent = 'Trovato';
-                    } else {
-                        card.classList.add('border-danger');
-                        badge.classList.add('bg-danger');
-                        badge.textContent = 'Mancante';
-                    }
+                badge.classList.remove('bg-secondary', 'bg-success', 'bg-danger');
+                if (tipo === 'presente') {
+                    badge.classList.add('bg-success');
+                    badge.textContent = 'Trovato';
                 } else {
-                    console.error("Errore server:", response.statusText);
-                    alert("Impossibile aggiornare. Forse l'ubicazione è stata chiusa?");
+                    badge.classList.add('bg-danger');
+                    badge.textContent = 'Mancante';
                 }
-            } catch (error) {
-                console.error('Errore:', error);
-                alert("Errore di connessione.");
-            } finally {
-                btn.innerHTML = originalText;
-                btn.disabled = false;
-            }
+            });
+
+
+        } catch (error) {
+            console.error('Errore:', error);
+            alert("Errore di connessione.");
+        } finally {
+            btn.innerHTML = originalText;
+            btn.disabled = false;
+        }
+    }
+
+    document.addEventListener('click', function (e) {
+        const btn = e.target.closest('[data-post-action]');
+        if (!btn) return;
+
+        e.preventDefault();
+
+        const url = btn.getAttribute('data-url');
+        const confirmMsg = btn.getAttribute('data-confirm');
+        if (confirmMsg && !confirm(confirmMsg)) return;
+
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = url;
+
+        const token = document.querySelector('input[name="__RequestVerificationToken"]');
+        if (token) {
+            const hiddenInput = document.createElement('input');
+            hiddenInput.type = 'hidden';
+            hiddenInput.name = '__RequestVerificationToken';
+            hiddenInput.value = token.value;
+            form.appendChild(hiddenInput);
         }
 
-        document.addEventListener('click', function (e) {
-            const btn = e.target.closest('[data-post-action]');
-            if (!btn) return;
-            e.preventDefault();
-            // ... (il tuo codice standard)
-            const url = btn.getAttribute('data-url');
-            const confirmMsg = btn.getAttribute('data-confirm');
-            if (confirmMsg && !confirm(confirmMsg)) return;
-
-            const form = document.createElement('form');
-            form.method = 'POST';
-            form.action = url;
-            const token = document.querySelector('input[name="__RequestVerificationToken"]');
-            if (token) {
-                const hiddenInput = document.createElement('input');
-                hiddenInput.type = 'hidden';
-                hiddenInput.name = '__RequestVerificationToken';
-                hiddenInput.value = token.value;
-                form.appendChild(hiddenInput);
-            }
-            document.body.appendChild(form);
-            form.submit();
-        });
-    </script>
+        document.body.appendChild(form);
+        form.submit();
+    });
+</script>
 }
-@Html.AntiForgeryToken()
