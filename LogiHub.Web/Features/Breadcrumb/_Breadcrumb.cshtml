@@ -3,7 +3,10 @@
 @if (Model != null && Model.Any())
 {
     <nav aria-label="breadcrumb">
-        <ol class="breadcrumb bg-transparent p-0 mb-0">
+        <ol class="breadcrumb bg-transparent p-0 mb-0 align-items-center">
+
+            <li class="text-muted me-2">/</li>
+
             @foreach (var item in Model)
             {
                 if (item.IsActive)
