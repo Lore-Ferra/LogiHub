@@ -145,6 +145,7 @@ public partial class RilevamentoUbicazioneController : AuthenticatedBaseControll
             Placeholder = "Cerca barcode o pezzo...",
             Query = query,
             ShowFilters = false,
+            ShowUscitoFilter = false,
             HeaderButtons = headerButtons
         };
 
