@@ -81,6 +81,7 @@ public class RigaInventario
     public StatoRigaInventario Stato { get; set; } = StatoRigaInventario.InAttesa;
 
     public DateTime? DataRilevamento { get; set; }
+    public string? DescrizioneRilevata { get; set; }
     
     public Guid? RilevatoDaUserId { get; set; }
     [ForeignKey(nameof(RilevatoDaUserId))] 
