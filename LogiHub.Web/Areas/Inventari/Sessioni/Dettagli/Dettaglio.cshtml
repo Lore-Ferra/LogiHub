@@ -178,18 +178,22 @@
     }
 </div>
 
+@Html.AntiForgeryToken()
+
 @await Html.PartialAsync("~/Features/Modals/_ConfirmModal.cshtml",
     new LogiHub.Web.Features.Modals.ConfirmModalViewModel
     {
-        ModalId = "confirmActionModal",
+        ModalId = "actionConfirmModal",
         Title = "Conferma",
-        Message = "Sei sicuro?",
+        Message = "",
         ConfirmButtonText = "Conferma",
         ConfirmButtonClass = "btn-primary",
         IconClass = "fa-solid fa-triangle-exclamation"
     })
 
 @section Scripts {
+    <script src="~/js/Features/Modals/ConfirmModal.js"></script>
+    
     <script>
         console.log("Dettaglio.cshtml scripts loaded");
         document.addEventListener('DOMContentLoaded', function () {

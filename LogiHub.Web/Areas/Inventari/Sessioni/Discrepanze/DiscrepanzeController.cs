@@ -33,19 +33,7 @@ public virtual async Task<IActionResult> Index(
     var sessione = await _service.OttieniDettaglioSessioneAsync(id);
     // Verifica se esistono ancora discrepanze da gestire
     bool haAperte = tutte.Any(x => x.Stato == StatoDiscrepanza.Aperta);
-    
-    var btnTorna = new SearchCardButton
-    {
-        Text = "Torna al Dettaglio",
-        CssClass = "btn-outline-secondary",
-        IconClass = "fa-solid fa-arrow-left",
-        Type = "button",
-        HtmlAttributes = new Dictionary<string, string>
-        {
-            { "onclick", $"location.href='{Url.Action("Dettaglio", "Sessioni", new { area = "Inventari", id = id })}'" }
-        }
-    };
-    
+
     var btnRisolviAttivo = new SearchCardButton
     {
         Text = "Risolvi Tutto",
@@ -54,8 +42,9 @@ public virtual async Task<IActionResult> Index(
         Type = "button",
         HtmlAttributes = new Dictionary<string, string>
         {
-            { "data-post-action", Url.Action("RisolviTutto", "Discrepanze", new { area = "Inventari", id = id }) },
-            { "data-confirm", "Sei sicuro di voler allineare tutto il magazzino?" }
+            { "data-post-action", "true" },
+            { "data-url", Url.Action("RisolviTutto", "Discrepanze", new { area = "Inventari", id = id }) },
+            { "data-message", "Sei sicuro di voler allineare tutto il magazzino?" }
         }
     };
 
@@ -91,7 +80,6 @@ public virtual async Task<IActionResult> Index(
         ShowSearchInColumns = false,
         HeaderButtons = new List<SearchCardButton>
         {
-            btnTorna,
             haAperte ? btnRisolviAttivo : btnRisolviDisattivato
         }
     };
@@ -125,10 +113,10 @@ public virtual async Task<IActionResult> Index(
         var tutte = await _service.OttieniDiscrepanzeAsync(id);
         var d = tutte.FirstOrDefault(x => x.Barcode == barcode);
 
-        if (d == null) return Json(new { success = false, message = "Pezzo non trovato." });
+        if (d != null)
+            await _service.RisolviDiscrepanzaAsync(id, d, tipo, userId);
 
-        await _service.RisolviDiscrepanzaAsync(id, d, tipo, userId);
-        return Json(new { success = true });
+        return RedirectToAction("Index", new { area = "Inventari", id });
     }
 
     [HttpPost]
@@ -136,13 +124,9 @@ public virtual async Task<IActionResult> Index(
     public virtual async Task<IActionResult> RisolviTutto(Guid id)
     {
         var userId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
-
         await _service.RisolviTuttoAsync(id, userId);
 
-        return Json(new { 
-            success = true, 
-            redirectUrl = Url.Action("Index", "Discrepanze", new { area = "Inventari", id = id }) 
-        });
+        return RedirectToAction("Index", new { area = "Inventari", id });
     }
     
     [HttpPost]
@@ -150,9 +134,8 @@ public virtual async Task<IActionResult> Index(
     public virtual async Task<IActionResult> AnnullaDiscrepanza(Guid id, string barcode)
     {
         var userId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
-    
         await _service.AnnullaDiscrepanzaAsync(id, barcode, userId);
-    
-        return Json(new { success = true });
+
+        return RedirectToAction("Index", new { area = "Inventari", id });
     }
 }
