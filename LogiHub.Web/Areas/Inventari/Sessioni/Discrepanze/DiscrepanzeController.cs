@@ -106,7 +106,7 @@ public virtual async Task<IActionResult> Index(
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public virtual async Task<IActionResult> Risolvi(Guid id, string barcode, TipoRisoluzione tipo)
+    public virtual async Task<IActionResult> Risolvi(Guid id, string barcode, TipoRisoluzione tipo, string activeTab)
     {
         var userId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
 
@@ -116,7 +116,9 @@ public virtual async Task<IActionResult> Index(
         if (d != null)
             await _service.RisolviDiscrepanzaAsync(id, d, tipo, userId);
 
-        return RedirectToAction("Index", new { area = "Inventari", id });
+        var url = Url.Action("Index", new { area = "Inventari", id });
+        if (!string.IsNullOrEmpty(activeTab)) url += "#" + activeTab;
+        return Redirect(url);
     }
 
     [HttpPost]
@@ -131,11 +133,13 @@ public virtual async Task<IActionResult> Index(
     
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public virtual async Task<IActionResult> AnnullaDiscrepanza(Guid id, string barcode)
+    public virtual async Task<IActionResult> AnnullaDiscrepanza(Guid id, string barcode, string activeTab)
     {
         var userId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
         await _service.AnnullaDiscrepanzaAsync(id, barcode, userId);
 
-        return RedirectToAction("Index", new { area = "Inventari", id });
+        var url = Url.Action("Index", new { area = "Inventari", id });
+        if (!string.IsNullOrEmpty(activeTab)) url += "#" + activeTab;
+        return Redirect(url);
     }
 }

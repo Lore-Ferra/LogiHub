@@ -19,7 +19,7 @@
     };
 
     // Helper per renderizzare la tabella in modo uniforme
-    async Task RenderTabella(IEnumerable<DiscrepanzaDTO> items, string colorClass, TipoRisoluzione tipoDefault)
+    async Task RenderTabella(IEnumerable<DiscrepanzaDTO> items, string colorClass, TipoRisoluzione tipoDefault, string tabId)
     {
         <div class="card shadow-sm border-0 border-start border-4 border-@colorClass">
             <div class="card-body p-0">
@@ -69,7 +69,7 @@
                                     <div class="btn-group">
                                         <button class="btn btn-sm btn-outline-@colorClass"
                                                 data-confirm-trigger="true"
-                                                data-url="@Url.Action("Risolvi", "Discrepanze", new { area = "Inventari", id = Model.SessioneId, barcode = item.Barcode, tipo = tipoDefault })"
+                                                data-url="@Url.Action("Risolvi", "Discrepanze", new { area = "Inventari", id = Model.SessioneId, barcode = item.Barcode, tipo = tipoDefault, activeTab = tabId })"
                                                 data-method="POST"
                                                 data-type="form"
                                                 data-message="Confermi la risoluzione (aggiornamento magazzino)?">
@@ -78,7 +78,7 @@
 
                                         <button class="btn btn-sm btn-outline-secondary"
                                                 data-confirm-trigger="true"
-                                                data-url="@Url.Action("AnnullaDiscrepanza", "Discrepanze", new { area = "Inventari", id = Model.SessioneId, barcode = item.Barcode })"
+                                                data-url="@Url.Action("AnnullaDiscrepanza", "Discrepanze", new { area = "Inventari", id = Model.SessioneId, barcode = item.Barcode, activeTab = tabId })"
                                                 data-method="POST"
                                                 data-type="form"
                                                 data-message="Vuoi annullare la segnalazione? Non verrà fatta alcuna modifica fisica.">
@@ -133,13 +133,13 @@
 
     <div class="tab-content" id="pills-tabContent">
         <div class="tab-pane fade show active" id="content-spostati" role="tabpanel">
-            @{ await RenderTabella(Model.DaSpostare, "info", TipoRisoluzione.Sposta); }
+            @{ await RenderTabella(Model.DaSpostare, "info", TipoRisoluzione.Sposta, "content-spostati"); }
         </div>
         <div class="tab-pane fade" id="content-extra" role="tabpanel">
-            @{ await RenderTabella(Model.DaAggiungere, "primary", TipoRisoluzione.Aggiungi); }
+            @{ await RenderTabella(Model.DaAggiungere, "primary", TipoRisoluzione.Aggiungi, "content-extra"); }
         </div>
         <div class="tab-pane fade" id="content-mancanti" role="tabpanel">
-            @{ await RenderTabella(Model.DaRimuovere, "danger", TipoRisoluzione.Rimuovi); }
+            @{ await RenderTabella(Model.DaRimuovere, "danger", TipoRisoluzione.Rimuovi, "content-mancanti"); }
         </div>
     </div>
 </div>
