@@ -15,31 +15,36 @@
     var paging = Model as PagingViewModel;
     var breadcrumbs = ViewData["Breadcrumbs"] as List<BreadcrumbItem>;
 }
+
 @section metas{
     @RenderSection("metas", false)
 }
+
 @section styles{
     @RenderSection("styles", false)
 }
+
 <div id="pageId" class="bg-light">
     <div class="onit-page-sticky-top" id="onit-page-sticky-top">
         <nav class="navbar navbar-expand-md bg-primary" data-bs-theme="light">
             <div class="container-fluid">
                 <a class="h1 text-decoration-none" href="#">LogiHub</a>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
+                        data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent"
+                        aria-expanded="false" aria-label="Toggle navigation">
                     <span class="navbar-toggler-icon"></span>
                 </button>
                 <div class="collapse navbar-collapse" id="navbarSupportedContent">
 
                     <ul class="navbar-nav ms-auto">
                         <li class="nav-item">
-                            <a class="nav-link @(currentArea == "Magazzino" ? "active" : "")" 
+                            <a class="nav-link @(currentArea == "Magazzino" ? "active" : "")"
                                asp-area="Magazzino" asp-controller="SemiLavorati" asp-action="Index">
                                 Magazzino
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link @(currentArea == "Inventari" ? "active" : "")" 
+                            <a class="nav-link @(currentArea == "Inventari" ? "active" : "")"
                                asp-area="Inventari" asp-controller="Sessioni" asp-action="Index">
                                 Inventari
                             </a>
@@ -50,14 +55,19 @@
                         @if (identitaCorrente != null)
                         {
                             <li class="nav-item dropdown">
-                                <a href="#" class="nav-link dropdown-toggle  d-flex align-items-center" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                    <img class="rounded-circle profile-pic" style="width: 50px" src="@identitaCorrente.GravatarUrl" />&nbsp;@identitaCorrente.EmailUtenteCorrente
+                                <a href="#" class="nav-link dropdown-toggle  d-flex align-items-center" type="button"
+                                   data-bs-toggle="dropdown" aria-expanded="false">
+                                    <img class="rounded-circle profile-pic" style="width: 50px"
+                                         src="@identitaCorrente.GravatarUrl"/>&nbsp;@identitaCorrente.EmailUtenteCorrente
                                 </a>
                                 <div class="dropdown-menu dropdown-menu-end" role="menu">
-                                    <a class="dropdown-item" href="javascript:void(0)" onclick="javascript: document.getElementById('POST_LogOut').submit()" title="@SharedLocalizer["Chiudi sessione di lavoro"]">
+                                    <a class="dropdown-item" href="javascript:void(0)"
+                                       onclick="javascript: document.getElementById('POST_LogOut').submit()"
+                                       title="@SharedLocalizer["Chiudi sessione di lavoro"]">
                                         <i class="fa-solid fa-right-from-bracket"></i>&nbsp;@SharedLocalizer["Esci"]
                                     </a>
-                                    <form autocomplete="off" method="post" action="@Url.Action(MVC.Login.Logout())" id="POST_LogOut" display="none"></form>
+                                    <form autocomplete="off" method="post" action="@Url.Action(MVC.Login.Logout())"
+                                          id="POST_LogOut" display="none"></form>
                                 </div>
                             </li>
                         }
@@ -71,10 +81,8 @@
     @* --- INIZIO BREADCRUMB --- *@
     @if (breadcrumbs != null && breadcrumbs.Any())
     {
-        <div class="border-bottom bg-white py-2">
-            <div class="container-xl px-3"> 
-                <partial name="~/Features/Breadcrumb/_Breadcrumb.cshtml" model="breadcrumbs" />
-            </div>
+        <div class="container-xl px-3 py-2">
+            <partial name="~/Features/Breadcrumb/_Breadcrumb.cshtml" model="breadcrumbs"/>
         </div>
     }
     @* --- FINE BREADCRUMB --- *@
@@ -152,12 +160,13 @@
                             onchange="location.href=this.value">
                         @foreach (var size in paging.PageSizes)
                         {
-                            <option value="@paging.ChangePageSizePageUrl(Url, size)" selected="@(paging.PageSize == size)">
+                            <option value="@paging.ChangePageSizePageUrl(Url, size)"
+                                    selected="@(paging.PageSize == size)">
                                 @size
                             </option>
                         }
-                    }
-                </select>
+                        }
+                    </select>
                 </div>
 
                 <nav aria-label="Navigazione pagine">
@@ -192,9 +201,10 @@
             </div>
         }
 
-     </div>
-    
+    </div>
+
 </div>
+
 @section googlehead{
     @*<script async src="https://www.googletagmanager.com/gtag/js?id=UA-"></script>
     <script>
@@ -203,7 +213,8 @@
     gtag('js', new Date());
     gtag('config', 'UA-', { 'anonymize_ip': true });    // Ricordarsi di anonimizzare per fare ricadere il cookie tra quelli tecnici ed evitare l'obbligo del banner
     </script>*@
-    }
+}
+
 @section scripts{
     <script type="text/javascript">
         @this.RenderAlertsWithToastify()
