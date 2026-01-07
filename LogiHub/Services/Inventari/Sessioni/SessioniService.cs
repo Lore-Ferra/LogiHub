@@ -105,11 +105,21 @@ public class SessioniService : ISessioniService
     public async Task ChiudiSessioneAsync(Guid sessioneId, Guid userId)
     {
         // 1. Controllo Ubicazioni (esistente)
+        var ubicazioniConRighe = _context.RigheInventario
+            .Where(r => r.SessioneInventarioId == sessioneId && r.UbicazioneSnapshotId != null)
+            .Select(r => r.UbicazioneSnapshotId!.Value)
+            .Distinct();
+
         var ciSonoUbicazioniDaCompletare = await _context.SessioniUbicazioni
-            .AnyAsync(su => su.SessioneInventarioId == sessioneId && !su.Completata);
+            .AnyAsync(su =>
+                su.SessioneInventarioId == sessioneId &&
+                !su.Completata &&
+                ubicazioniConRighe.Contains(su.UbicazioneId)
+            );
 
         if (ciSonoUbicazioniDaCompletare)
             throw new InvalidOperationException("Ci sono ancora ubicazioni non completate.");
+
 
         // 2. Controllo Discrepanze Aperte (Fondamentale)
         var ciSonoDiscrepanzeAperte = await _context.RigheInventario

@@ -50,10 +50,10 @@
                                 <td class="text-muted">@pezzo.Descrizione</td>
 
                                 <td class="text-center">
-                                        <span id="badge-d-@pezzo.RigaId"
-                                              class="badge @(pezzo.Stato == StatoRigaInventario.InAttesa ? "bg-secondary" : pezzo.Stato == StatoRigaInventario.Trovato ? "bg-success" : "bg-danger")">
-                                            @pezzo.Stato
-                                        </span>
+                                    <span id="badge-d-@pezzo.RigaId"
+                                          class="badge @(pezzo.Stato == StatoRigaInventario.InAttesa ? "bg-secondary" : pezzo.Stato == StatoRigaInventario.Trovato ? "bg-success" : "bg-danger")">
+                                        @(pezzo.Stato == StatoRigaInventario.InAttesa ? "In Attesa" : pezzo.Stato.ToString())
+                                    </span>
                                 </td>
 
                                 <td class="text-end pe-4">
@@ -114,7 +114,7 @@
                         </div>
                         <span id="badge-m-@pezzo.RigaId"
                               class="badge @(pezzo.Stato == StatoRigaInventario.InAttesa ? "bg-secondary" : pezzo.Stato == StatoRigaInventario.Trovato ? "bg-success" : "bg-danger")">
-                            @pezzo.Stato
+                            @(pezzo.Stato == StatoRigaInventario.InAttesa ? "In Attesa" : pezzo.Stato.ToString())
                         </span>
                     </div>
 
