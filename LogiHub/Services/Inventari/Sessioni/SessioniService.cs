@@ -209,6 +209,7 @@ public class SessioniService : ISessioniService
         return await _context.RigheInventario
             .Where(r => r.SessioneInventarioId == query.SessioneId &&
                         r.UbicazioneSnapshotId == query.UbicazioneId)
+            .Where(r => r.Stato != StatoRigaInventario.Extra)
             .Select(r => new PezzoInventarioDTO
             {
                 RigaId = r.Id,
