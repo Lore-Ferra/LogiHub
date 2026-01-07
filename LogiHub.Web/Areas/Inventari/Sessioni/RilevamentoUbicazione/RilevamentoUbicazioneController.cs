@@ -109,6 +109,20 @@ public partial class RilevamentoUbicazioneController : AuthenticatedBaseControll
             }
         };
 
+        // Bottone Aggiungi Extra (Desktop)
+        var bottoneAggiungi = new SearchCardButton
+        {
+            Text = "Aggiungi Extra",
+            CssClass = "btn-outline-primary",
+            IconClass = "fa-solid fa-plus",
+            Type = "button",
+            HtmlAttributes = new Dictionary<string, string>
+            {
+                { "data-bs-toggle", "modal" },
+                { "data-bs-target", "#modalAggiungiExtra" }
+            }
+        };
+
         // 2. Definizione Bottone DISABILITATO (Bloccato)
         var bottoneBloccato = new SearchCardButton
         {
@@ -135,6 +149,7 @@ public partial class RilevamentoUbicazioneController : AuthenticatedBaseControll
         var headerButtons = new List<SearchCardButton>();
         if (!isSolaLettura)
         {
+            headerButtons.Add(bottoneAggiungi);
             headerButtons.Add(bottoneEsci);
         }
         headerButtons.Add(isSolaLettura ? bottoneBloccato : bottoneConcludi);
@@ -194,6 +209,14 @@ public partial class RilevamentoUbicazioneController : AuthenticatedBaseControll
         var userId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
         await _service.SegnaMancanteAsync(rigaId, userId);
         return Json(new { success = true });
+    }
+
+    [HttpPost]
+    public virtual async Task<IActionResult> AggiungiPezzo(Guid sessioneId, Guid ubicazioneId, string barcode, string descrizione)
+    {
+        var userId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
+        await _service.AggiungiExtraAsync(sessioneId, ubicazioneId, barcode, descrizione, userId);
+        return RedirectToAction("Index", new { sessioneId, ubicazioneId });
     }
 
     [HttpPost]
