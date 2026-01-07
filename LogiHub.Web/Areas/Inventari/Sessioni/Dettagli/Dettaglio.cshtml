@@ -113,39 +113,44 @@
 @* --- VERSIONE MOBILE (CARDS) --- *@
 
 <div class="d-md-none">
-    <div class="text-muted small fw-bold text-uppercase ms-1">Da Fare:</div>
-    @foreach (var ubi in ubiDaFare)
+    
+    @* AGGIUNTO CONTROLLO ANY() PER LA SEZIONE "DA FARE" *@
+    @if (ubiDaFare.Any())
     {
-        var isMyUbi = ubi.OperatoreCorrenteId == currentUserId;
-        var canEnter = !ubi.InLavorazione || isMyUbi;
-        <div class="card shadow-sm border-0 border-start border-5 mt-2 @(ubi.InLavorazione ? "border-warning" : "border-bg-light")"
-             style="@(canEnter ? "cursor:pointer" : "")"
-             @if (canEnter)
-             {
-                 <text>onclick="window.location.href='@Url.Action("Index", "RilevamentoUbicazione", new { sessioneId = Model.SessioneId, ubicazioneId = ubi.UbicazioneId })'"
-                 </text>
-             }>
-            <div class="card-body p-2">
-                <div class="d-flex justify-content-between align-items-center">
-                    <div class="fw-bold">
-                        <div class="text-primary mb-1">@ubi.Posizione</div>
-                        <small class="text-muted">
-                            <i class="fa-solid fa-user me-1"></i> @(ubi.InLavorazione ? ubi.OperatoreCorrente : "Nessun operatore")
-                        </small>
-                    </div>
-                    <div>
-                        @if (ubi.InLavorazione)
-                        {
-                            <span class="badge text-bg-warning"><i class="fa-solid fa-circle fa-fade me-1"></i>In Corso</span>
-                        }
-                        else
-                        {
-                            <span class="badge border text-secondary bg-light">In attesa</span>
-                        }
+        <div class="text-muted small fw-bold text-uppercase ms-1">Da Fare:</div>
+        foreach (var ubi in ubiDaFare)
+        {
+            var isMyUbi = ubi.OperatoreCorrenteId == currentUserId;
+            var canEnter = !ubi.InLavorazione || isMyUbi;
+            <div class="card shadow-sm border-0 border-start border-5 mt-2 @(ubi.InLavorazione ? "border-warning" : "border-bg-light")"
+                 style="@(canEnter ? "cursor:pointer" : "")"
+                 @if (canEnter)
+                 {
+                     <text>onclick="window.location.href='@Url.Action("Index", "RilevamentoUbicazione", new { sessioneId = Model.SessioneId, ubicazioneId = ubi.UbicazioneId })'"
+                     </text>
+                 }>
+                <div class="card-body p-2">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div class="fw-bold">
+                            <div class="text-primary mb-1">@ubi.Posizione</div>
+                            <small class="text-muted">
+                                <i class="fa-solid fa-user me-1"></i> @(ubi.InLavorazione ? ubi.OperatoreCorrente : "Nessun operatore")
+                            </small>
+                        </div>
+                        <div>
+                            @if (ubi.InLavorazione)
+                            {
+                                <span class="badge text-bg-warning"><i class="fa-solid fa-circle fa-fade me-1"></i>In Corso</span>
+                            }
+                            else
+                            {
+                                <span class="badge border text-secondary bg-light">In attesa</span>
+                            }
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
+        }
     }
 
     @if (ubiCompletate.Any())

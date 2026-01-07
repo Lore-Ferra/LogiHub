@@ -25,7 +25,6 @@ public partial class RilevamentoUbicazioneController : AuthenticatedBaseControll
         _context = context;
     }
 
-
     [HttpGet]
     public virtual async Task<IActionResult> Index(
         Guid sessioneId,

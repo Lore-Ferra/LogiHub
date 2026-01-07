@@ -2,9 +2,14 @@
 @using LogiHub.Web.Features.Modals
 @{
     bool isBloccato = await BloccoService.IsBloccatoAsync();
-}
-@{
     ViewData["Title"] = "Gestione Inventario";
+    
+    var sessioniAperte = Model.Sessioni.Where(s => !s.Chiuso).ToList();
+    var sessioniChiuse = Model.Sessioni.Where(s => s.Chiuso).ToList();
+    
+    var count = Model.TotalItems;
+    var verbo = count == 1 ? "Trovata" : "Trovate";
+    var nome = count == 1 ? "sessione" : "sessioni";
 }
 
 @section Styles {
@@ -15,63 +20,76 @@
     @await Html.PartialAsync("~/Features/SearchCard/_SearchCard.cshtml", Model.SearchCard)
 </div>
 
-@{
-    var count = Model.TotalItems;
-    var verbo = count == 1 ? "Trovata" : "Trovate";
-    var nome = count == 1 ? "sessione" : "sessioni";
-}
-
-<div class="mt-2 mb-2 ps-1">
+<div class="ps-1">
     <small class="text-muted">
         @verbo <strong>@count</strong> @nome
     </small>
 </div>
 
-@* --- VERSIONE MOBILE (CARDS) --- *@
-<div class="d-md-none mt-3">
-    @foreach (var item in Model.Sessioni)
+@* --- VERSIONE MOBILE (CARDS DIVISE) --- *@
+<div class="d-md-none">
+    @* SEZIONE IN CORSO *@
+    @if (sessioniAperte.Any())
     {
-        <div class="card shadow-sm mb-2"
-             style="cursor:pointer"
-             onclick="window.location.href='@Url.Action("Index", "Dettaglio", new { id = item.Id })'">
-            <div class="card-body p-3">
-                <div class="d-flex justify-content-between align-items-center">
-                    <div class="fw-bold">
-                        <div class="@(item.Chiuso ? "" : "text-primary") mb-1">@item.NomeSessione</div>
-                        <div class="text-muted opacity-75 small">
-                            <div>
-                                <i class="fa-solid fa-calendar-plus me-1"></i>
-                                Apertura: @item.DataCreazione.ToString("dd/MM/yyyy HH:mm")
-                            </div>
-
-                            <div>
-                                <i class="fa-solid fa-calendar-check me-1"></i>
-                                Chiusura:
-                                @if (item.DataChiusura.HasValue)
-                                {
-                                    @item.DataChiusura.Value.ToString("dd/MM/yyyy HH:mm")
-                                }
-                                else
-                                {
-                                    <span>---</span>
-                                }
+        <div class="text-muted small fw-bold text-uppercase ms-1 mb-2">In Corso:</div>
+        foreach (var item in sessioniAperte)
+        {
+            <div class="card shadow-sm border-0 border-start border-5 mt-2 border-warning"
+                 style="cursor:pointer"
+                 onclick="window.location.href='@Url.Action("Index", "Dettaglio", new { id = item.Id })'">
+                <div class="card-body p-2">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div class="fw-bold">
+                            <div class="text-primary mb-1">@item.NomeSessione</div>
+                            <div class="text-muted opacity-75 small">
+                                <div>
+                                    <i class="fa-solid fa-calendar-plus me-1"></i>
+                                    @item.DataCreazione.ToString("dd/MM/yyyy HH:mm")
+                                </div>
                             </div>
                         </div>
-                    </div>
-                    <div>
-                        @if (item.Chiuso)
-                        {
-                            <span class="badge border text-secondary bg-body-secondary">Chiuso</span>
-                        }
-                        else
-                        {
+                        <div>
                             <span class="badge text-bg-warning"><i class="fa-solid fa-circle fa-fade me-1"></i>In Corso</span>
-                        }
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
+        }
     }
+
+    @* SEZIONE CHIUSE *@
+    @if (sessioniChiuse.Any())
+    {
+        <div class="text-muted small fw-bold text-uppercase mt-2 ms-1 mb-2">Chiuse:</div>
+        foreach (var item in sessioniChiuse)
+        {
+            <div class="card shadow-sm border-0 border-start border-5 mt-2 border-secondary"
+                 style="cursor:pointer"
+                 onclick="window.location.href='@Url.Action("Index", "Dettaglio", new { id = item.Id })'">
+                <div class="card-body p-2">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div class="fw-bold">
+                            <div class="mb-1">@item.NomeSessione</div>
+                            <div class="text-muted opacity-75 small">
+                                <div>
+                                    <i class="fa-solid fa-calendar-check me-1"></i>
+                                    @if (item.DataChiusura.HasValue)
+                                    {
+                                        @item.DataChiusura.Value.ToString("dd/MM/yyyy HH:mm")
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                        <div>
+                            <span class="badge border text-secondary bg-body-secondary">Chiuso</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    }
+
+    @* EMPTY STATE *@
     @if (!Model.Sessioni.Any())
     {
         <div class="text-center py-5 text-muted">
@@ -81,8 +99,8 @@
     }
 </div>
 
-@* --- VERSIONE DESKTOP (TABELLA) --- *@
-<div class="card shadow-sm mt-3 d-none d-md-block">
+@* --- VERSIONE DESKTOP (TABELLA UNIFICATA CON SEPARATORI) --- *@
+<div class="card shadow-sm d-none mt-1 d-md-block">
     <div class="card-body p-1 pb-0">
         <div class="table-responsive">
             <table class="table table-hover align-middle mb-0">
@@ -95,53 +113,87 @@
                 </tr>
                 </thead>
                 <tbody>
-                @foreach (var item in Model.Sessioni)
+                
+                @* GRUPPO IN CORSO *@
+                @if (sessioniAperte.Any())
                 {
-                    <tr class="@(item.Chiuso ? "bg-light text-muted" : "fw-bold")"
-                        style="cursor:pointer"
-                        onclick="window.location.href='@Url.Action("Index", "Dettaglio", new { id = item.Id })'">
+                    <tr class="table-secondary">
+                        <td colspan="4" class="ps-4 fw-bold bg-body-secondary text-muted small text-uppercase">In Corso</td>
+                    </tr>
+                    foreach (var item in sessioniAperte)
+                    {
+                        <tr class="fw-bold"
+                            style="cursor:pointer"
+                            onclick="window.location.href='@Url.Action("Index", "Dettaglio", new { id = item.Id })'">
 
-                        <!-- Sessione -->
-                        <td class="ps-3">
-                            <div class="@(item.Chiuso ? "" : "text-primary") mb-1">
-                                @item.NomeSessione
-                            </div>
-                        </td>
+                            <td class="ps-3">
+                                <div class="text-primary mb-1">
+                                    @item.NomeSessione
+                                </div>
+                            </td>
 
-                        <!-- Data Apertura -->
-                        <td class="text-center">
-                            <small class="text-muted">
-                                @item.DataCreazione.ToString("dd/MM/yyyy HH:mm")
-                            </small>
-                        </td>
-
-                        <td class="text-center">
-                            @if (item.DataChiusura.HasValue)
-                            {
+                            <td class="text-center">
                                 <small class="text-muted">
-                                    @item.DataChiusura.Value.ToString("dd/MM/yyyy HH:mm")
+                                    @item.DataCreazione.ToString("dd/MM/yyyy HH:mm")
                                 </small>
-                            }
-                            else
-                            {
-                                <span class="text-muted">---</span>
-                            }
-                        </td>
+                            </td>
 
-                        <td class="text-center">
-                            @if (item.Chiuso)
-                            {
-                                <span class="badge bg-secondary border-0 opacity-75">Completato</span>
-                            }
-                            else
-                            {
+                            <td class="text-center">
+                                <span class="text-muted">---</span>
+                            </td>
+
+                            <td class="text-center">
                                 <span class="badge bg-warning text-dark shadow-sm">
                                     <i class="fa-solid fa-circle fa-fade me-2" style="font-size: 0.6rem;"></i>
                                     In Corso
                                 </span>
-                            }
-                        </td>
+                            </td>
+                        </tr>
+                    }
+                }
+
+                @* GRUPPO CHIUSE *@
+                @if (sessioniChiuse.Any())
+                {
+                    <tr class="table-secondary">
+                        <td colspan="4" class="ps-4 fw-bold bg-body-secondary text-muted small text-uppercase">Chiuse</td>
                     </tr>
+                    foreach (var item in sessioniChiuse)
+                    {
+                        <tr class="bg-light text-muted"
+                            style="cursor:pointer"
+                            onclick="window.location.href='@Url.Action("Index", "Dettaglio", new { id = item.Id })'">
+
+                            <td class="ps-3">
+                                <div class="mb-1">
+                                    @item.NomeSessione
+                                </div>
+                            </td>
+
+                            <td class="text-center">
+                                <small class="text-muted">
+                                    @item.DataCreazione.ToString("dd/MM/yyyy HH:mm")
+                                </small>
+                            </td>
+
+                            <td class="text-center">
+                                @if (item.DataChiusura.HasValue)
+                                {
+                                    <small class="text-muted">
+                                        @item.DataChiusura.Value.ToString("dd/MM/yyyy HH:mm")
+                                    </small>
+                                }
+                                else
+                                {
+                                    <span class="text-muted">---</span>
+                                }
+                            </td>
+
+                            <td class="text-center">
+                                <span class="badge bg-secondary border-0 opacity-75">Completato</span>
+                            </td>
+                        </tr>
+                    }
                 }
 
                 @if (!Model.Sessioni.Any())
