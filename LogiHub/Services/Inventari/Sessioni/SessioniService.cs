@@ -419,8 +419,11 @@ public class SessioniService : ISessioniService
 
         // Cerchiamo se in una delle righe (quella rilevata) c'è una nuova descrizione
         var rigaConNuovaDesc = righeCoinvolte.FirstOrDefault(r => !string.IsNullOrEmpty(r.DescrizioneRilevata));
+        string descrizioneDaUsare = d.Descrizione;
+
         if (rigaConNuovaDesc != null)
         {
+            descrizioneDaUsare = rigaConNuovaDesc.DescrizioneRilevata;
             var slMaster = await _context.SemiLavorati.FindAsync(rigaConNuovaDesc.SemiLavoratoId);
             if (slMaster != null)
             {
@@ -437,7 +440,10 @@ public class SessioniService : ISessioniService
                     {
                         Id = d.SemiLavoratoId.Value,
                         UbicazioneId = d.UbicazioneRilevataId.Value,
-                        IsRettificaInventario = true
+                        IsRettificaInventario = true,
+                        Barcode = d.Barcode,
+                        Descrizione = descrizioneDaUsare,
+                        UserId = userId
                     });
                 }
 
