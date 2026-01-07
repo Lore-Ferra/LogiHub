@@ -61,6 +61,7 @@
                                         <button class="btn btn-sm btn-outline-primary"
                                                 onclick="aggiornaStato(this, '@pezzo.RigaId', 'presente')"
                                                 data-url="@Url.Action("SegnaPresente", "RilevamentoUbicazione", new { rigaId = pezzo.RigaId })"
+                                                style="@(Model.IsSolaLettura ? "cursor: not-allowed; pointer-events: auto !important;" : "")"
                                                 @(Model.IsSolaLettura ? "disabled" : "")>
                                             @if (Model.IsSolaLettura && pezzo.Stato == StatoRigaInventario.Trovato)
                                             {
@@ -76,6 +77,7 @@
                                         <button class="btn btn-sm btn-outline-danger"
                                                 onclick="aggiornaStato(this, '@pezzo.RigaId', 'mancante')"
                                                 data-url="@Url.Action("SegnaMancante", "RilevamentoUbicazione", new { rigaId = pezzo.RigaId })"
+                                                style="@(Model.IsSolaLettura ? "cursor: not-allowed; pointer-events: auto !important;" : "")"
                                                 @(Model.IsSolaLettura ? "disabled" : "")>
                                             @if (Model.IsSolaLettura && pezzo.Stato == StatoRigaInventario.Mancante)
                                             {
