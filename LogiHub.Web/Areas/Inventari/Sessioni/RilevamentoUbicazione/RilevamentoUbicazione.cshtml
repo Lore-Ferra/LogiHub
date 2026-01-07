@@ -184,42 +184,7 @@
 @section Scripts {
     <script src="~/js/Features/Modals/ConfirmModal.js"></script>
     
-    <script>
-        document.addEventListener('submit', function (e) {
-            const form = e.target;
-            if (!form || form.tagName !== 'FORM') return;
-
-            const triggerBtn = form.querySelector('[data-confirm-modal-trigger="true"]');
-            if (!triggerBtn) return;
-
-            e.preventDefault();
-
-            const modalEl = document.getElementById('actionConfirmModal');
-            if (!modalEl) {
-                console.error('Modal #actionConfirmModal non trovato.');
-                return;
-            }
-
-            const messageEl = modalEl.querySelector('[data-confirm-message]');
-            const confirmBtn = modalEl.querySelector('[data-confirm-btn]');
-
-            if (!confirmBtn) {
-                console.error('Elemento [data-confirm-btn] non trovato nel modal.');
-                return;
-            }
-
-            const msg = triggerBtn.getAttribute('data-confirm') || 'Confermi l’operazione?';
-            if (messageEl) {
-                messageEl.textContent = msg;
-            }
-
-            confirmBtn.onclick = function () {
-                form.submit();
-            };
-
-            bootstrap.Modal.getOrCreateInstance(modalEl).show();
-        }, true);
-        
+    <script>        
         async function aggiornaStato(btn, rigaId, tipo) {
             if (btn.disabled) return;
 

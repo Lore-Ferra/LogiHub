@@ -27,32 +27,36 @@
                              && btn.HtmlAttributes.TryGetValue("data-url", out postUrl) // Estrae l'URL
                              && !string.IsNullOrWhiteSpace(postUrl);
 
-                if (isPost)
+                @if (isPost)
                 {
-                    <form method="post" action="@postUrl" class="d-inline">
-                        @Html.AntiForgeryToken()
-
-                        <button type="submit"
-                                class="btn @btn.CssClass"
-                                data-confirm-modal-trigger="true"
-                                @if (btn.HtmlAttributes != null)
-                                {
-                                    foreach (var attr in btn.HtmlAttributes)
-                                    {
-                                        // Evitiamo di ristampare gli attributi interni usati per la logica
-                                        if (attr.Key != "data-post-action" && attr.Key != "data-url")
-                                        {
-                                            @Html.Raw($"{attr.Key}=\"{attr.Value}\" ")
-                                        }
-                                    }
-                                }>
-                            @if (!string.IsNullOrEmpty(btn.IconClass))
+                    @if (btn.HtmlAttributes != null
+                         && btn.HtmlAttributes.TryGetValue("data-confirm", out var legacyConfirm)
+                         && !btn.HtmlAttributes.ContainsKey("data-message"))
+                    {
+                        btn.HtmlAttributes["data-message"] = legacyConfirm;
+                    }
+                    <button type="button"
+                            class="btn @btn.CssClass"
+                            data-confirm-trigger="true"
+                            data-url="@postUrl"
+                            data-method="POST"
+                            data-type="form"
+                            @if (btn.HtmlAttributes != null)
                             {
-                                <i class="@btn.IconClass me-2"></i>
-                            }
-                            @btn.Text
-                        </button>
-                    </form>
+                                foreach (var attr in btn.HtmlAttributes)
+                                {
+                                    if (attr.Key != "data-post-action" && attr.Key != "data-url")
+                                    {
+                                        @Html.Raw($"{attr.Key}=\"{attr.Value}\" ")
+                                    }
+                                }
+                            }>
+                        @if (!string.IsNullOrEmpty(btn.IconClass))
+                        {
+                            <i class="@btn.IconClass me-2"></i>
+                        }
+                        @btn.Text
+                    </button>
                 }
                 else
                 {

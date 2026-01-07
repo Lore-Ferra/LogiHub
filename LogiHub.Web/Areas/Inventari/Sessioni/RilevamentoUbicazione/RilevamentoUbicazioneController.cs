@@ -72,9 +72,11 @@ public partial class RilevamentoUbicazioneController : AuthenticatedBaseControll
             Type = "button",
             HtmlAttributes = new Dictionary<string, string>
             {
-                { "data-post-action", "true" },
+                { "data-confirm-trigger", "true" },
                 { "data-url", Url.Action("Abbandona", "RilevamentoUbicazione", new { area = "Inventari", sessioneId, ubicazioneId }) },
-                { "data-confirm", "Vuoi rilasciare l'ubicazione? Altri operatori potranno lavorarci." }
+                { "data-method", "POST" },
+                { "data-type", "form" },
+                { "data-message", "Vuoi rilasciare l'ubicazione? Altri operatori potranno lavorarci." }
             }
         };
 
@@ -99,11 +101,11 @@ public partial class RilevamentoUbicazioneController : AuthenticatedBaseControll
             Type = "button",
             HtmlAttributes = new Dictionary<string, string>
             {
-                { "data-post-action", "true" },
+                { "data-confirm-trigger", "true" },
                 { "data-url", Url.Action("ConcludiUbicazione", "RilevamentoUbicazione", new { area = "Inventari", sessioneId, ubicazioneId }) },
-                { "data-confirm",
-                    "Sicuro di voler chiudere questa ubicazione? I pezzi non segnati saranno messi come mancanti."
-                }
+                { "data-method", "POST" },
+                { "data-type", "form" },
+                { "data-message", "Sicuro di voler chiudere questa ubicazione? I pezzi non segnati saranno messi come mancanti." }
             }
         };
 
