@@ -245,7 +245,7 @@ public class SessioniService : ISessioniService
         await _context.SaveChangesAsync();
     }
 
-    public async Task AggiungiExtraAsync(Guid sessioneId, Guid ubicazioneId, string barcode, Guid userId)
+    public async Task AggiungiExtraAsync(Guid sessioneId, Guid ubicazioneId, string barcode, string descrizione, Guid userId)
     {
         var giaRilevato = await _context.RigheInventario.AnyAsync(r =>
             r.SessioneInventarioId == sessioneId &&
@@ -255,17 +255,44 @@ public class SessioniService : ISessioniService
         if (giaRilevato) throw new InvalidOperationException("Barcode già rilevato.");
 
         var sl = await _context.SemiLavorati.FirstOrDefaultAsync(s => s.Barcode == barcode);
+        
+        // Se non esiste, lo creiamo "al volo" per poterlo collegare. 
+        // Non avendo una posizione snapshot, risulterà come EXTRA puro.
+        if (sl == null)
+        {
+            sl = new SemiLavorato
+            {
+                Id = Guid.NewGuid(),
+                Barcode = barcode,
+                Descrizione = string.IsNullOrWhiteSpace(descrizione) ? "Nuovo Articolo" : descrizione,
+                UbicazioneId = null, // Non ha posizione ufficiale
+                DataCreazione = DateTime.Now,
+                UltimaModifica = DateTime.Now
+            };
+            _context.SemiLavorati.Add(sl);
+            
+            _context.Azioni.Add(new Azione
+            {
+                Id = Guid.NewGuid(),
+                SemiLavoratoId = sl.Id,
+                TipoOperazione = TipoOperazione.Creazione,
+                UserId = userId,
+                DataOperazione = DateTime.Now,
+                Dettagli = "Creazione da Inventario (Extra)"
+            });
+        }
 
         var extra = new RigaInventario
         {
             Id = Guid.NewGuid(),
             SessioneInventarioId = sessioneId,
-            SemiLavoratoId = sl?.Id ?? Guid.Empty,
-            UbicazioneSnapshotId = null,
+            SemiLavoratoId = sl.Id,
+            UbicazioneSnapshotId = sl.UbicazioneId, // Se era null (nuovo), resta null. Se esisteva, prende la vecchia pos.
             UbicazioneRilevataId = ubicazioneId,
             Stato = StatoRigaInventario.Extra,
             RilevatoDaUserId = userId,
-            DataRilevamento = DateTime.Now
+            DataRilevamento = DateTime.Now,
+            DescrizioneRilevata = string.IsNullOrWhiteSpace(descrizione) ? null : descrizione
         };
 
         _context.RigheInventario.Add(extra);
@@ -332,9 +359,20 @@ public class SessioniService : ISessioniService
             }
             else if (haExtra)
             {
-                dto.Tipo = TipoDiscrepanzaOperativa.Extra;
-                dto.UbicazioneRilevata = rif.UbicazioneRilevata?.Posizione ?? "N/D";
-                dto.UbicazioneRilevataId = rif.UbicazioneRilevataId;
+                var rigaExtra = righe.First(r => r.Stato == StatoRigaInventario.Extra);
+                if (rigaExtra.UbicazioneSnapshotId.HasValue)
+                {
+                    dto.Tipo = TipoDiscrepanzaOperativa.Spostato;
+                    dto.UbicazioneSnapshot = rigaExtra.UbicazioneSnapshot?.Posizione ?? "N/D";
+                    dto.UbicazioneRilevata = rigaExtra.UbicazioneRilevata?.Posizione ?? "N/D";
+                    dto.UbicazioneRilevataId = rigaExtra.UbicazioneRilevataId;
+                }
+                else
+                {
+                    dto.Tipo = TipoDiscrepanzaOperativa.Extra;
+                    dto.UbicazioneRilevata = rif.UbicazioneRilevata?.Posizione ?? "N/D";
+                    dto.UbicazioneRilevataId = rif.UbicazioneRilevataId;
+                }
             }
             else
             {
@@ -379,7 +417,17 @@ public class SessioniService : ISessioniService
         if (!righeCoinvolte.Any() && tipo != TipoRisoluzione.Aggiungi)
             throw new InvalidOperationException("Nessuna riga inventario trovata per questo barcode.");
 
-        // 2. LOGICA OPERATIVA SUL MAGAZZINO (rimane quasi uguale)
+        // Cerchiamo se in una delle righe (quella rilevata) c'è una nuova descrizione
+        var rigaConNuovaDesc = righeCoinvolte.FirstOrDefault(r => !string.IsNullOrEmpty(r.DescrizioneRilevata));
+        if (rigaConNuovaDesc != null)
+        {
+            var slMaster = await _context.SemiLavorati.FindAsync(rigaConNuovaDesc.SemiLavoratoId);
+            if (slMaster != null)
+            {
+                slMaster.Descrizione = rigaConNuovaDesc.DescrizioneRilevata;
+            }
+        }
+
         switch (tipo)
         {
             case TipoRisoluzione.Sposta:
@@ -396,21 +444,23 @@ public class SessioniService : ISessioniService
                 break;
 
             case TipoRisoluzione.Aggiungi:
-                if (d.UbicazioneRilevataId.HasValue)
+                // Se il semilavorato esiste già (perché creato in AggiungiExtra o esistente), 
+                // dobbiamo solo confermare la sua posizione (come se fosse uno spostamento/conferma).
+                if (d.SemiLavoratoId.HasValue && d.UbicazioneRilevataId.HasValue)
                 {
-                    var nuovoSl = await _slService.AggiungiSemiLavoratoAsync(new AggiungiSemiLavoratoDTO
+                    // Recuperiamo i dati attuali per il DTO
+                    var slEsistente = await _context.SemiLavorati.FindAsync(d.SemiLavoratoId.Value);
+                    if (slEsistente != null)
                     {
-                        Barcode = d.Barcode,
-                        Descrizione = d.Descrizione,
-                        UbicazioneId = d.UbicazioneRilevataId.Value,
-                        IsRettificaInventario = true,
-                        UserId = userId
-                    });
-
-                    // Colleghiamo le righe al nuovo ID
-                    foreach (var riga in righeCoinvolte)
-                    {
-                        riga.SemiLavoratoId = nuovoSl.Id;
+                        await _slService.ModificaSemiLavorato(new ModificaSemiLavoratoDTO
+                        {
+                            Id = slEsistente.Id,
+                            Barcode = slEsistente.Barcode,
+                            Descrizione = slEsistente.Descrizione,
+                            UbicazioneId = d.UbicazioneRilevataId.Value,
+                            IsRettificaInventario = true,
+                            UserId = userId
+                        });
                     }
                 }
 
@@ -429,7 +479,6 @@ public class SessioniService : ISessioniService
                 break;
         }
 
-        // 3. AGGIORNAMENTO STATO SU TUTTE LE RIGHE
         // Ciclo su tutte le righe trovate (Mancante + Extra) e le chiudo tutte.
         foreach (var riga in righeCoinvolte)
         {
