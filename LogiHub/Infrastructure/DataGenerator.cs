@@ -418,7 +418,7 @@ namespace LogiHub.Infrastructure
             var s1 = new SessioneInventario
             {
                 Id = s1Id,
-                NomeSessione = "Inventario #1",
+                NomeSessione = "Inventario #2",
                 DataCreazione = BaseDate.AddDays(-5),
                 DataChiusura = BaseDate.AddDays(-5).AddHours(2),
                 Chiuso = true,
@@ -485,7 +485,7 @@ namespace LogiHub.Infrastructure
             var s2 = new SessioneInventario
             {
                 Id = s2Id,
-                NomeSessione = "Inventario #2",
+                NomeSessione = "Inventario #1",
                 DataCreazione = BaseDate.AddDays(-15),
                 DataChiusura = BaseDate.AddDays(-15).AddHours(1),
                 Chiuso = true,
