@@ -41,7 +41,7 @@
                     <div class="d-flex justify-content-between align-items-center">
                         <div class="fw-bold">
                             <div class="text-primary mb-1">@item.NomeSessione</div>
-                            <div class="text-muted opacity-75 small">
+                            <div class="text-muted small">
                                 <div>
                                     <i class="fa-solid fa-calendar-plus me-1"></i>
                                     @item.DataCreazione.ToString("dd/MM/yyyy HH:mm")
@@ -70,7 +70,7 @@
                     <div class="d-flex justify-content-between align-items-center">
                         <div class="fw-bold">
                             <div class="mb-1">@item.NomeSessione</div>
-                            <div class="text-muted opacity-75 small">
+                            <div class="text-muted small">
                                 <div>
                                     <i class="fa-solid fa-calendar-check me-1"></i>
                                     @if (item.DataChiusura.HasValue)
@@ -190,7 +190,7 @@
                             </td>
 
                             <td class="text-center">
-                                <span class="badge bg-secondary border-0 opacity-75">Completato</span>
+                                <span class="badge bg-secondary border-0 ">Completato</span>
                             </td>
                         </tr>
                     }
