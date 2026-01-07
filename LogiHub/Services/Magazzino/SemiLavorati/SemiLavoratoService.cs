@@ -96,13 +96,17 @@ public class SemiLavoratoService : ISemiLavoratoService
         }
         else if (ubicazioneCambiata && dto.UbicazioneId != null)
         {
-            var ubicazioneNew = await _context.Ubicazioni
-                .Where(u => u.UbicazioneId == sl.UbicazioneId)
-                .Select(u => u.Posizione)
-                .FirstOrDefaultAsync();
+            // Registriamo lo spostamento solo se aveva una posizione precedente (altrimenti è una prima assegnazione/creazione)
+            if (ubicazioneOld != null)
+            {
+                var ubicazioneNew = await _context.Ubicazioni
+                    .Where(u => u.UbicazioneId == sl.UbicazioneId)
+                    .Select(u => u.Posizione)
+                    .FirstOrDefaultAsync();
 
-            GeneraAzione(dto.Id, dto.UserId, TipoOperazione.CambioUbicazione,
-                $"Spostamento da {ubicazioneOld} a {ubicazioneNew}");
+                GeneraAzione(dto.Id, dto.UserId, TipoOperazione.CambioUbicazione,
+                    $"Spostamento da {ubicazioneOld} a {ubicazioneNew}");
+            }
         }
 
         return await _context.SaveChangesAsync() > 0;
