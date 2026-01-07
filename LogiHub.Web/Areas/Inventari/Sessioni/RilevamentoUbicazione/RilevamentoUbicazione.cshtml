@@ -61,6 +61,7 @@
                                         <button class="btn btn-sm btn-outline-primary"
                                                 onclick="aggiornaStato(this, '@pezzo.RigaId', 'presente')"
                                                 data-url="@Url.Action("SegnaPresente", "RilevamentoUbicazione", new { rigaId = pezzo.RigaId })"
+                                                style="@(Model.IsSolaLettura ? "cursor: not-allowed; pointer-events: auto !important;" : "")"
                                                 @(Model.IsSolaLettura ? "disabled" : "")>
                                             @if (Model.IsSolaLettura && pezzo.Stato == StatoRigaInventario.Trovato)
                                             {
@@ -76,6 +77,7 @@
                                         <button class="btn btn-sm btn-outline-danger"
                                                 onclick="aggiornaStato(this, '@pezzo.RigaId', 'mancante')"
                                                 data-url="@Url.Action("SegnaMancante", "RilevamentoUbicazione", new { rigaId = pezzo.RigaId })"
+                                                style="@(Model.IsSolaLettura ? "cursor: not-allowed; pointer-events: auto !important;" : "")"
                                                 @(Model.IsSolaLettura ? "disabled" : "")>
                                             @if (Model.IsSolaLettura && pezzo.Stato == StatoRigaInventario.Mancante)
                                             {
@@ -167,8 +169,57 @@
 
 @Html.AntiForgeryToken()
 
+@await Html.PartialAsync(
+    "~/Features/Modals/_ConfirmModal.cshtml",
+    new LogiHub.Web.Features.Modals.ConfirmModalViewModel
+    {
+        ModalId = "actionConfirmModal",
+        Title = "Conferma operazione",
+        Message = "",
+        ConfirmButtonText = "Conferma",
+        ConfirmButtonClass = "btn-primary",
+        IconClass = "fa-solid fa-triangle-exclamation"
+    })
+
 @section Scripts {
+    <script src="~/js/Features/Modals/ConfirmModal.js"></script>
+    
     <script>
+        document.addEventListener('submit', function (e) {
+            const form = e.target;
+            if (!form || form.tagName !== 'FORM') return;
+
+            const triggerBtn = form.querySelector('[data-confirm-modal-trigger="true"]');
+            if (!triggerBtn) return;
+
+            e.preventDefault();
+
+            const modalEl = document.getElementById('actionConfirmModal');
+            if (!modalEl) {
+                console.error('Modal #actionConfirmModal non trovato.');
+                return;
+            }
+
+            const messageEl = modalEl.querySelector('[data-confirm-message]');
+            const confirmBtn = modalEl.querySelector('[data-confirm-btn]');
+
+            if (!confirmBtn) {
+                console.error('Elemento [data-confirm-btn] non trovato nel modal.');
+                return;
+            }
+
+            const msg = triggerBtn.getAttribute('data-confirm') || 'Confermi l’operazione?';
+            if (messageEl) {
+                messageEl.textContent = msg;
+            }
+
+            confirmBtn.onclick = function () {
+                form.submit();
+            };
+
+            bootstrap.Modal.getOrCreateInstance(modalEl).show();
+        }, true);
+        
         async function aggiornaStato(btn, rigaId, tipo) {
             if (btn.disabled) return;
 
@@ -215,8 +266,6 @@
                         badge.textContent = 'Mancante';
                     }
                 });
-
-
             } catch (error) {
                 console.error('Errore:', error);
                 alert("Errore di connessione.");
@@ -225,32 +274,5 @@
                 btn.disabled = false;
             }
         }
-
-        document.addEventListener('click', function (e) {
-            const btn = e.target.closest('[data-post-action]');
-            if (!btn) return;
-
-            e.preventDefault();
-
-            const url = btn.getAttribute('data-url');
-            const confirmMsg = btn.getAttribute('data-confirm');
-            if (confirmMsg && !confirm(confirmMsg)) return;
-
-            const form = document.createElement('form');
-            form.method = 'POST';
-            form.action = url;
-
-            const token = document.querySelector('input[name="__RequestVerificationToken"]');
-            if (token) {
-                const hiddenInput = document.createElement('input');
-                hiddenInput.type = 'hidden';
-                hiddenInput.name = '__RequestVerificationToken';
-                hiddenInput.value = token.value;
-                form.appendChild(hiddenInput);
-            }
-
-            document.body.appendChild(form);
-            form.submit();
-        });
     </script>
 }
