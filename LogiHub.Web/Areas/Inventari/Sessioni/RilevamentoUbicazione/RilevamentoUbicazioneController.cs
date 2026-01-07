@@ -146,6 +146,7 @@ public partial class RilevamentoUbicazioneController : AuthenticatedBaseControll
             Query = query,
             ShowFilters = false,
             ShowUscitoFilter = false,
+            ShowSearchInColumns = false,
             HeaderButtons = headerButtons
         };
 
