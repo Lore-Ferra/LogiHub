@@ -43,7 +43,7 @@
                             <td>
                                 @if (item.Tipo == TipoDiscrepanzaOperativa.Spostato)
                                 {
-                                    <small>Da <b>@item.UbicazioneSnapshot</b> a <b>@item.UbicazioneRilevata</b></small>
+                                    <small>Da <b>@item.UbicazioneSnapshot</b> Trovato in <b>@item.UbicazioneRilevata</b></small>
                                 }
                                 else if (item.Tipo == TipoDiscrepanzaOperativa.Extra)
                                 {
@@ -136,7 +136,7 @@
             @{ await RenderTabella(Model.DaSpostare, "info", TipoRisoluzione.Sposta); }
         </div>
         <div class="tab-pane fade" id="content-extra" role="tabpanel">
-            @{ await RenderTabella(Model.DaAggiungere, "warning", TipoRisoluzione.Aggiungi); }
+            @{ await RenderTabella(Model.DaAggiungere, "primary", TipoRisoluzione.Aggiungi); }
         </div>
         <div class="tab-pane fade" id="content-mancanti" role="tabpanel">
             @{ await RenderTabella(Model.DaRimuovere, "danger", TipoRisoluzione.Rimuovi); }

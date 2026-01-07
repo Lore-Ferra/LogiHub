@@ -148,10 +148,8 @@
         {
             <button type="button"
                     class="fab d-md-none border-0"
-                    data-offcanvas
-                    data-id="offcanvasAggiungi"
-                    data-title="Aggiungi Pezzo"
-                    data-url="@Url.Action("AggiungiPezzo", "RilevamentoUbicazione")"
+                    data-bs-toggle="modal" 
+                    data-bs-target="#modalAggiungiExtra"
                     style="width: auto; padding: 0 20px; border-radius: 30px;">
                 <i class="fa-solid fa-plus me-1"></i> Extra
             </button>
@@ -180,6 +178,49 @@
         ConfirmButtonClass = "btn-primary",
         IconClass = "fa-solid fa-triangle-exclamation text-warning"
     })
+
+@* MODAL AGGIUNGI EXTRA *@
+<div class="modal fade" id="modalAggiungiExtra" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header bg-light">
+                <h5 class="modal-title"><i class="fa-solid fa-box-open me-2 text-primary"></i>Aggiungi Extra</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form asp-action="AggiungiPezzo" method="post">
+                <div class="modal-body">
+                    <input type="hidden" name="sessioneId" value="@Model.SessioneId" />
+                    <input type="hidden" name="ubicazioneId" value="@Model.UbicazioneId" />
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Barcode</label>
+                        <div class="input-group">
+                            <input type="text" class="form-control" name="barcode" id="inputBarcodeExtra" required placeholder="Scansiona o inserisci..." />
+                            @* Bottone Scan QR *@
+                            <button type="button" class="btn btn-outline-secondary" onclick="simulaScanQR()" title="Simula Scansione">
+                                <i class="fa-solid fa-qrcode"></i>
+                            </button>
+                        </div>
+                        <div class="form-text">Se il barcode esiste già, verrà segnato come spostamento.</div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Descrizione (Opzionale)</label>
+                        <textarea class="form-control" name="descrizione" rows="2" placeholder="Inserisci descrizione..."></textarea>
+                        <div class="form-text text-muted">
+                            <i class="fa-solid fa-circle-info me-1"></i>
+                            Se lasciata vuota, verrà mantenuta quella esistente (se presente). Se compilata, sovrascriverà quella vecchia alla risoluzione.
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer border-0 pt-0">
+                    <button type="button" class="btn btn-link text-muted text-decoration-none" data-bs-dismiss="modal">Annulla</button>
+                    <button type="submit" class="btn btn-primary px-4">Aggiungi</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
 
 @section Scripts {
     <script src="~/js/Features/Modals/ConfirmModal.js"></script>
@@ -238,6 +279,12 @@
                 btn.innerHTML = originalText;
                 btn.disabled = false;
             }
+        }
+        
+        function simulaScanQR() {
+            // Genera un numero casuale a 4 cifre e aggiunge #
+            const randomCode = "#" + Math.floor(Math.random() * 10000).toString().padStart(4, '0');
+            document.getElementById('inputBarcodeExtra').value = randomCode;
         }
     </script>
 }
