@@ -27,6 +27,8 @@ public interface ISessioniService
     Task SegnaPresenteAsync(Guid rigaId, Guid userId);
     Task SegnaMancanteAsync(Guid rigaId, Guid userId);
     Task AggiungiExtraAsync(Guid sessioneId, Guid ubicazioneId, string barcode, string descrizione, Guid userId);
+    Task<Guid?> OttieniConflittoExtraAsync(Guid rigaId);
+    Task RimuoviExtraAsync(Guid extraId);
     Task<List<DiscrepanzaDTO>> OttieniDiscrepanzeAsync(Guid sessioneId);
     Task AnnullaDiscrepanzaAsync(Guid sessioneId, string barcode, Guid userId);
     Task RisolviDiscrepanzaAsync(Guid sessioneId, DiscrepanzaDTO d, TipoRisoluzione tipo, Guid userId);

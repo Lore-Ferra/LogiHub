@@ -300,6 +300,33 @@ public class SessioniService : ISessioniService
         await _context.SaveChangesAsync();
     }
 
+    public async Task<Guid?> OttieniConflittoExtraAsync(Guid rigaId)
+    {
+        var riga = await _context.RigheInventario
+            .Include(r => r.SemiLavorato)
+            .FirstOrDefaultAsync(r => r.Id == rigaId);
+
+        if (riga == null) return null;
+
+        var extra = await _context.RigheInventario
+            .Where(r => r.SessioneInventarioId == riga.SessioneInventarioId &&
+                        r.SemiLavorato.Barcode == riga.SemiLavorato.Barcode &&
+                        r.Stato == StatoRigaInventario.Extra)
+            .FirstOrDefaultAsync();
+
+        return extra?.Id;
+    }
+
+    public async Task RimuoviExtraAsync(Guid extraId)
+    {
+        var extra = await _context.RigheInventario.FindAsync(extraId);
+        if (extra != null)
+        {
+            _context.RigheInventario.Remove(extra);
+            await _context.SaveChangesAsync();
+        }
+    }
+
     #endregion
 
     #region Analisi e Risoluzione Discrepanze
