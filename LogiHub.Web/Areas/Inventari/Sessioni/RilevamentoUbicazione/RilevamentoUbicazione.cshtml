@@ -180,19 +180,27 @@
     })
 
 @* MODAL ERRORE EXTRA *@
-<div class="modal fade" id="modalErroreExtra" tabindex="-1" aria-hidden="true" style="z-index: 1065;">
+<div class="modal fade" id="modalErroreExtra" tabindex="-1" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false" style="z-index: 1065;">
     <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content border-0 shadow">
-            <div class="modal-header bg-danger text-white">
-                <h5 class="modal-title"><i class="fa-solid fa-triangle-exclamation me-2"></i>Attenzione</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        <div class="modal-content border-0 shadow-lg text-center p-4">
+
+            <div class="mb-3">
+                <div class="rounded-circle bg-danger bg-opacity-10 d-inline-flex align-items-center justify-content-center"
+                     style="width:64px;height:64px;">
+                    <i class="fa-solid fa-xmark text-danger fs-3"></i>
+                </div>
             </div>
-            <div class="modal-body">
-                <p class="mb-0 fs-5" id="msgErroreExtraText"></p>
-            </div>
-            <div class="modal-footer border-0">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">OK</button>
-            </div>
+
+            <h4 class="fw-bold mb-2">Errore</h4>
+
+            <p id="msgErroreExtraText" class="text-muted mb-4"></p>
+
+            <button type="button"
+                    class="btn btn-danger w-100 py-2"
+                    data-bs-dismiss="modal">
+                OK
+            </button>
+
         </div>
     </div>
 </div>
