@@ -179,6 +179,24 @@
         IconClass = "fa-solid fa-triangle-exclamation text-warning"
     })
 
+@* MODAL ERRORE EXTRA *@
+<div class="modal fade" id="modalErroreExtra" tabindex="-1" aria-hidden="true" style="z-index: 1065;">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title"><i class="fa-solid fa-triangle-exclamation me-2"></i>Attenzione</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p class="mb-0 fs-5" id="msgErroreExtraText"></p>
+            </div>
+            <div class="modal-footer border-0">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">OK</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 @* MODAL AGGIUNGI EXTRA *@
 <div class="modal fade" id="modalAggiungiExtra" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
@@ -187,7 +205,7 @@
                 <h5 class="modal-title"><i class="fa-solid fa-box-open me-2 text-primary"></i>Aggiungi Extra</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <form asp-action="AggiungiPezzo" method="post">
+            <form id="formAggiungiExtra" onsubmit="submitAggiungiExtra(event)">
                 <div class="modal-body">
                     <input type="hidden" name="sessioneId" value="@Model.SessioneId" />
                     <input type="hidden" name="ubicazioneId" value="@Model.UbicazioneId" />
@@ -251,6 +269,13 @@
                     return;
                 }
 
+                const data = await response.json();
+                
+                if (data.conflict) {
+                    mostraModaleConflitto(rigaId, data.extraId);
+                    return;
+                }
+
                 const card = document.getElementById('card-' + rigaId);
                 if (card) {
                     card.classList.remove('border-success', 'border-danger');
@@ -279,6 +304,72 @@
                 btn.innerHTML = originalText;
                 btn.disabled = false;
             }
+        }
+
+        async function submitAggiungiExtra(event) {
+            event.preventDefault();
+            const form = event.target;
+            const formData = new FormData(form);
+            const btn = form.querySelector('button[type="submit"]');
+            const originalText = btn.innerHTML;
+
+            try {
+                btn.disabled = true;
+                btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
+
+                const response = await fetch('@Url.Action("AggiungiPezzo", "RilevamentoUbicazione")', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    location.reload();
+                } else {
+                    document.getElementById('msgErroreExtraText').innerText = data.message;
+                    new bootstrap.Modal(document.getElementById('modalErroreExtra')).show();
+                }
+            } catch (error) {
+                console.error(error);
+                alert("Errore di comunicazione con il server.");
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = originalText;
+            }
+        }
+        
+        function mostraModaleConflitto(rigaId, extraId) {
+            const modalEl = document.getElementById('actionConfirmModal');
+            const modal = new bootstrap.Modal(modalEl);
+            
+            modalEl.querySelector('.modal-title').innerHTML = '<i class="fa-solid fa-triangle-exclamation text-warning me-2"></i>Conflitto Rilevato';
+            modalEl.querySelector('[data-confirm-message]').innerText = "Esiste già un pezzo EXTRA con questo barcode. Vuoi eliminarlo e segnare questo come presente?";
+            
+            const btn = modalEl.querySelector('[data-confirm-btn]');
+            // Clona il bottone per rimuovere vecchi listener
+            const newBtn = btn.cloneNode(true);
+            btn.parentNode.replaceChild(newBtn, btn);
+            
+            newBtn.onclick = async function() {
+                newBtn.disabled = true;
+                newBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
+                
+                const formData = new FormData();
+                const tokenInput = document.querySelector('input[name="__RequestVerificationToken"]');
+                if (tokenInput) formData.append('__RequestVerificationToken', tokenInput.value);
+                formData.append('rigaId', rigaId);
+                formData.append('extraId', extraId);
+                
+                await fetch('@Url.Action("RisolviConflittoPresente", "RilevamentoUbicazione")', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                location.reload();
+            };
+            
+            modal.show();
         }
         
         function simulaScanQR() {
