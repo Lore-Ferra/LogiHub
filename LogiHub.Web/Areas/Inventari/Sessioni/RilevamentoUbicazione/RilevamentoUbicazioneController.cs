@@ -199,6 +199,14 @@ public partial class RilevamentoUbicazioneController : AuthenticatedBaseControll
     public virtual async Task<IActionResult> SegnaPresente(Guid rigaId)
     {
         var userId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
+        
+        // Controllo se esiste un conflitto con un pezzo EXTRA (Scenario: Extra aggiunto prima, poi trovato quello vero)
+        var extraId = await _service.OttieniConflittoExtraAsync(rigaId);
+        if (extraId.HasValue)
+        {
+            return Json(new { success = false, conflict = true, extraId = extraId.Value });
+        }
+        
         await _service.SegnaPresenteAsync(rigaId, userId);
         return Json(new { success = true });
     }
@@ -214,9 +222,25 @@ public partial class RilevamentoUbicazioneController : AuthenticatedBaseControll
     [HttpPost]
     public virtual async Task<IActionResult> AggiungiPezzo(Guid sessioneId, Guid ubicazioneId, string barcode, string descrizione)
     {
+        try
+        {
+            var userId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
+            await _service.AggiungiExtraAsync(sessioneId, ubicazioneId, barcode, descrizione, userId);
+            return Json(new { success = true });
+        }
+        catch (InvalidOperationException ex)
+        {
+            return Json(new { success = false, message = ex.Message });
+        }
+    }
+    
+    [HttpPost]
+    public virtual async Task<IActionResult> RisolviConflittoPresente(Guid rigaId, Guid extraId)
+    {
         var userId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
-        await _service.AggiungiExtraAsync(sessioneId, ubicazioneId, barcode, descrizione, userId);
-        return RedirectToAction("Index", new { sessioneId, ubicazioneId });
+        await _service.RimuoviExtraAsync(extraId);
+        await _service.SegnaPresenteAsync(rigaId, userId);
+        return Json(new { success = true });
     }
 
     [HttpPost]
