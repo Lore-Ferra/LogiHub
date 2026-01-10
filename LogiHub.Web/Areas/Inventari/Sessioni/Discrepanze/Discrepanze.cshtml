@@ -145,22 +145,31 @@ else if (tuttoRisolto)
         <li class="nav-item">
             <button class="nav-link active" id="tab-spostati" data-bs-toggle="pill" data-bs-target="#content-spostati"
                     type="button" role="tab">
-                <i class="fa-solid fa-right-left me-2"></i>Spostamenti <span
-                    class="badge bg-white text-primary ms-1">@countSpostati</span>
+                <i class="fa-solid fa-right-left me-2"></i>Spostamenti 
+                @if (countSpostati > 0)
+                {
+                    <span class="badge bg-white text-primary ms-1">@countSpostati</span>
+                }
             </button>
         </li>
         <li class="nav-item">
             <button class="nav-link" id="tab-extra" data-bs-toggle="pill" data-bs-target="#content-extra" type="button"
                     role="tab">
-                <i class="fa-solid fa-plus me-2"></i>Extra <span
-                    class="badge bg-white text-primary ms-1">@countExtra</span>
+                <i class="fa-solid fa-plus me-2"></i>Extra 
+                @if (countExtra > 0)
+                {
+                    <span class="badge bg-white text-primary ms-1">@countExtra</span>
+                }
             </button>
         </li>
         <li class="nav-item">
             <button class="nav-link" id="tab-mancanti" data-bs-toggle="pill" data-bs-target="#content-mancanti"
                     type="button" role="tab">
-                <i class="fa-solid fa-minus me-2"></i>Mancanti <span
-                    class="badge bg-white text-primary ms-1">@countMancanti</span>
+                <i class="fa-solid fa-minus me-2"></i>Mancanti 
+                @if (countMancanti > 0)
+                {
+                    <span class="badge bg-white text-primary ms-1">@countMancanti</span>
+                }
             </button>
         </li>
     </ul>
