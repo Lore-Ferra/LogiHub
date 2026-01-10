@@ -210,7 +210,7 @@
 
 @* MODAL ERRORE EXTRA *@
 <div class="modal fade" id="modalErroreExtra" tabindex="-1" aria-hidden="true" data-bs-backdrop="static"
-     data-bs-keyboard="false" style="z-index: 1065;">
+     data-bs-keyboard="false">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content border-0 shadow-lg text-center p-4">
 
@@ -420,6 +420,9 @@
                 if (data.success) {
                     location.reload();
                 } else {
+                    const modalAggiungi = bootstrap.Modal.getInstance(document.getElementById('modalAggiungiExtra'));
+                    if (modalAggiungi) modalAggiungi.hide();
+                    
                     document.getElementById('msgErroreExtraText').innerText = data.message;
                     new bootstrap.Modal(document.getElementById('modalErroreExtra')).show();
                 }
