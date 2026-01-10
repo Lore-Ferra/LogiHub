@@ -246,19 +246,38 @@ public class SessioniService : ISessioniService
         await _context.SaveChangesAsync();
     }
 
-    public async Task AggiungiExtraAsync(Guid sessioneId, Guid ubicazioneId, string barcode, string descrizione, Guid userId)
+    public async Task AggiungiExtraAsync(Guid sessioneId, Guid ubicazioneId, string barcode, string descrizione,
+        Guid userId)
     {
-        var giaRilevato = await _context.RigheInventario.AnyAsync(r =>
-            r.SessioneInventarioId == sessioneId &&
-            r.SemiLavorato.Barcode == barcode &&
-            (r.Stato == StatoRigaInventario.Trovato || r.Stato == StatoRigaInventario.Extra));
+        // 1. Recuperiamo tutte le righe associate a questo barcode nella sessione
+        var righeSessione = await _context.RigheInventario
+            .Where(r => r.SessioneInventarioId == sessioneId && r.SemiLavorato.Barcode == barcode)
+            .ToListAsync();
 
-        if (giaRilevato) throw new InvalidOperationException("Barcode già rilevato.");
+        if (righeSessione.Any())
+        {
+            // Caso 3: Già segnato come Presente (nella sua posizione originale) -> BLOCCO
+            if (righeSessione.Any(r => r.Stato == StatoRigaInventario.Trovato))
+            {
+                Console.WriteLine($"[DEBUG] Tentativo Extra fallito: Barcode {barcode} già presente come Trovato.");
+                throw new InvalidOperationException(
+                    "Questo barcode è già stato rilevato nella sua posizione corretta.");
+            }
 
+            // Caso 2: Già inserito come EXTRA -> SILENT RETURN (Idempotenza)
+            if (righeSessione.Any(r => r.Stato == StatoRigaInventario.Extra))
+            {
+                Console.WriteLine(
+                    $"[DEBUG] Barcode {barcode} già presente negli Extra. Ignoro l'inserimento duplicato.");
+                return;
+            }
+
+            // Caso 1: Se esiste solo come 'InAttesa' o 'Mancante', procediamo con la creazione dell'Extra.
+        }
+
+        // 2. Recupero o Creazione del SemiLavorato
         var sl = await _context.SemiLavorati.FirstOrDefaultAsync(s => s.Barcode == barcode);
-        
-        // Se non esiste, lo creiamo "al volo" per poterlo collegare. 
-        // Non avendo una posizione snapshot, risulterà come EXTRA puro.
+
         if (sl == null)
         {
             sl = new SemiLavorato
@@ -266,12 +285,12 @@ public class SessioniService : ISessioniService
                 Id = Guid.NewGuid(),
                 Barcode = barcode,
                 Descrizione = string.IsNullOrWhiteSpace(descrizione) ? "Nuovo Articolo" : descrizione,
-                UbicazioneId = null, // Non ha posizione ufficiale
+                UbicazioneId = null,
                 DataCreazione = DateTime.Now,
                 UltimaModifica = DateTime.Now
             };
             _context.SemiLavorati.Add(sl);
-            
+
             _context.Azioni.Add(new Azione
             {
                 Id = Guid.NewGuid(),
@@ -283,21 +302,25 @@ public class SessioniService : ISessioniService
             });
         }
 
+        // 3. Creazione riga Extra
         var extra = new RigaInventario
         {
             Id = Guid.NewGuid(),
             SessioneInventarioId = sessioneId,
             SemiLavoratoId = sl.Id,
-            UbicazioneSnapshotId = sl.UbicazioneId, // Se era null (nuovo), resta null. Se esisteva, prende la vecchia pos.
+            UbicazioneSnapshotId = sl.UbicazioneId,
             UbicazioneRilevataId = ubicazioneId,
             Stato = StatoRigaInventario.Extra,
             RilevatoDaUserId = userId,
             DataRilevamento = DateTime.Now,
-            DescrizioneRilevata = string.IsNullOrWhiteSpace(descrizione) ? null : descrizione
+            DescrizioneRilevata = string.IsNullOrWhiteSpace(descrizione) ? null : descrizione,
+            StatoDiscrepanza = StatoDiscrepanza.Aperta
         };
 
         _context.RigheInventario.Add(extra);
         await _context.SaveChangesAsync();
+
+        Console.WriteLine($"[DEBUG] Nuovo Extra registrato con successo: {barcode}");
     }
 
     public async Task<Guid?> OttieniConflittoExtraAsync(Guid rigaId)
