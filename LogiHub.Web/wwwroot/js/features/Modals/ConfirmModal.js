@@ -10,30 +10,61 @@ class ConfirmModal {
     }
     bind() {
         document.addEventListener('click', e => {
-            const trigger = e.target.closest('[data-confirm-trigger]');
+            const trigger = e.target
+                .closest('[data-type="form"]');
             if (!trigger)
                 return;
-            e.preventDefault();
-            e.stopImmediatePropagation();
-            this.currentConfig = {
-                url: trigger.getAttribute('data-url'),
-                method: trigger.getAttribute('data-method') || 'POST',
-                type: trigger.getAttribute('data-type') || 'ajax',
-                body: trigger.getAttribute('data-body'),
-                successAction: trigger.getAttribute('data-success-action') || 'none',
-                trigger: trigger
-            };
-            const customMessage = trigger.getAttribute('data-message');
-            const dynamicLabel = trigger.getAttribute('data-label');
-            if (customMessage) {
-                this.messageEl.innerHTML = customMessage;
+            const flag = trigger.getAttribute('data-confirm-trigger');
+            // CASO 1: serve conferma → apro modale
+            if (flag === 'true') {
+                e.preventDefault();
+                e.stopImmediatePropagation();
+                this.currentConfig = {
+                    url: trigger.getAttribute('data-url'),
+                    method: trigger.getAttribute('data-method') || 'POST',
+                    type: trigger.getAttribute('data-type') || 'ajax',
+                    body: trigger.getAttribute('data-body'),
+                    successAction: trigger.getAttribute('data-success-action') || 'none',
+                    trigger
+                };
+                const customMessage = trigger.getAttribute('data-message');
+                const dynamicLabel = trigger.getAttribute('data-label');
+                this.messageEl.innerHTML = '';
+                if (this.labelEl)
+                    this.labelEl.textContent = '';
+                if (customMessage) {
+                    this.messageEl.innerHTML = customMessage;
+                }
+                else if (dynamicLabel && this.labelEl) {
+                    this.labelEl.textContent = dynamicLabel;
+                }
+                this.modal.show();
+                return;
             }
-            else if (dynamicLabel && this.labelEl) {
-                this.labelEl.textContent = dynamicLabel;
+            // CASO 2: NO conferma → submit diretto
+            if (!flag) {
+                e.preventDefault();
+                this.submitDirect(trigger);
             }
-            this.modal.show();
         });
         this.confirmBtn.addEventListener('click', () => this.confirm());
+    }
+    submitDirect(el) {
+        const url = el.getAttribute('data-url');
+        const method = el.getAttribute('data-method') || 'POST';
+        const form = document.createElement('form');
+        form.method = method;
+        form.action = url;
+        const token = document.querySelector('input[name="__RequestVerificationToken"]');
+        if (token) {
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = '__RequestVerificationToken';
+            input.value = token.value;
+            form.appendChild(input);
+        }
+        document.body.appendChild(form);
+        form.submit();
     }
     async confirm() {
         if (!this.currentConfig)
