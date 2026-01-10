@@ -109,7 +109,7 @@ public partial class RilevamentoUbicazioneController : AuthenticatedBaseControll
         var bottoneAggiungi = new SearchCardButton
         {
             Text = "Aggiungi Extra",
-            CssClass = "btn-outline-primary",
+            CssClass = "btn-outline-primary d-none d-md-inline-block",
             IconClass = "fa-solid fa-plus",
             Type = "button",
             HtmlAttributes = new Dictionary<string, string>
