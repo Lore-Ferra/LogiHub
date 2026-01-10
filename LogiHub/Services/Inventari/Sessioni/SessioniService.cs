@@ -219,8 +219,7 @@ public class SessioniService : ISessioniService
     {
         return await _context.RigheInventario
             .Where(r => r.SessioneInventarioId == query.SessioneId &&
-                        r.UbicazioneSnapshotId == query.UbicazioneId)
-            .Where(r => r.Stato != StatoRigaInventario.Extra)
+                        r.UbicazioneSnapshotId == query.UbicazioneId) 
             .Select(r => new PezzoInventarioDTO
             {
                 RigaId = r.Id,
@@ -235,16 +234,23 @@ public class SessioniService : ISessioniService
     public async Task<UbicazioneStatusDTO> OttieniStatusUbicazioneAsync(Guid sessioneId, Guid ubicazioneId)
     {
         var righe = await _context.RigheInventario
-            .Where(r => r.SessioneInventarioId == sessioneId && r.UbicazioneSnapshotId == ubicazioneId)
+            .Where(r => r.SessioneInventarioId == sessioneId && 
+                        (r.UbicazioneSnapshotId == ubicazioneId || r.UbicazioneRilevataId == ubicazioneId))
             .ToListAsync();
 
         var statoUbi = await _context.SessioniUbicazioni
             .FirstOrDefaultAsync(u => u.SessioneInventarioId == sessioneId && u.UbicazioneId == ubicazioneId);
 
+        // Filtriamo i due gruppi
+        var previsti = righe.Where(r => r.UbicazioneSnapshotId == ubicazioneId).ToList();
+        var extraQui = righe.Where(r => r.UbicazioneRilevataId == ubicazioneId && 
+                                        r.Stato == StatoRigaInventario.Extra).ToList();
+
         return new UbicazioneStatusDTO
         {
-            Totali = righe.Count,
-            Rilevati = righe.Count(r => r.Stato != StatoRigaInventario.InAttesa),
+            Totali = previsti.Count,
+            Rilevati = previsti.Count(r => r.Stato != StatoRigaInventario.InAttesa),
+            ConteggioExtra = extraQui.Count,
             GiaCompletata = statoUbi?.Completata ?? false
         };
     }
@@ -274,82 +280,96 @@ public class SessioniService : ISessioniService
         await _context.SaveChangesAsync();
     }
 
-    public async Task AggiungiExtraAsync(Guid sessioneId, Guid ubicazioneId, string barcode, string descrizione,
-        Guid userId)
+public async Task AggiungiExtraAsync(Guid sessioneId, Guid ubicazioneId, string barcode, string descrizione, Guid userId)
+{
+    // 1. Recuperiamo tutte le righe associate a questo barcode nella sessione
+    var righeSessione = await _context.RigheInventario
+        .Include(r => r.SemiLavorato)
+        .Where(r => r.SessioneInventarioId == sessioneId && r.SemiLavorato.Barcode == barcode)
+        .ToListAsync();
+
+    // --- FIX BUG 1: IL PEZZO È GIÀ PREVISTO IN QUESTA UBICAZIONE? ---
+    // Verifichiamo se esiste una riga il cui Snapshot corrisponde all'ubicazione dove siamo ora
+    var rigaPrevistaQui = righeSessione.FirstOrDefault(r => r.UbicazioneSnapshotId == ubicazioneId);
+
+    if (rigaPrevistaQui != null)
     {
-        // 1. Recuperiamo tutte le righe associate a questo barcode nella sessione
-        var righeSessione = await _context.RigheInventario
-            .Where(r => r.SessioneInventarioId == sessioneId && r.SemiLavorato.Barcode == barcode)
-            .ToListAsync();
+        // Se è già segnato come Trovato, non facciamo nulla (Idempotenza)
+        if (rigaPrevistaQui.Stato == StatoRigaInventario.Trovato) return;
 
-        if (righeSessione.Any())
+        // Se era "In Attesa" o "Mancante", lo trasformiamo in "Trovato" nella sua sede corretta.
+        // In questo modo evitiamo di creare un duplicato "Extra" inutile.
+        rigaPrevistaQui.Stato = StatoRigaInventario.Trovato;
+        rigaPrevistaQui.UbicazioneRilevataId = ubicazioneId;
+        rigaPrevistaQui.RilevatoDaUserId = userId;
+        rigaPrevistaQui.DataRilevamento = DateTime.Now;
+
+        await _context.SaveChangesAsync();
+        return; // Successo silenzioso: l'utente vede il pezzo spuntato in lista
+    }
+
+    // --- LOGICA PER EXTRA EFFETTIVI ---
+    if (righeSessione.Any())
+    {
+        // Caso: Già segnato come Presente in UN'ALTRA ubicazione -> BLOCCO
+        if (righeSessione.Any(r => r.Stato == StatoRigaInventario.Trovato))
         {
-            // Caso 3: Già segnato come Presente (nella sua posizione originale) -> BLOCCO
-            if (righeSessione.Any(r => r.Stato == StatoRigaInventario.Trovato))
-            {
-                Console.WriteLine($"[DEBUG] Tentativo Extra fallito: Barcode {barcode} già presente come Trovato.");
-                throw new InvalidOperationException(
-                    "Questo barcode è già stato rilevato nella sua posizione corretta.");
-            }
-
-            // Caso 2: Già inserito come EXTRA -> SILENT RETURN (Idempotenza)
-            if (righeSessione.Any(r => r.Stato == StatoRigaInventario.Extra))
-            {
-                Console.WriteLine(
-                    $"[DEBUG] Barcode {barcode} già presente negli Extra. Ignoro l'inserimento duplicato.");
-                return;
-            }
-
-            // Caso 1: Se esiste solo come 'InAttesa' o 'Mancante', procediamo con la creazione dell'Extra.
+            throw new InvalidOperationException("Questo barcode è già stato rilevato nella sua posizione corretta.");
         }
 
-        // 2. Recupero o Creazione del SemiLavorato
-        var sl = await _context.SemiLavorati.FirstOrDefaultAsync(s => s.Barcode == barcode);
-
-        if (sl == null)
+        // Caso: Già inserito come EXTRA (in questa o altre ubicazioni) -> SILENT RETURN
+        if (righeSessione.Any(r => r.Stato == StatoRigaInventario.Extra))
         {
-            sl = new SemiLavorato
-            {
-                Id = Guid.NewGuid(),
-                Barcode = barcode,
-                Descrizione = string.IsNullOrWhiteSpace(descrizione) ? "Nuovo Articolo" : descrizione,
-                UbicazioneId = null,
-                DataCreazione = DateTime.Now,
-                UltimaModifica = DateTime.Now
-            };
-            _context.SemiLavorati.Add(sl);
-
-            _context.Azioni.Add(new Azione
-            {
-                Id = Guid.NewGuid(),
-                SemiLavoratoId = sl.Id,
-                TipoOperazione = TipoOperazione.Creazione,
-                UserId = userId,
-                DataOperazione = DateTime.Now,
-                Dettagli = "Creazione da Inventario (Extra)"
-            });
+            return;
         }
+    }
 
-        // 3. Creazione riga Extra
-        var extra = new RigaInventario
+    // 2. Recupero o Creazione del SemiLavorato (se non esiste nel sistema)
+    var sl = await _context.SemiLavorati.FirstOrDefaultAsync(s => s.Barcode == barcode);
+
+    if (sl == null)
+    {
+        sl = new SemiLavorato
         {
             Id = Guid.NewGuid(),
-            SessioneInventarioId = sessioneId,
-            SemiLavoratoId = sl.Id,
-            UbicazioneSnapshotId = sl.UbicazioneId,
-            UbicazioneRilevataId = ubicazioneId,
-            Stato = StatoRigaInventario.Extra,
-            RilevatoDaUserId = userId,
-            DataRilevamento = DateTime.Now,
-            DescrizioneRilevata = string.IsNullOrWhiteSpace(descrizione) ? null : descrizione,
-            StatoDiscrepanza = StatoDiscrepanza.Aperta
+            Barcode = barcode,
+            Descrizione = string.IsNullOrWhiteSpace(descrizione) ? "Nuovo Articolo" : descrizione,
+            UbicazioneId = null,
+            DataCreazione = DateTime.Now,
+            UltimaModifica = DateTime.Now
         };
+        _context.SemiLavorati.Add(sl);
 
-        _context.RigheInventario.Add(extra);
-        await _context.SaveChangesAsync();
-
-        Console.WriteLine($"[DEBUG] Nuovo Extra registrato con successo: {barcode}");
+        _context.Azioni.Add(new Azione
+        {
+            Id = Guid.NewGuid(),
+            SemiLavoratoId = sl.Id,
+            TipoOperazione = TipoOperazione.Creazione,
+            UserId = userId,
+            DataOperazione = DateTime.Now,
+            Dettagli = "Creazione da Inventario (Extra)"
+        });
     }
+
+    // 3. Creazione riga Extra effettiva
+    // Arriviamo qui solo se il pezzo non era previsto in questa ubicazione
+    var extra = new RigaInventario
+    {
+        Id = Guid.NewGuid(),
+        SessioneInventarioId = sessioneId,
+        SemiLavoratoId = sl.Id,
+        UbicazioneSnapshotId = sl.UbicazioneId, // Posizione teorica (poteva essere in un'altra zona)
+        UbicazioneRilevataId = ubicazioneId,    // Posizione dove l'abbiamo trovato ora
+        Stato = StatoRigaInventario.Extra,
+        RilevatoDaUserId = userId,
+        DataRilevamento = DateTime.Now,
+        DescrizioneRilevata = string.IsNullOrWhiteSpace(descrizione) ? null : descrizione,
+        StatoDiscrepanza = StatoDiscrepanza.Aperta
+    };
+
+    _context.RigheInventario.Add(extra);
+    await _context.SaveChangesAsync();
+}
 
     public async Task<Guid?> OttieniConflittoExtraAsync(Guid rigaId)
     {

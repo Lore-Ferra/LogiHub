@@ -156,6 +156,7 @@ public partial class RilevamentoUbicazioneController : AuthenticatedBaseControll
 
             TotaliPezzi = status.Totali,
             PezziRilevati = status.Rilevati,
+            ConteggioExtra = status.ConteggioExtra,
 
             SearchCard = new SearchCardViewModel
             {

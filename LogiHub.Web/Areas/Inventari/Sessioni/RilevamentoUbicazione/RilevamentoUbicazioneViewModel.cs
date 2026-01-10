@@ -18,6 +18,7 @@ public class RilevamentoUbicazioneViewModel : PagingViewModel
     public bool IsSolaLettura { get; set; }
     public int TotaliPezzi { get; set; }
     public int PezziRilevati { get; set; }
+    public int ConteggioExtra { get; set; }
     
     public int PercentualeCompletamento => TotaliPezzi > 0 
         ? (int)((double)PezziRilevati / TotaliPezzi * 100) 

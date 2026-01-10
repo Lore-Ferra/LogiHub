@@ -25,15 +25,30 @@
     @await Html.PartialAsync("~/Features/SearchCard/_SearchCard.cshtml", Model.SearchCard)
 </div>
 
+@* --- STATISTICHE  --- *@
 <div id="stats-container" class="card border-0 shadow-sm mb-3 @(Model.IsSolaLettura ? "bg-light" : "")">
     <div class="card-body p-2 p-md-3">
         <div class="d-flex justify-content-between align-items-center mb-1">
             <span class="fw-bold text-muted small">AVANZAMENTO RILEVAMENTO</span>
-            <span class="badge bg-primary" id="stats-text">@Model.PezziRilevati / @Model.TotaliPezzi</span>
+            <div class="d-flex align-items-center">
+                @* Missione Originale *@
+                <span class="badge bg-primary" id="stats-text" title="Pezzi previsti lavorati">
+                    @Model.PezziRilevati / @Model.TotaliPezzi
+                </span>
+
+                @* Badge Extra (Nuovo) *@
+                @if (Model.ConteggioExtra > 0)
+                {
+                    <span class="badge bg-info ms-2" title="Pezzi extra trovati in questa zona">
+                        <i class="fa-solid fa-plus me-1"></i>@Model.ConteggioExtra Extra
+                    </span>
+                }
+            </div>
         </div>
         <div class="progress" style="height: 8px;">
-            <div id="stats-bar" class="progress-bar bg-success progress-bar-striped progress-bar-animated" 
-                 role="progressbar" 
+            <div id="stats-bar"
+                 class="progress-bar bg-success progress-bar-striped @(Model.IsSolaLettura ? "" : "progress-bar-animated")"
+                 role="progressbar"
                  style="width: @Model.PercentualeCompletamento%"></div>
         </div>
     </div>
@@ -121,7 +136,7 @@
             <div id="card-@pezzo.RigaId"
                  class="card shadow-sm border-0 border-start border-5 mb-2 @(pezzo.Stato == StatoRigaInventario.Trovato ? "border-success" : pezzo.Stato == StatoRigaInventario.Mancante ? "border-danger" : "")">
                 <div class="card-body p-2">
-                    
+
                     <div class="d-flex justify-content-between align-items-start">
                         <p class="fw-bold fs-5 m-0 text-primary">@pezzo.Barcode</p>
                         <span id="badge-m-@pezzo.RigaId"
@@ -129,7 +144,7 @@
                             @(pezzo.Stato == StatoRigaInventario.InAttesa ? "In Attesa" : pezzo.Stato.ToString())
                         </span>
                     </div>
-                    <hr class="my-1">    
+                    <hr class="my-1">
                     <p class="small text-muted mb-0">@pezzo.Descrizione</p>
                     <div class="row g-2 mt-1 px-4">
                         <div class="col-6">
@@ -162,7 +177,7 @@
         {
             <button type="button"
                     class="fab d-md-none border-0"
-                    data-bs-toggle="modal" 
+                    data-bs-toggle="modal"
                     data-bs-target="#modalAggiungiExtra"
                     style="width: auto; padding: 0 20px; border-radius: 30px;">
                 <i class="fa-solid fa-plus me-1"></i> Extra
@@ -194,13 +209,15 @@
     })
 
 @* MODAL ERRORE EXTRA *@
-<div class="modal fade" id="modalErroreExtra" tabindex="-1" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false" style="z-index: 1065;">
+<div class="modal fade" id="modalErroreExtra" tabindex="-1" aria-hidden="true" data-bs-backdrop="static"
+     data-bs-keyboard="false" style="z-index: 1065;">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content border-0 shadow-lg text-center p-4">
 
             <div class="mb-3">
-                <div class="rounded-circle bg-danger bg-opacity-10 d-inline-flex align-items-center justify-content-center"
-                     style="width:64px;height:64px;">
+                <div
+                    class="rounded-circle bg-danger bg-opacity-10 d-inline-flex align-items-center justify-content-center"
+                    style="width:64px;height:64px;">
                     <i class="fa-solid fa-xmark text-danger fs-3"></i>
                 </div>
             </div>
@@ -229,15 +246,17 @@
             </div>
             <form id="formAggiungiExtra" onsubmit="submitAggiungiExtra(event)">
                 <div class="modal-body">
-                    <input type="hidden" name="sessioneId" value="@Model.SessioneId" />
-                    <input type="hidden" name="ubicazioneId" value="@Model.UbicazioneId" />
+                    <input type="hidden" name="sessioneId" value="@Model.SessioneId"/>
+                    <input type="hidden" name="ubicazioneId" value="@Model.UbicazioneId"/>
 
                     <div class="mb-3">
                         <label class="form-label fw-bold">Barcode</label>
                         <div class="input-group">
-                            <input type="text" class="form-control" name="barcode" id="inputBarcodeExtra" required placeholder="Scansiona o inserisci..." />
+                            <input type="text" class="form-control" name="barcode" id="inputBarcodeExtra" required
+                                   placeholder="Scansiona o inserisci..."/>
                             @* Bottone Scan QR *@
-                            <button type="button" class="btn btn-outline-secondary" onclick="simulaScanQR()" title="Simula Scansione">
+                            <button type="button" class="btn btn-outline-secondary" onclick="simulaScanQR()"
+                                    title="Simula Scansione">
                                 <i class="fa-solid fa-qrcode"></i>
                             </button>
                         </div>
@@ -246,15 +265,19 @@
 
                     <div class="mb-3">
                         <label class="form-label fw-bold">Descrizione (Opzionale)</label>
-                        <textarea class="form-control" name="descrizione" rows="2" placeholder="Inserisci descrizione..."></textarea>
+                        <textarea class="form-control" name="descrizione" rows="2"
+                                  placeholder="Inserisci descrizione..."></textarea>
                         <div class="form-text text-muted">
                             <i class="fa-solid fa-circle-info me-1"></i>
-                            Se lasciata vuota, verrà mantenuta quella esistente (se presente). Se compilata, sovrascriverà quella vecchia alla risoluzione.
+                            Se lasciata vuota, verrà mantenuta quella esistente (se presente). Se compilata,
+                            sovrascriverà quella vecchia alla risoluzione.
                         </div>
                     </div>
                 </div>
                 <div class="modal-footer border-0 pt-0">
-                    <button type="button" class="btn btn-link text-muted text-decoration-none" data-bs-dismiss="modal">Annulla</button>
+                    <button type="button" class="btn btn-link text-muted text-decoration-none" data-bs-dismiss="modal">
+                        Annulla
+                    </button>
                     <button type="submit" class="btn btn-primary px-4">Aggiungi</button>
                 </div>
             </form>
@@ -264,22 +287,20 @@
 
 @section Scripts {
     <script src="~/js/Features/Modals/ConfirmModal.js"></script>
-    
+
     <script>
         let rilevati = @Model.PezziRilevati;
         const totali = @Model.TotaliPezzi;
-        
-        // --- FUNZIONE AGGIORNA STATO (PRESENTI/MANCANTI) ---
+
         async function aggiornaStato(btn, rigaId, tipo) {
             if (btn.disabled) return;
-            
+
             const badgeDesktop = document.getElementById('badge-d-' + rigaId);
             const eraInAttesa = badgeDesktop && badgeDesktop.classList.contains('bg-secondary');
 
             const originalText = btn.innerHTML;
             const url = btn.getAttribute('data-url');
 
-            // Prepariamo il token CSRF per la sicurezza
             const tokenInput = document.querySelector('input[name="__RequestVerificationToken"]');
             const formData = new FormData();
             if (tokenInput) formData.append('__RequestVerificationToken', tokenInput.value);
@@ -287,7 +308,7 @@
             try {
                 btn.disabled = true;
                 btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
-                
+
                 const response = await fetch(url, {
                     method: 'POST',
                     body: formData
@@ -308,7 +329,7 @@
 
                 if (data.success) {
                     if (eraInAttesa) {
-                        rilevati++; 
+                        rilevati++;
                         aggiornaInterfacciaStats();
                     }
                     aggiornaUIElementiRiga(rigaId, tipo);
@@ -321,7 +342,7 @@
                 btn.innerHTML = originalText;
                 btn.disabled = false;
             }
-}
+        }
 
         function aggiornaInterfacciaStats() {
             const inAttesa = totali - rilevati;
@@ -333,10 +354,15 @@
             if (statsText) statsText.innerText = `${rilevati} / ${totali}`;
             if (statsBar) {
                 statsBar.style.width = percentuale + '%';
-                if (percentuale === 100) statsBar.classList.add('bg-success');
+                if (percentuale === 100) {
+                    statsBar.classList.remove('bg-primary');
+                    statsBar.classList.add('bg-success');
+                }
             }
 
+
             const btnConcludi = document.querySelector('button[data-url*="ConcludiUbicazione"]');
+
             if (btnConcludi) {
                 if (inAttesa > 0) {
                     btnConcludi.setAttribute('data-confirm-trigger', 'true');
@@ -346,7 +372,7 @@
                     btnConcludi.removeAttribute('data-message');
                 }
             }
-        }
+}
 
         function aggiornaUIElementiRiga(rigaId, tipo) {
             // Aggiorna bordo Card (Mobile)
@@ -405,42 +431,47 @@
                 btn.innerHTML = originalText;
             }
         }
-        
+
         function mostraModaleConflitto(rigaId, extraId) {
             const modalEl = document.getElementById('actionConfirmModal');
             const modal = new bootstrap.Modal(modalEl);
-            
+
             modalEl.querySelector('.modal-title').innerHTML = '<i class="fa-solid fa-triangle-exclamation text-warning me-2"></i>Conflitto Rilevato';
             modalEl.querySelector('[data-confirm-message]').innerText = "Esiste già un pezzo EXTRA con questo barcode. Vuoi eliminarlo e segnare questo come presente?";
-            
+
             const btn = modalEl.querySelector('[data-confirm-btn]');
             const newBtn = btn.cloneNode(true);
             btn.parentNode.replaceChild(newBtn, btn);
-            
-            newBtn.onclick = async function() {
+
+            newBtn.onclick = async function () {
                 newBtn.disabled = true;
                 newBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
-                
+
                 const formData = new FormData();
                 const tokenInput = document.querySelector('input[name="__RequestVerificationToken"]');
                 if (tokenInput) formData.append('__RequestVerificationToken', tokenInput.value);
                 formData.append('rigaId', rigaId);
                 formData.append('extraId', extraId);
-                
+
                 await fetch('@Url.Action("RisolviConflittoPresente", "RilevamentoUbicazione")', {
                     method: 'POST',
                     body: formData
                 });
-                
+
                 location.reload();
             };
-            
+
             modal.show();
         }
-        
+
         function simulaScanQR() {
             const randomCode = "#" + Math.floor(Math.random() * 10000).toString().padStart(4, '0');
             document.getElementById('inputBarcodeExtra').value = randomCode;
         }
+
+
+        document.addEventListener('DOMContentLoaded', function() {
+            aggiornaInterfacciaStats();
+        });
     </script>
 }
