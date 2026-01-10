@@ -7,7 +7,32 @@
     var countSpostati = Model.DaSpostare?.Count(x => x.Stato == StatoDiscrepanza.Aperta) ?? 0;
     var countExtra = Model.DaAggiungere?.Count(x => x.Stato == StatoDiscrepanza.Aperta) ?? 0;
     var countMancanti = Model.DaRimuovere?.Count(x => x.Stato == StatoDiscrepanza.Aperta) ?? 0;
+    bool tuttoRisolto = !Model.IsSolaLettura &&
+                        countSpostati == 0 && countExtra == 0 && countMancanti == 0;
 }
+
+
+@if (Model.IsSolaLettura)
+{
+    <div class="alert alert-warning border-0 shadow-sm mb-3 d-flex align-items-center">
+        <i class="fa-solid fa-lock me-3 fa-lg"></i>
+        <div>
+            <strong>Risoluzione Bloccata:</strong> Ci sono ancora ubicazioni aperte.
+            Devi terminare il conteggio fisico prima di allineare il magazzino.
+        </div>
+    </div>
+}
+else if (tuttoRisolto)
+{
+    <div class="alert alert-success border-0 shadow-sm mb-3 d-flex align-items-center">
+        <i class="fa-solid fa-check-double me-3 fa-lg"></i>
+        <div>
+            <strong>Ottimo lavoro!</strong> Tutte le discrepanze sono state gestite.
+        </div>
+    </div>
+}
+
+@* --- 2. LOGICA TABELLA SEMPLIFICATA --- *@
 
 @functions {
 
@@ -18,7 +43,6 @@
         _ => "bg-warning text-dark"
     };
 
-    // Helper per renderizzare la tabella in modo uniforme
     async Task RenderTabella(IEnumerable<DiscrepanzaDTO> items, string colorClass, TipoRisoluzione tipoDefault, string tabId)
     {
         <div class="card shadow-sm border-0 border-start border-4 border-@colorClass">
@@ -29,7 +53,7 @@
                         <th>Pezzo</th>
                         <th>Info</th>
                         <th>Stato</th>
-                        <th>Azioni</th>
+                        <th class="text-end pe-3">Azioni</th>
                     </tr>
                     </thead>
                     <tbody>
@@ -41,6 +65,7 @@
                                 <div class="small text-muted">@item.Descrizione</div>
                             </td>
                             <td>
+                                @* ... (Codice Info Ubicazione invariato) ... *@
                                 @if (item.Tipo == TipoDiscrepanzaOperativa.Spostato)
                                 {
                                     <small>Da <b>@item.UbicazioneSnapshot</b> Trovato in <b>@item.UbicazioneRilevata</b></small>
@@ -63,9 +88,22 @@
                                     </div>
                                 }
                             </td>
-                            <td>
-                                @if (item.Stato == StatoDiscrepanza.Aperta)
+
+                            @* --- LOGICA SEMPLIFICATA AZIONI --- *@
+                            <td class="text-end pe-3">
+                                @if (item.Stato != StatoDiscrepanza.Aperta)
                                 {
+                                    // 1. SE È GIÀ GESTITA -> Mostra solo l'icona (Niente pulsanti)
+                                    <i class="fa-solid fa-circle-check text-success" title="Gestita"></i>
+                                }
+                                else if (Model.IsSolaLettura)
+                                {
+                                    // 2. SE È APERTA MA INVENTARIO BLOCCATO -> Mostra lucchetto
+                                    <i class="fa-solid fa-lock text-muted" title="Completa prima l'inventario"></i>
+                                }
+                                else
+                                {
+                                    // 3. SE È APERTA E INVENTARIO FINITO -> Mostra pulsanti
                                     <div class="btn-group">
                                         <button class="btn btn-sm btn-outline-@colorClass"
                                                 data-confirm-trigger="true"
@@ -85,10 +123,6 @@
                                             <i class="fa-solid fa-ban"></i>
                                         </button>
                                     </div>
-                                }
-                                else
-                                {
-                                    <i class="fa-solid fa-lock text-muted" title="Gestita"></i>
                                 }
                             </td>
                         </tr>

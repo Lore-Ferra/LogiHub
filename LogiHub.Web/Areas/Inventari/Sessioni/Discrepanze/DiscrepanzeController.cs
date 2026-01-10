@@ -27,12 +27,15 @@ public virtual async Task<IActionResult> Index(
     int page = 1,
     int pageSize = 25)
 {
+    if (id == Guid.Empty) return NotFound("ID Sessione non valido.");
     Filters ??= new SearchCardFiltersViewModel();
 
     var tutte = await _service.OttieniDiscrepanzeAsync(id);
     var sessione = await _service.OttieniDettaglioSessioneAsync(id);
-    // Verifica se esistono ancora discrepanze da gestire
+    
+    bool isSolaLettura = sessione.Ubicazioni.Any(u => !u.Completata);
     bool haAperte = tutte.Any(x => x.Stato == StatoDiscrepanza.Aperta);
+
 
     var btnRisolviAttivo = new SearchCardButton
     {
@@ -51,11 +54,14 @@ public virtual async Task<IActionResult> Index(
     // 3. Bottone RISOLVI DISATTIVATO (Lucchetto)
     var btnRisolviDisattivato = new SearchCardButton
     {
-        Text = "Tutto Risolto",
+        Text = isSolaLettura ? "Risoluzione Bloccata" : "Tutto Risolto",
         CssClass = "btn-success disabled",
-        IconClass = "fa-solid fa-lock",
+        IconClass = isSolaLettura ? "fa-solid fa-lock" : "fa-solid fa-check-double",
         Type = "button",
-        HtmlAttributes = new Dictionary<string, string> { { "title", "Nessuna discrepanza aperta" } }
+        HtmlAttributes = new Dictionary<string, string> 
+        { 
+            { "title", isSolaLettura ? "Completa prima tutte le ubicazioni" : "Nessuna discrepanza aperta" } 
+        }
     };
 
     // Filtro di ricerca (eseguito dopo il controllo haAperte per coerenza globale)
@@ -80,13 +86,14 @@ public virtual async Task<IActionResult> Index(
         ShowSearchInColumns = false,
         HeaderButtons = new List<SearchCardButton>
         {
-            haAperte ? btnRisolviAttivo : btnRisolviDisattivato
+            (!isSolaLettura && haAperte) ? btnRisolviAttivo : btnRisolviDisattivato
         }
     };
 
     var model = new DiscrepanzeViewModel
     {
         SessioneId = id,
+        IsSolaLettura = isSolaLettura,
         SearchCard = searchCard,
         SearchQuery = query,
         DaSpostare = tutte.Where(x => x.Tipo == TipoDiscrepanzaOperativa.Spostato).ToList(),
