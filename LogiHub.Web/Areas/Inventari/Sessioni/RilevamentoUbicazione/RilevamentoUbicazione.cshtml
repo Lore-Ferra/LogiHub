@@ -25,6 +25,20 @@
     @await Html.PartialAsync("~/Features/SearchCard/_SearchCard.cshtml", Model.SearchCard)
 </div>
 
+<div id="stats-container" class="card border-0 shadow-sm mb-3 @(Model.IsSolaLettura ? "bg-light" : "")">
+    <div class="card-body p-2 p-md-3">
+        <div class="d-flex justify-content-between align-items-center mb-1">
+            <span class="fw-bold text-muted small">AVANZAMENTO RILEVAMENTO</span>
+            <span class="badge bg-primary" id="stats-text">@Model.PezziRilevati / @Model.TotaliPezzi</span>
+        </div>
+        <div class="progress" style="height: 8px;">
+            <div id="stats-bar" class="progress-bar bg-success progress-bar-striped progress-bar-animated" 
+                 role="progressbar" 
+                 style="width: @Model.PercentualeCompletamento%"></div>
+        </div>
+    </div>
+</div>
+
 <div class="container-fluid px-0">
 
     @* --- VERSIONE DESKTOP (TABLE) --- *@
@@ -251,13 +265,21 @@
 @section Scripts {
     <script src="~/js/Features/Modals/ConfirmModal.js"></script>
     
-    <script>        
+    <script>
+        let rilevati = @Model.PezziRilevati;
+        const totali = @Model.TotaliPezzi;
+        
+        // --- FUNZIONE AGGIORNA STATO (PRESENTI/MANCANTI) ---
         async function aggiornaStato(btn, rigaId, tipo) {
             if (btn.disabled) return;
+            
+            const badgeDesktop = document.getElementById('badge-d-' + rigaId);
+            const eraInAttesa = badgeDesktop && badgeDesktop.classList.contains('bg-secondary');
 
             const originalText = btn.innerHTML;
             const url = btn.getAttribute('data-url');
 
+            // Prepariamo il token CSRF per la sicurezza
             const tokenInput = document.querySelector('input[name="__RequestVerificationToken"]');
             const formData = new FormData();
             if (tokenInput) formData.append('__RequestVerificationToken', tokenInput.value);
@@ -265,7 +287,7 @@
             try {
                 btn.disabled = true;
                 btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
-
+                
                 const response = await fetch(url, {
                     method: 'POST',
                     body: formData
@@ -278,33 +300,20 @@
                 }
 
                 const data = await response.json();
-                
+
                 if (data.conflict) {
                     mostraModaleConflitto(rigaId, data.extraId);
                     return;
                 }
 
-                const card = document.getElementById('card-' + rigaId);
-                if (card) {
-                    card.classList.remove('border-success', 'border-danger');
-                    card.classList.add(tipo === 'presente' ? 'border-success' : 'border-danger');
+                if (data.success) {
+                    if (eraInAttesa) {
+                        rilevati++; 
+                        aggiornaInterfacciaStats();
+                    }
+                    aggiornaUIElementiRiga(rigaId, tipo);
                 }
 
-                const badgeDesktop = document.getElementById('badge-d-' + rigaId);
-                const badgeMobile = document.getElementById('badge-m-' + rigaId);
-
-                [badgeDesktop, badgeMobile].forEach(badge => {
-                    if (!badge) return;
-
-                    badge.classList.remove('bg-secondary', 'bg-success', 'bg-danger');
-                    if (tipo === 'presente') {
-                        badge.classList.add('bg-success');
-                        badge.textContent = 'Trovato';
-                    } else {
-                        badge.classList.add('bg-danger');
-                        badge.textContent = 'Mancante';
-                    }
-                });
             } catch (error) {
                 console.error('Errore:', error);
                 alert("Errore di connessione.");
@@ -312,6 +321,56 @@
                 btn.innerHTML = originalText;
                 btn.disabled = false;
             }
+}
+
+        function aggiornaInterfacciaStats() {
+            const inAttesa = totali - rilevati;
+            const percentuale = totali > 0 ? Math.round((rilevati / totali) * 100) : 0;
+
+            const statsText = document.getElementById('stats-text');
+            const statsBar = document.getElementById('stats-bar');
+
+            if (statsText) statsText.innerText = `${rilevati} / ${totali}`;
+            if (statsBar) {
+                statsBar.style.width = percentuale + '%';
+                if (percentuale === 100) statsBar.classList.add('bg-success');
+            }
+
+            const btnConcludi = document.querySelector('button[data-url*="ConcludiUbicazione"]');
+            if (btnConcludi) {
+                if (inAttesa > 0) {
+                    btnConcludi.setAttribute('data-confirm-trigger', 'true');
+                    btnConcludi.setAttribute('data-message', `Attenzione: ci sono ${inAttesa} pezzi non rilevati. Verranno segnati come MANCANTI. Vuoi procedere?`);
+                } else {
+                    btnConcludi.removeAttribute('data-confirm-trigger');
+                    btnConcludi.removeAttribute('data-message');
+                }
+            }
+        }
+
+        function aggiornaUIElementiRiga(rigaId, tipo) {
+            // Aggiorna bordo Card (Mobile)
+            const card = document.getElementById('card-' + rigaId);
+            if (card) {
+                card.classList.remove('border-success', 'border-danger');
+                card.classList.add(tipo === 'presente' ? 'border-success' : 'border-danger');
+            }
+
+            // Aggiorna Badge (Desktop e Mobile)
+            const bD = document.getElementById('badge-d-' + rigaId);
+            const bM = document.getElementById('badge-m-' + rigaId);
+
+            [bD, bM].forEach(badge => {
+                if (!badge) return;
+                badge.classList.remove('bg-secondary', 'bg-success', 'bg-danger');
+                if (tipo === 'presente') {
+                    badge.classList.add('bg-success');
+                    badge.textContent = 'Trovato';
+                } else {
+                    badge.classList.add('bg-danger');
+                    badge.textContent = 'Mancante';
+                }
+            });
         }
 
         async function submitAggiungiExtra(event) {
@@ -355,7 +414,6 @@
             modalEl.querySelector('[data-confirm-message]').innerText = "Esiste già un pezzo EXTRA con questo barcode. Vuoi eliminarlo e segnare questo come presente?";
             
             const btn = modalEl.querySelector('[data-confirm-btn]');
-            // Clona il bottone per rimuovere vecchi listener
             const newBtn = btn.cloneNode(true);
             btn.parentNode.replaceChild(newBtn, btn);
             
@@ -381,7 +439,6 @@
         }
         
         function simulaScanQR() {
-            // Genera un numero casuale a 4 cifre e aggiunge #
             const randomCode = "#" + Math.floor(Math.random() * 10000).toString().padStart(4, '0');
             document.getElementById('inputBarcodeExtra').value = randomCode;
         }

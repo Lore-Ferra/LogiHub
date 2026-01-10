@@ -25,6 +25,7 @@ public partial class RilevamentoUbicazioneController : AuthenticatedBaseControll
         _context = context;
     }
 
+
     [HttpGet]
     public virtual async Task<IActionResult> Index(
         Guid sessioneId,
@@ -35,34 +36,28 @@ public partial class RilevamentoUbicazioneController : AuthenticatedBaseControll
     {
         var userId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
 
-        // 1. Lock dell'ubicazione
-        // (Grazie alla modifica fatta nel Service, questo NON lancia più eccezione se è già completata)
         await _service.BloccaUbicazioneAsync(sessioneId, ubicazioneId, userId);
+
+        var status = await _service.OttieniStatusUbicazioneAsync(sessioneId, ubicazioneId);
         var sessione = await _service.OttieniDettaglioSessioneAsync(sessioneId);
-        // 2. Recupero Info Stato (Nome e se è Completata)
-        // Interroghiamo SessioniUbicazioni per avere lo stato preciso
+
         var infoUbicazione = await _context.SessioniUbicazioni
             .Include(su => su.Ubicazione)
             .Where(su => su.SessioneInventarioId == sessioneId && su.UbicazioneId == ubicazioneId)
-            .Select(su => new
-            {
-                Nome = su.Ubicazione.Posizione,
-                Completata = su.Completata
-            })
+            .Select(su => new { Nome = su.Ubicazione.Posizione })
             .FirstOrDefaultAsync();
 
-        if (infoUbicazione == null) return NotFound("Ubicazione non trovata nella sessione.");
+        if (infoUbicazione == null) return NotFound("Ubicazione non trovata.");
 
-        // Flag Sola Lettura
-        bool isSolaLettura = infoUbicazione.Completata;
+        bool isSolaLettura = status.GiaCompletata;
 
-        // 3. Recupero dati pezzi
         var datiPezzi = await _service.OttieniPezziUbicazioneAsync(new PezziUbicazioneQuery
         {
             SessioneId = sessioneId,
             UbicazioneId = ubicazioneId
         });
 
+        // --- COSTRUZIONE BOTTONI ---
         
         var bottoneEsci = new SearchCardButton
         {
@@ -73,43 +68,44 @@ public partial class RilevamentoUbicazioneController : AuthenticatedBaseControll
             HtmlAttributes = new Dictionary<string, string>
             {
                 { "data-confirm-trigger", "true" },
-                { "data-url", Url.Action("Abbandona", "RilevamentoUbicazione", new { area = "Inventari", sessioneId, ubicazioneId }) },
+                {
+                    "data-url",
+                    Url.Action("Abbandona", "RilevamentoUbicazione",
+                        new { area = "Inventari", sessioneId, ubicazioneId })
+                },
                 { "data-method", "POST" },
                 { "data-type", "form" },
                 { "data-message", "Vuoi rilasciare l'ubicazione? Altri operatori potranno lavorarci." }
             }
         };
 
-        // Bottone Indietro semplice (se è già Sola Lettura)
-        var bottoneIndietro = new SearchCardButton
+        var attributiConcludi = new Dictionary<string, string>
         {
-            Text = "Indietro",
-            CssClass = "btn-outline-secondary",
-            IconClass = "fa-solid fa-arrow-left",
-            Type = "button",
-            HtmlAttributes = new Dictionary<string, string>
             {
-                { "onclick", $"location.href='{Url.Action("Index", "Dettaglio", new { area = "Inventari", id = sessioneId })}'" }            }
+                "data-url",
+                Url.Action("ConcludiUbicazione", "RilevamentoUbicazione",
+                    new { area = "Inventari", sessioneId, ubicazioneId })
+            },
+            { "data-method", "POST" },
+            { "data-type", "form" }
         };
-        
-        
+
+        if (status.InAttesa > 0)
+        {
+            attributiConcludi.Add("data-confirm-trigger", "true");
+            attributiConcludi.Add("data-message",
+                $"Attenzione: ci sono {status.InAttesa} pezzi non rilevati. Verranno segnati come MANCANTI. Vuoi procedere?");
+        }
+
         var bottoneConcludi = new SearchCardButton
         {
             Text = "Concludi",
             CssClass = "btn-primary d-none d-md-inline-block",
             IconClass = "fa-solid fa-check-double",
             Type = "button",
-            HtmlAttributes = new Dictionary<string, string>
-            {
-                { "data-confirm-trigger", "true" },
-                { "data-url", Url.Action("ConcludiUbicazione", "RilevamentoUbicazione", new { area = "Inventari", sessioneId, ubicazioneId }) },
-                { "data-method", "POST" },
-                { "data-type", "form" },
-                { "data-message", "Sicuro di voler chiudere questa ubicazione? I pezzi non segnati saranno messi come mancanti." }
-            }
+            HtmlAttributes = attributiConcludi
         };
 
-        // Bottone Aggiungi Extra (Desktop)
         var bottoneAggiungi = new SearchCardButton
         {
             Text = "Aggiungi Extra",
@@ -123,60 +119,51 @@ public partial class RilevamentoUbicazioneController : AuthenticatedBaseControll
             }
         };
 
-        // 2. Definizione Bottone DISABILITATO (Bloccato)
         var bottoneBloccato = new SearchCardButton
         {
             Text = "Concludi",
-            // Uso btn-success con opacity per mantenere coerenza cromatica ma mostrare che è spento
             CssClass = "btn-primary d-none d-md-inline-block",
             IconClass = "fa-solid fa-lock",
             Type = "button",
             HtmlAttributes = new Dictionary<string, string>
             {
                 { "disabled", "disabled" },
-                { "title", "Ubicazione già completata (Sola lettura)" },
-                { "style", "cursor: not-allowed; pointer-events: auto !important;" }
+                { "title", "Ubicazione già completata" },
+                { "style", "cursor: not-allowed;" }
             }
         };
 
-// 3. Gestione Messaggio (opzionale, fuori dalla costruzione dell'oggetto)
-        if (isSolaLettura)
-        {
-            TempData["WarningMessage"] = "Questa ubicazione è già stata completata. Modalità sola lettura.";
-        }
-        
-        
         var headerButtons = new List<SearchCardButton>();
         if (!isSolaLettura)
         {
             headerButtons.Add(bottoneAggiungi);
             headerButtons.Add(bottoneEsci);
         }
+
         headerButtons.Add(isSolaLettura ? bottoneBloccato : bottoneConcludi);
 
-       // 4. Costruzione SearchCard con Logica Condizionale
-        var searchCard = new SearchCardViewModel
+        if (isSolaLettura)
         {
-            Title = $"Rilevamento: {infoUbicazione.Nome}",
-            Placeholder = "Cerca barcode o pezzo...",
-            Query = query,
-            ShowFilters = false,
-            ShowUscitoFilter = false,
-            ShowSearchInColumns = false,
-            HeaderButtons = headerButtons
-        };
+            TempData["WarningMessage"] = "Ubicazione completata. Sola lettura.";
+        }
 
-        // 6. Creazione ViewModel
         var model = new RilevamentoUbicazioneViewModel
         {
             SessioneId = sessioneId,
             UbicazioneId = ubicazioneId,
             NomeUbicazione = infoUbicazione.Nome,
-
-            // Assegnazione Flag fondamentale
             IsSolaLettura = isSolaLettura,
 
-            SearchCard = searchCard,
+            TotaliPezzi = status.Totali,
+            PezziRilevati = status.Rilevati,
+
+            SearchCard = new SearchCardViewModel
+            {
+                Title = $"Rilevamento: {infoUbicazione.Nome}",
+                Placeholder = "Cerca barcode...",
+                Query = query,
+                HeaderButtons = headerButtons
+            },
             Pezzi = datiPezzi
                 .Where(p => string.IsNullOrEmpty(query) || p.Barcode.Contains(query) ||
                             p.Descrizione.Contains(query, StringComparison.OrdinalIgnoreCase))
@@ -186,27 +173,27 @@ public partial class RilevamentoUbicazioneController : AuthenticatedBaseControll
             PageSize = pageSize,
             TotalItems = datiPezzi.Count
         };
+
         SetBreadcrumb(
             ("Inventari", Url.Action("Index", "Sessioni", new { area = "Inventari" })),
             (sessione.NomeSessione, Url.Action("Index", "Dettaglio", new { area = "Inventari", id = sessioneId })),
             ($"Ubicazione {infoUbicazione.Nome}", "")
         );
+
         return View("RilevamentoUbicazione", model);
-        
     }
 
     [HttpPost]
     public virtual async Task<IActionResult> SegnaPresente(Guid rigaId)
     {
         var userId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
-        
-        // Controllo se esiste un conflitto con un pezzo EXTRA (Scenario: Extra aggiunto prima, poi trovato quello vero)
+
         var extraId = await _service.OttieniConflittoExtraAsync(rigaId);
         if (extraId.HasValue)
         {
             return Json(new { success = false, conflict = true, extraId = extraId.Value });
         }
-        
+
         await _service.SegnaPresenteAsync(rigaId, userId);
         return Json(new { success = true });
     }
@@ -220,7 +207,8 @@ public partial class RilevamentoUbicazioneController : AuthenticatedBaseControll
     }
 
     [HttpPost]
-    public virtual async Task<IActionResult> AggiungiPezzo(Guid sessioneId, Guid ubicazioneId, string barcode, string descrizione)
+    public virtual async Task<IActionResult> AggiungiPezzo(Guid sessioneId, Guid ubicazioneId, string barcode,
+        string descrizione)
     {
         try
         {
@@ -233,7 +221,7 @@ public partial class RilevamentoUbicazioneController : AuthenticatedBaseControll
             return Json(new { success = false, message = ex.Message });
         }
     }
-    
+
     [HttpPost]
     public virtual async Task<IActionResult> RisolviConflittoPresente(Guid rigaId, Guid extraId)
     {
@@ -247,13 +235,15 @@ public partial class RilevamentoUbicazioneController : AuthenticatedBaseControll
     public virtual async Task<IActionResult> ConcludiUbicazione(Guid sessioneId, Guid ubicazioneId)
     {
         await _service.CompletaUbicazioneAsync(sessioneId, ubicazioneId);
+        TempData["SuccessMessage"] = "Ubicazione chiusa con successo.";
+
         return RedirectToAction("Index", "Dettaglio", new { area = "Inventari", id = sessioneId });
-        
     }
-    
+
     [HttpPost]
     public virtual async Task<IActionResult> Abbandona(Guid sessioneId, Guid ubicazioneId)
     {
         await _service.RilasciaUbicazioneAsync(sessioneId, ubicazioneId);
-        return RedirectToAction("Index", "Dettaglio", new { area = "Inventari", id = sessioneId });    }
+        return RedirectToAction("Index", "Dettaglio", new { area = "Inventari", id = sessioneId });
+    }
 }

@@ -16,6 +16,12 @@ public class RilevamentoUbicazioneViewModel : PagingViewModel
     public SearchCardViewModel SearchCard { get; set; }
     public IEnumerable<PezzoInventarioDTO> Pezzi { get; set; }
     public bool IsSolaLettura { get; set; }
+    public int TotaliPezzi { get; set; }
+    public int PezziRilevati { get; set; }
+    
+    public int PercentualeCompletamento => TotaliPezzi > 0 
+        ? (int)((double)PezziRilevati / TotaliPezzi * 100) 
+        : 0;
 
     public override IActionResult GetRoute()
     {

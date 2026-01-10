@@ -174,8 +174,18 @@ public class SessioniService : ISessioniService
         }
     }
 
-    public async Task CompletaUbicazioneAsync(Guid sessioneId, Guid ubicazioneId)
+    public async Task<UbicazioneStatusDTO> CompletaUbicazioneAsync(Guid sessioneId, Guid ubicazioneId)
     {
+        var statoUbi = await _context.SessioniUbicazioni
+            .FirstOrDefaultAsync(u => u.SessioneInventarioId == sessioneId && u.UbicazioneId == ubicazioneId);
+
+        if (statoUbi == null) throw new InvalidOperationException("Ubicazione non trovata.");
+
+        // Se è già completata, restituiamo lo stato attuale senza fare nulla
+        if (statoUbi.Completata)
+            return await OttieniStatusUbicazioneAsync(sessioneId, ubicazioneId);
+
+        // 1. Troviamo le righe che sono ancora "InAttesa" e le segnamo come "Mancanti"
         var righeResidue = await _context.RigheInventario
             .Where(r => r.SessioneInventarioId == sessioneId &&
                         r.UbicazioneSnapshotId == ubicazioneId &&
@@ -186,18 +196,19 @@ public class SessioniService : ISessioniService
         {
             riga.Stato = StatoRigaInventario.Mancante;
             riga.DataRilevamento = DateTime.Now;
+            // Se vuoi tracciare chi ha chiuso l'ubicazione come responsabile dei mancanti:
+            // riga.RilevatoDaUserId = userId; 
         }
 
-        var statoUbi = await _context.SessioniUbicazioni
-            .FirstOrDefaultAsync(u => u.SessioneInventarioId == sessioneId && u.UbicazioneId == ubicazioneId);
-
-        if (statoUbi != null)
-        {
-            statoUbi.Completata = true;
-            statoUbi.DataCompletamento = DateTime.Now;
-        }
+        // 2. Aggiorniamo lo stato dell'ubicazione nella sessione
+        statoUbi.Completata = true;
+        statoUbi.DataCompletamento = DateTime.Now;
+        statoUbi.OperatoreCorrenteId = null; // Fondamentale per rilasciare il lock
 
         await _context.SaveChangesAsync();
+
+        // 3. Restituiamo il DTO aggiornato
+        return await OttieniStatusUbicazioneAsync(sessioneId, ubicazioneId);
     }
 
     #endregion
@@ -219,6 +230,23 @@ public class SessioniService : ISessioniService
             })
             .OrderBy(r => r.Barcode)
             .ToListAsync();
+    }
+
+    public async Task<UbicazioneStatusDTO> OttieniStatusUbicazioneAsync(Guid sessioneId, Guid ubicazioneId)
+    {
+        var righe = await _context.RigheInventario
+            .Where(r => r.SessioneInventarioId == sessioneId && r.UbicazioneSnapshotId == ubicazioneId)
+            .ToListAsync();
+
+        var statoUbi = await _context.SessioniUbicazioni
+            .FirstOrDefaultAsync(u => u.SessioneInventarioId == sessioneId && u.UbicazioneId == ubicazioneId);
+
+        return new UbicazioneStatusDTO
+        {
+            Totali = righe.Count,
+            Rilevati = righe.Count(r => r.Stato != StatoRigaInventario.InAttesa),
+            GiaCompletata = statoUbi?.Completata ?? false
+        };
     }
 
     public async Task SegnaPresenteAsync(Guid rigaId, Guid userId)
