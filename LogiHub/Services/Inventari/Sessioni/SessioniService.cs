@@ -90,7 +90,13 @@ public class SessioniService : ISessioniService
                         OperatoreCorrenteId = su.OperatoreCorrenteId,
                         OperatoreCorrente = su.OperatoreCorrente != null
                             ? su.OperatoreCorrente.FirstName + " " + su.OperatoreCorrente.LastName
-                            : null
+                            : (su.Completata 
+                                ? _context.RigheInventario
+                                    .Where(r => r.SessioneInventarioId == sessioneId && r.UbicazioneSnapshotId == su.UbicazioneId && r.RilevatoDaUserId != null)
+                                    .OrderByDescending(r => r.DataRilevamento)
+                                    .Select(r => r.RilevatoDaUser.FirstName + " " + r.RilevatoDaUser.LastName)
+                                    .FirstOrDefault() 
+                                : null)
                     })
                     .OrderBy(u => u.Completata ? 2 : (u.InLavorazione ? 1 : 0))
                     .ThenBy(u => u.Posizione)
@@ -196,8 +202,9 @@ public class SessioniService : ISessioniService
         {
             riga.Stato = StatoRigaInventario.Mancante;
             riga.DataRilevamento = DateTime.Now;
-            // Se vuoi tracciare chi ha chiuso l'ubicazione come responsabile dei mancanti:
-            // riga.RilevatoDaUserId = userId; 
+            // Assegniamo il rilevamento all'operatore che stava lavorando sull'ubicazione
+            if (statoUbi.OperatoreCorrenteId.HasValue)
+                riga.RilevatoDaUserId = statoUbi.OperatoreCorrenteId.Value;
         }
 
         // 2. Aggiorniamo lo stato dell'ubicazione nella sessione
@@ -513,6 +520,7 @@ public async Task AggiungiExtraAsync(Guid sessioneId, Guid ubicazioneId, string 
         // Invece di FirstOrDefault (una sola), usiamo Where + ToListAsync (tutte)
         // Usiamo il Barcode come chiave di ricerca perché è l'elemento comune tra Missing ed Extra
         var righeCoinvolte = await _context.RigheInventario
+            .IgnoreQueryFilters()
             .Include(r => r.SemiLavorato)
             .Where(r => r.SessioneInventarioId == sessioneId &&
                         r.SemiLavorato.Barcode == d.Barcode)

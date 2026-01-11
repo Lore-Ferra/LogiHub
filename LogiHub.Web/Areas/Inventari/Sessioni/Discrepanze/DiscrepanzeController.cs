@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using LogiHub.Services.Inventari.Sessioni;
 using LogiHub.Web.Features.SearchCard;
 using Microsoft.AspNetCore.Mvc;
+using LogiHub.Services;
 
 namespace LogiHub.Web.Areas.Inventari.Sessioni.Discrepanze;
 
@@ -13,10 +14,12 @@ namespace LogiHub.Web.Areas.Inventari.Sessioni.Discrepanze;
 public partial class DiscrepanzeController : AuthenticatedBaseController
 {
     private readonly ISessioniService _service;
+    private readonly TemplateDbContext _context;
 
-    public DiscrepanzeController(ISessioniService service)
+    public DiscrepanzeController(ISessioniService service, TemplateDbContext context)
     {
         _service = service;
+        _context = context;
     }
 
    [HttpGet]
@@ -45,8 +48,10 @@ public virtual async Task<IActionResult> Index(
         Type = "button",
         HtmlAttributes = new Dictionary<string, string>
         {
-            { "data-post-action", "true" },
+            { "data-confirm-trigger", "true" },
             { "data-url", Url.Action("RisolviTutto", "Discrepanze", new { area = "Inventari", id = id }) },
+            { "data-method", "POST"},
+            { "data-type", "form"},
             { "data-message", "Sei sicuro di voler allineare tutto il magazzino?" }
         }
     };
@@ -113,7 +118,7 @@ public virtual async Task<IActionResult> Index(
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public virtual async Task<IActionResult> Risolvi(Guid id, string barcode, TipoRisoluzione tipo, string activeTab)
+    public virtual async Task<IActionResult> Risolvi(Guid id, string barcode, TipoRisoluzione tipo)
     {
         var userId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
 
@@ -123,9 +128,16 @@ public virtual async Task<IActionResult> Index(
         if (d != null)
             await _service.RisolviDiscrepanzaAsync(id, d, tipo, userId);
 
-        var url = Url.Action("Index", new { area = "Inventari", id });
-        if (!string.IsNullOrEmpty(activeTab)) url += "#" + activeTab;
-        return Redirect(url);
+        var user = await _context.Users.FindAsync(userId);
+        var nomeOperatore = user != null ? $"{user.FirstName} {user.LastName}" : User.Identity?.Name ?? "Operatore";
+
+        return Json(new
+        {
+            success = true,
+            stato = StatoDiscrepanza.Risolta.ToString(),
+            gestitaDa = nomeOperatore,
+            dataGestione = DateTime.Now.ToString("dd/MM HH:mm")
+        });
     }
 
     [HttpPost]
@@ -140,13 +152,20 @@ public virtual async Task<IActionResult> Index(
     
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public virtual async Task<IActionResult> AnnullaDiscrepanza(Guid id, string barcode, string activeTab)
+    public virtual async Task<IActionResult> AnnullaDiscrepanza(Guid id, string barcode)
     {
         var userId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
         await _service.AnnullaDiscrepanzaAsync(id, barcode, userId);
 
-        var url = Url.Action("Index", new { area = "Inventari", id });
-        if (!string.IsNullOrEmpty(activeTab)) url += "#" + activeTab;
-        return Redirect(url);
+        var user = await _context.Users.FindAsync(userId);
+        var nomeOperatore = user != null ? $"{user.FirstName} {user.LastName}" : User.Identity?.Name ?? "Operatore";
+
+        return Json(new
+        {
+            success = true,
+            stato = StatoDiscrepanza.Annullata.ToString(),
+            gestitaDa = nomeOperatore,
+            dataGestione = DateTime.Now.ToString("dd/MM HH:mm")
+        });
     }
 }

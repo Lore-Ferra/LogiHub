@@ -106,20 +106,14 @@ else if (tuttoRisolto)
                                     // 3. SE È APERTA E INVENTARIO FINITO -> Mostra pulsanti
                                     <div class="btn-group">
                                         <button class="btn btn-sm btn-outline-@colorClass"
-                                                data-confirm-trigger="true"
-                                                data-url="@Url.Action("Risolvi", "Discrepanze", new { area = "Inventari", id = Model.SessioneId, barcode = item.Barcode, tipo = tipoDefault, activeTab = tabId })"
-                                                data-method="POST"
-                                                data-type="form"
-                                                data-message="Confermi la risoluzione (aggiornamento magazzino)?">
+                                                type="button"
+                                                onclick="avviaRisoluzione(this, '@Url.Action("Risolvi", "Discrepanze", new { area = "Inventari", id = Model.SessioneId, barcode = item.Barcode, tipo = tipoDefault })', 'Confermi la risoluzione (aggiornamento magazzino)?')">
                                             <i class="fa-solid fa-check"></i>
                                         </button>
 
                                         <button class="btn btn-sm btn-outline-secondary"
-                                                data-confirm-trigger="true"
-                                                data-url="@Url.Action("AnnullaDiscrepanza", "Discrepanze", new { area = "Inventari", id = Model.SessioneId, barcode = item.Barcode, activeTab = tabId })"
-                                                data-method="POST"
-                                                data-type="form"
-                                                data-message="Vuoi annullare la segnalazione? Non verrà fatta alcuna modifica fisica.">
+                                                type="button"
+                                                onclick="avviaRisoluzione(this, '@Url.Action("AnnullaDiscrepanza", "Discrepanze", new { area = "Inventari", id = Model.SessioneId, barcode = item.Barcode })', 'Vuoi annullare la segnalazione? Non verrà fatta alcuna modifica fisica.')">
                                             <i class="fa-solid fa-ban"></i>
                                         </button>
                                     </div>
@@ -200,6 +194,19 @@ else if (tuttoRisolto)
         ConfirmButtonClass = "btn-primary",
         IconClass = "fa-solid fa-solid fa-wand-magic-sparkles text-primary"
     })
+    
+@* --- MODALE DEDICATO PER AJAX (Separato da quello generico per evitare conflitti) --- *@
+@await Html.PartialAsync(
+    "~/Features/Modals/_ConfirmModal.cshtml",
+    new LogiHub.Web.Features.Modals.ConfirmModalViewModel
+    {
+        ModalId = "ajaxConfirmModal",
+        Title = "Conferma",
+        Message = "",
+        ConfirmButtonText = "Conferma",
+        ConfirmButtonClass = "btn-primary",
+        IconClass = "fa-solid fa-check-circle text-primary"
+    })
 
 @section Scripts {
     <script src="~/js/Features/Modals/ConfirmModal.js"></script>
@@ -223,5 +230,96 @@ else if (tuttoRisolto)
                 });
             });
         });
+
+        function avviaRisoluzione(btn, url, msg) {
+            const modalEl = document.getElementById('ajaxConfirmModal');
+            const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+            
+            // Imposta messaggio
+            const msgEl = modalEl.querySelector('[data-confirm-message]');
+            if(msgEl) msgEl.innerText = msg;
+            
+            const confirmBtn = modalEl.querySelector('[data-confirm-btn]');
+            
+            // Rimuovi listener precedenti clonando
+            const newBtn = confirmBtn.cloneNode(true);
+            confirmBtn.parentNode.replaceChild(newBtn, confirmBtn);
+            
+            newBtn.onclick = async () => {
+                newBtn.disabled = true;
+                newBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
+                
+                try {
+                    const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
+                    const formData = new FormData();
+                    formData.append('__RequestVerificationToken', token);
+                    
+                    const res = await fetch(url, { method: 'POST', body: formData });
+                    if(res.ok) {
+                        const data = await res.json();
+                        if(data.success) {
+                            modal.hide();
+                            aggiornaRigaUI(btn, data);
+                        } else {
+                            alert("Errore: " + (data.message || "Operazione fallita"));
+                        }
+                    } else {
+                        alert("Errore server: " + res.statusText);
+                    }
+                } catch(err) {
+                    console.error(err);
+                    alert("Errore di connessione");
+                } finally {
+                    newBtn.disabled = false;
+                    newBtn.innerText = "Conferma";
+                }
+            };
+            
+            modal.show();
+        }
+
+        function aggiornaRigaUI(btn, data) {
+            const tr = btn.closest('tr');
+            if(!tr) return;
+            
+            // FIX: Troviamo il tab pane PRIMA di modificare il DOM, altrimenti btn viene staccato e closest fallisce
+            const tabPane = tr.closest('.tab-pane');
+            
+            // 1. Aggiorna Badge Stato (Colonna index 2)
+            const tdStato = tr.cells[2];
+            const badgeClass = data.stato === 'Risolta' ? 'bg-success' : 'bg-secondary';
+            
+            tdStato.innerHTML = `
+                <span class="badge ${badgeClass}">${data.stato}</span>
+                <div class="x-small text-muted mt-1" style="font-size: 0.7rem;">
+                    ${data.gestitaDa} il ${data.dataGestione}
+                </div>
+            `;
+            
+            // 2. Aggiorna Azioni (Colonna index 3) -> Icona check
+            const tdAzioni = tr.cells[3];
+            tdAzioni.innerHTML = `<i class="fa-solid fa-circle-check text-success" title="Gestita"></i>`;
+            
+            // 3. Stile Riga (grigetto)
+            tr.classList.add('opacity-75', 'bg-light');
+            
+            // 4. Aggiorna contatore tab attivo
+            if(tabPane && tabPane.id) {
+                // Mappiamo l'ID del contenuto (es. content-spostati) all'ID del tab (es. tab-spostati)
+                const tabBtnId = tabPane.id.replace('content-', 'tab-');
+                const tabBtn = document.getElementById(tabBtnId);
+                
+                if(tabBtn) {
+                    const badge = tabBtn.querySelector('.badge');
+                    if(badge) {
+                        let count = parseInt(badge.innerText.trim());
+                        if(!isNaN(count)) {
+                            if(count > 1) badge.innerText = count - 1;
+                            else badge.remove();
+                        }
+                    }
+                }
+            }
+        }
     </script>
 }
