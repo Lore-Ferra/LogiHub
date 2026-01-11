@@ -163,6 +163,9 @@ public partial class RilevamentoUbicazioneController : AuthenticatedBaseControll
                 Title = $"Rilevamento: {infoUbicazione.Nome}",
                 Placeholder = "Cerca barcode...",
                 Query = query,
+                ShowFilters = false,
+                ShowUscitoFilter = false,
+                ShowSearchInColumns = false,
                 HeaderButtons = headerButtons
             },
             Pezzi = datiPezzi
