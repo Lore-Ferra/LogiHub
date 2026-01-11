@@ -25,6 +25,50 @@
     @await Html.PartialAsync("~/Features/SearchCard/_SearchCard.cshtml", Model.SearchCard)
 </div>
 
+@{
+    var inAttesa = Model.TotaliPezzi - Model.PezziRilevati;
+
+    var urlConcludi = Url.Action("ConcludiUbicazione", "RilevamentoUbicazione",
+        new { area = "Inventari", sessioneId = Model.SessioneId, ubicazioneId = Model.UbicazioneId });
+}
+
+<div class="d-md-none d-flex justify-content-end mb-2">
+
+    @if (Model.IsSolaLettura)
+    {
+        <button type="button"
+                class="btn btn-primary disabled"
+                title="Ubicazione già completata"
+                style="cursor:not-allowed; pointer-events:auto !important;">
+            <i class="fa-solid fa-lock me-2"></i>
+            Concludi
+        </button>
+    }
+    else if (inAttesa > 0)
+    {
+        <button type="button"
+                class="btn btn-primary"
+                data-confirm-trigger="true"
+                data-url="@urlConcludi"
+                data-method="POST"
+                data-type="form"
+                data-message="Attenzione: ci sono @inAttesa pezzi non rilevati. Verranno segnati come MANCANTI. Vuoi procedere?">
+            <i class="fa-solid fa-check-double me-2"></i>
+            Concludi
+        </button>
+    }
+    else
+    {
+        <form method="post" action="@urlConcludi" class="m-0">
+            @Html.AntiForgeryToken()
+            <button type="submit" class="btn btn-primary">
+                <i class="fa-solid fa-check-double me-2"></i>
+                Concludi
+            </button>
+        </form>
+    }
+</div>
+
 @* --- STATISTICHE  --- *@
 <div id="stats-container" class="card border-0 shadow-sm mb-3 @(Model.IsSolaLettura ? "bg-light" : "")">
     <div class="card-body p-2 p-md-3">
@@ -292,11 +336,18 @@
         let rilevati = @Model.PezziRilevati;
         const totali = @Model.TotaliPezzi;
 
+        function eraInAttesaPrima(rigaId) {
+            const bD = document.getElementById('badge-d-' + rigaId);
+            const bM = document.getElementById('badge-m-' + rigaId);
+
+            return (bD && bD.classList.contains('bg-secondary')) ||
+                (bM && bM.classList.contains('bg-secondary'));
+        }
+
         async function aggiornaStato(btn, rigaId, tipo) {
             if (btn.disabled) return;
 
-            const badgeDesktop = document.getElementById('badge-d-' + rigaId);
-            const eraInAttesa = badgeDesktop && badgeDesktop.classList.contains('bg-secondary');
+            const eraInAttesa = eraInAttesaPrima(rigaId);
 
             const originalText = btn.innerHTML;
             const url = btn.getAttribute('data-url');
