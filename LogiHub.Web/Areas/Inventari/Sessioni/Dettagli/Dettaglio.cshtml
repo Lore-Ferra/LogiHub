@@ -33,8 +33,10 @@
         <div class="d-flex justify-content-end">
             <button type="button"
                     class="btn btn-danger"
-                    data-post-action="true"
+                    data-confirm-trigger="true"
                     data-url="@Url.Action("ChiudiSessione", "Dettaglio", new { area = "Inventari", id = Model.SessioneId })"
+                    data-method="POST"
+                    data-type="form"
                     data-message="Vuoi davvero chiudere l’inventario <b>@Model.NomeSessione</b>?">
                 <i class="fa-solid fa-lock me-2"></i>
                 Termina
