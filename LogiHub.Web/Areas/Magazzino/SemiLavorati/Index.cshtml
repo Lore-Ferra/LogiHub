@@ -70,16 +70,18 @@
                         </div>
                     </div>
                     <div class="d-flex gap-3 align-items-center text-black">
-                        <button type="button"
-                                class="btn btn-md btn-outline-danger @(isBloccato ? "disabled" : "")"
-                                data-confirm-trigger
-                                data-url="/Magazzino/SemiLavorati/Elimina"
-                                data-body='{"semiLavoratoId": "@item.Id"}'
-                                data-label="@item.Barcode?"
-                                data-success-action="remove"
-                                title="Elimina"
-                                style="@(isBloccato ? "cursor: not-allowed; pointer-events: auto !important;" : "")"
-                                @(isBloccato ? "disabled" : "")>
+                        <button
+                            type="button"
+                            class="btn btn-md btn-outline-danger @(isBloccato ? "disabled" : "")"
+                            data-type="form"
+                            data-confirm-trigger="true"
+                            data-method="POST"
+                            data-url="/Magazzino/SemiLavorati/Elimina?semiLavoratoId=@item.Id"
+                            data-message="Sei sicuro di voler eliminare <strong>@item.Barcode</strong>?"
+                            data-success-action="reload"
+                            title="Elimina"
+                            style="@(isBloccato ? "cursor: not-allowed; pointer-events: auto !important;" : "")"
+                            @(isBloccato ? "disabled" : "")>
                             <i class="@(isBloccato ? "fa-solid fa-lock" : "fa-solid fa-trash")"></i>
                         </button>
                     </div>
@@ -133,16 +135,17 @@
                             <button
                                 type="button"
                                 class="btn btn-sm btn-outline-danger @(isBloccato ? "disabled" : "")"
-                                data-confirm-trigger
-                                data-url="/Magazzino/SemiLavorati/Elimina"
-                                data-body='{"semiLavoratoId": "@item.Id"}'
-                                data-label="@item.Barcode?"
-                                data-success-action="remove"
+                                data-type="form"
+                                data-confirm-trigger="true"
+                                data-method="POST"
+                                data-url="/Magazzino/SemiLavorati/Elimina?semiLavoratoId=@item.Id"
+                                data-message="Sei sicuro di voler eliminare <strong>@item.Barcode</strong>?"
+                                data-success-action="reload"
                                 title="Elimina"
                                 style="@(isBloccato ? "cursor: not-allowed; pointer-events: auto !important;" : "")"
                                 @(isBloccato ? "disabled" : "")>
                                 <i class="@(isBloccato ? "fa-solid fa-lock me-1" : "fa-solid fa-trash")"></i>
-                                Elimina 
+                                Elimina
                             </button>
                         </td>
 
@@ -223,7 +226,7 @@ else
 @section Scripts {
     <script src="~/js/Features/Modals/ConfirmModal.js"></script>
     <script src="~/js/Features/Offcanvas/offcanvas.js"></script>
-
+    
     <script>
         document.addEventListener('submit', function (e) {
 

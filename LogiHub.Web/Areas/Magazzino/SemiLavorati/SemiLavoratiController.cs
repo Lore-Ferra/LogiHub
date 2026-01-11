@@ -221,16 +221,41 @@ public partial class SemiLavoratiController : AuthenticatedBaseController
     }
 
     [HttpPost]
-    public virtual async Task<IActionResult> Elimina([FromBody] EliminaSemiLavoratoDTO dto)
+    public virtual async Task<IActionResult> Elimina(
+        Guid? semiLavoratoId,
+        [FromBody] EliminaSemiLavoratoDTO? dto)
     {
         if (await _bloccoService.IsBloccatoAsync())
-        {
             return BadRequest("Magazzino bloccato per inventario.");
+
+        Guid id;
+        if (dto is not null && dto.SemiLavoratoId != Guid.Empty)
+        {
+            id = dto.SemiLavoratoId;
+        }
+        else if (semiLavoratoId.HasValue && semiLavoratoId.Value != Guid.Empty)
+        {
+            id = semiLavoratoId.Value;
+            dto = new EliminaSemiLavoratoDTO { SemiLavoratoId = id };
+        }
+        else
+        {
+            return BadRequest("Id mancante.");
         }
 
         dto.UserId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
+
         var success = await _service.EliminaSemiLavoratoAsync(dto);
-        return success ? Ok() : BadRequest();
+
+        if (!success) return BadRequest();
+
+        bool isAjax = Request.Headers.TryGetValue("X-Requested-With", out var xrw) &&
+                      xrw == "XMLHttpRequest";
+
+        if (!isAjax && dto is not null && semiLavoratoId.HasValue)
+            return RedirectToAction(nameof(Index));
+
+        return Ok();
     }
 
     [HttpGet]
