@@ -27,6 +27,22 @@
     @await Html.PartialAsync("~/Features/SearchCard/_SearchCard.cshtml", Model.SearchCard)
 </div>
 
+@if (!Model.Chiuso)
+{
+    <div class="d-md-none mt-2 p-2">
+        <div class="d-flex justify-content-end">
+            <button type="button"
+                    class="btn btn-danger"
+                    data-post-action="true"
+                    data-url="@Url.Action("ChiudiSessione", "Dettaglio", new { area = "Inventari", id = Model.SessioneId })"
+                    data-message="Vuoi davvero chiudere l’inventario <b>@Model.NomeSessione</b>?">
+                <i class="fa-solid fa-lock me-2"></i>
+                Termina
+            </button>
+        </div>
+    </div>
+}
+
 @* --- VERSIONE DESKTOP (TABLE) --- *@
 <div class="card border-0 shadow-sm mt-3 d-none d-md-block">
     <div class="card-body p-3">
@@ -226,7 +242,7 @@
                 pendingForm = btn.closest('form');
                 if (!pendingForm) return;
 
-                const modalEl = document.getElementById('confirmActionModal');
+                const modalEl = document.getElementById('actionConfirmModal');
                 if (!modalEl) {
                     pendingForm.submit();
                     pendingForm = null;
@@ -253,7 +269,7 @@
             });
 
             document.addEventListener('click', function (e) {
-                const confirmBtn = e.target.closest('#confirmActionModal [data-confirm-btn]');
+                const confirmBtn = e.target.closest('#actionConfirmModal [data-confirm-btn]');
                 if (!confirmBtn) return;
 
                 e.preventDefault();
@@ -265,7 +281,7 @@
             });
 
             document.addEventListener('hidden.bs.modal', function (e) {
-                if (e.target && e.target.id === 'confirmActionModal') {
+                if (e.target && e.target.id === 'actionConfirmModal') {
                     pendingForm = null;
                 }
             });

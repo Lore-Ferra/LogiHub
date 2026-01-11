@@ -83,7 +83,7 @@ public partial class DettaglioController : AuthenticatedBaseController
             searchCardModel.HeaderButtons.Add(new SearchCardButton
             {
                 Text = "Termina",
-                CssClass = "btn-danger",
+                CssClass = "btn-danger d-none d-md-inline-flex align-items-center",
                 IconClass = "fa-solid fa-lock",
                 Type = "button",
                 HtmlAttributes = new Dictionary<string, string>
