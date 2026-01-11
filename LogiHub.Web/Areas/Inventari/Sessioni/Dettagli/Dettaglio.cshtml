@@ -50,8 +50,7 @@
                         var isMyUbi = ubi.OperatoreCorrenteId == currentUserId;
                         var canEnter = !ubi.InLavorazione || isMyUbi;
 
-                        <tr class="@(ubi.InLavorazione ? "table-warning" : "")"
-                            style="@(canEnter ? "cursor:pointer" : "")"
+                        <tr style="@(canEnter ? "cursor:pointer" : "")"
                             @if (canEnter)
                             {
                             <text>onclick="window.location.href='@Url.Action("Index", "RilevamentoUbicazione", new { sessioneId = Model.SessioneId, ubicazioneId = ubi.UbicazioneId })'"
@@ -63,7 +62,9 @@
                             <td class="text-center">
                                 @if (ubi.InLavorazione)
                                 {
-                                    <span class="badge bg-warning text-dark">In Corso</span>
+                                    <span class="badge bg-warning text-dark">
+                                        <i class="fa-solid fa-circle fa-fade me-1"></i>In Corso
+                                    </span>
                                 }
                                 else
                                 {
