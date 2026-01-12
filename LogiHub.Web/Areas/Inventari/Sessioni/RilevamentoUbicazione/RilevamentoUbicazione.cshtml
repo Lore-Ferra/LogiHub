@@ -27,11 +27,14 @@
     var urlConcludi = Url.Action("ConcludiUbicazione", "RilevamentoUbicazione",
         new { area = "Inventari", sessioneId = Model.SessioneId, ubicazioneId = Model.UbicazioneId });
 }
-@* --- STATISTICHE  --- *@
-<div id="stats-container" class="card border-0 shadow-sm mb-3 @(Model.IsSolaLettura ? "bg-light" : "")">
-    <div class="card-body p-2 p-md-3">
-        <div class="d-flex align-items-center">
-            <div class="flex-grow-1">
+@* --- STATISTICHE --- *@
+<div id="stats-container" class="d-flex mb-3 flex-wrap gap-2">
+
+    @* Card Avanzamento *@
+    <div class="card border-0 shadow-sm flex-grow-1 @(Model.IsSolaLettura ? "bg-light" : "")">
+        <div class="card-body p-2 p-md-3">
+            <div class="d-flex flex-column">
+                
                 <div class="d-flex justify-content-between align-items-center mb-1">
                     <span class="fw-bold text-muted small">AVANZAMENTO</span>
                     <div class="d-flex align-items-center">
@@ -49,26 +52,36 @@
                         }
                     </div>
                 </div>
+
+                @* Progress bar *@
                 <div class="progress" style="height: 8px;">
                     <div id="stats-bar"
                          class="progress-bar bg-success progress-bar-striped @(Model.IsSolaLettura ? "" : "progress-bar-animated")"
                          role="progressbar"
-                         style="width: @Model.PercentualeCompletamento%"></div>
+                         style="width: @Model.PercentualeCompletamento%">
+                    </div>
                 </div>
+
             </div>
-            @if (!Model.IsSolaLettura)
-            {
+        </div>
+    </div>
+
+    @* Card Bottone Extra mobile *@
+    @if (!Model.IsSolaLettura)
+    {
+        <div class="card border-0 shadow-sm flex-shrink-0 d-md-none">
+            <div class="card-body p-2 p-md-3">
                 <button type="button"
-                        class="btn btn-sm btn-outline-primary ms-2 d-md-none fw-bold shadow-sm"
-                        style="width: 30%;"
+                        class="btn btn-sm btn-primary w-100 fw-bold shadow-sm"
                         data-bs-toggle="modal"
                         data-bs-target="#modalAggiungiExtra">
                     <i class="fa-solid fa-plus me-1"></i>Extra
                 </button>
-            }
+            </div>
         </div>
-    </div>
+    }
 </div>
+
 
 
 
