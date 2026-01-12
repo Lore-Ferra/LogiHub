@@ -62,7 +62,7 @@ public partial class RilevamentoUbicazioneController : AuthenticatedBaseControll
         var bottoneEsci = new SearchCardButton
         {
             Text = "Rilascia e Esci",
-            CssClass = "btn-outline-secondary",
+            CssClass = "btn-secondary",
             IconClass = "fa-solid fa-door-open",
             Type = "button",
             HtmlAttributes = new Dictionary<string, string>
@@ -122,7 +122,7 @@ public partial class RilevamentoUbicazioneController : AuthenticatedBaseControll
         var bottoneBloccato = new SearchCardButton
         {
             Text = "Concludi",
-            CssClass = "btn-primary d-none d-md-inline-block",
+            CssClass = "btn-secondary d-none d-md-inline-block",
             IconClass = "fa-solid fa-lock",
             Type = "button",
             HtmlAttributes = new Dictionary<string, string>

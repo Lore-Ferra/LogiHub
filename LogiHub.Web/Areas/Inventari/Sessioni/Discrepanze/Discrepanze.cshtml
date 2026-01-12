@@ -94,27 +94,32 @@ else if (tuttoRisolto)
                                 @if (item.Stato != StatoDiscrepanza.Aperta)
                                 {
                                     // 1. SE È GIÀ GESTITA -> Mostra solo l'icona (Niente pulsanti)
-                                    <i class="fa-solid fa-circle-check text-success" title="Gestita"></i>
+                                    <button class="btn btn-secondary disabled">
+                                        <i class="fa-solid fa-lock" title="Completa prima l'inventario"></i>
+                                    </button>
+                                   
                                 }
                                 else if (Model.IsSolaLettura)
                                 {
                                     // 2. SE È APERTA MA INVENTARIO BLOCCATO -> Mostra lucchetto
-                                    <i class="fa-solid fa-lock text-muted" title="Completa prima l'inventario"></i>
+                                    <button class="btn btn-secondary disabled">
+                                    <i class="fa-solid fa-lock" title="Completa prima l'inventario"></i>
+                                    </button>
                                 }
                                 else
                                 {
                                     // 3. SE È APERTA E INVENTARIO FINITO -> Mostra pulsanti
                                     <div class="btn-group">
-                                        <button class="btn btn-sm btn-outline-@colorClass"
+                                        <button class="btn btm-primary btn-sm btn-outline-@colorClass"
                                                 type="button"
                                                 onclick="avviaRisoluzione(this, '@Url.Action("Risolvi", "Discrepanze", new { area = "Inventari", id = Model.SessioneId, barcode = item.Barcode, tipo = tipoDefault })', 'Confermi la risoluzione (aggiornamento magazzino)?')">
-                                            <i class="fa-solid fa-check"></i>
+                                            <i class="fa-solid fa-check me-2"></i>Risolvi
                                         </button>
 
-                                        <button class="btn btn-sm btn-outline-secondary"
+                                        <button class="btn btn-sm btn-outline-danger"
                                                 type="button"
                                                 onclick="avviaRisoluzione(this, '@Url.Action("AnnullaDiscrepanza", "Discrepanze", new { area = "Inventari", id = Model.SessioneId, barcode = item.Barcode })', 'Vuoi annullare la segnalazione? Non verrà fatta alcuna modifica fisica.')">
-                                            <i class="fa-solid fa-ban"></i>
+                                            <i class="fa-solid fa-ban me-2"></i>Annulla
                                         </button>
                                     </div>
                                 }
@@ -137,7 +142,7 @@ else if (tuttoRisolto)
     @* --- TABS --- *@
     <ul class="nav nav-pills mb-3" id="pills-tab" role="tablist">
         <li class="nav-item">
-            <button class="nav-link active text-dark" id="tab-spostati" data-bs-toggle="pill" data-bs-target="#content-spostati"
+            <button class="nav-link active" id="tab-spostati" data-bs-toggle="pill" data-bs-target="#content-spostati"
                     type="button" role="tab">
                 <i class="fa-solid fa-right-left me-2"></i>Spostamenti 
                 @if (countSpostati > 0)
@@ -147,7 +152,7 @@ else if (tuttoRisolto)
             </button>
         </li>
         <li class="nav-item">
-            <button class="nav-link text-dark" id="tab-extra" data-bs-toggle="pill" data-bs-target="#content-extra" type="button"
+            <button class="nav-link" id="tab-extra" data-bs-toggle="pill" data-bs-target="#content-extra" type="button"
                     role="tab">
                 <i class="fa-solid fa-plus me-2"></i>Extra 
                 @if (countExtra > 0)
@@ -157,7 +162,7 @@ else if (tuttoRisolto)
             </button>
         </li>
         <li class="nav-item">
-            <button class="nav-link text-dark" id="tab-mancanti" data-bs-toggle="pill" data-bs-target="#content-mancanti"
+            <button class="nav-link" id="tab-mancanti" data-bs-toggle="pill" data-bs-target="#content-mancanti"
                     type="button" role="tab">
                 <i class="fa-solid fa-minus me-2"></i>Mancanti 
                 @if (countMancanti > 0)

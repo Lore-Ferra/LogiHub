@@ -26,6 +26,8 @@
 
     var urlConcludi = Url.Action("ConcludiUbicazione", "RilevamentoUbicazione",
         new { area = "Inventari", sessioneId = Model.SessioneId, ubicazioneId = Model.UbicazioneId });
+    var btnPresenteClass = Model.IsSolaLettura ? "btn btn-sm btn-secondary text-nowrap" : "btn btn-sm btn-outline-primary text-nowrap";
+    var btnMancanteClass = Model.IsSolaLettura ? "btn btn-sm btn-secondary text-nowrap" : "btn btn-sm btn-outline-danger text-nowrap";
 }
 @* --- STATISTICHE --- *@
 <div id="stats-container" class="d-flex mb-3 flex-wrap gap-2">
@@ -118,10 +120,10 @@
 
                                 <td class="text-end pe-4">
                                     <div class="d-inline-flex gap-1 text-nowrap" role="group">
-                                        <button class="btn btn-sm btn-outline-primary text-nowrap"
+
+                                        <button class="@btnPresenteClass flex-fill"
                                                 onclick="aggiornaStato(this, '@pezzo.RigaId', 'presente')"
                                                 data-url="@Url.Action("SegnaPresente", "RilevamentoUbicazione", new { rigaId = pezzo.RigaId })"
-                                                style="@(Model.IsSolaLettura ? "cursor: not-allowed; pointer-events: auto !important;" : "")"
                                                 @(Model.IsSolaLettura ? "disabled" : "")>
                                             @if (Model.IsSolaLettura && pezzo.Stato == StatoRigaInventario.Trovato)
                                             {
@@ -134,10 +136,9 @@
                                             <span class="ms-1">Presente</span>
                                         </button>
 
-                                        <button class="btn btn-sm btn-outline-danger text-nowrap"
+                                        <button class="@btnMancanteClass flex-fill"
                                                 onclick="aggiornaStato(this, '@pezzo.RigaId', 'mancante')"
                                                 data-url="@Url.Action("SegnaMancante", "RilevamentoUbicazione", new { rigaId = pezzo.RigaId })"
-                                                style="@(Model.IsSolaLettura ? "cursor: not-allowed; pointer-events: auto !important;" : "")"
                                                 @(Model.IsSolaLettura ? "disabled" : "")>
                                             @if (Model.IsSolaLettura && pezzo.Stato == StatoRigaInventario.Mancante)
                                             {
@@ -149,6 +150,7 @@
                                             }
                                             <span class="ms-1">Mancante</span>
                                         </button>
+
                                     </div>
                                 </td>
                             </tr>
@@ -177,29 +179,44 @@
                     </div>
                     <hr class="my-1">
                     <p class="small text-muted mb-0">@pezzo.Descrizione</p>
-                    <div class="row g-2 mt-1 px-4">
-                        <div class="col-6">
-                            <button class="btn btn-md btn-primary w-100"
-                                    onclick="aggiornaStato(this, '@pezzo.RigaId', 'presente')"
-                                    data-url="@Url.Action("SegnaPresente", "RilevamentoUbicazione", new { rigaId = pezzo.RigaId })"
-                                    style="@(Model.IsSolaLettura ? "cursor: not-allowed; pointer-events: auto !important;" : "")"
-                                    @(Model.IsSolaLettura ? "disabled" : "")>
-                                <i class="fa-solid @(Model.IsSolaLettura && pezzo.Stato == StatoRigaInventario.Trovato ? "fa-lock" : "fa-check")"></i>
-                                Presente
-                            </button>
-                        </div>
+                    <div class="row g-2 mt-1 ">
 
-                        <div class="col-6 font-s">
-                            <button class="btn btn-md btn-danger w-100"
-                                    onclick="aggiornaStato(this, '@pezzo.RigaId', 'mancante')"
-                                    data-url="@Url.Action("SegnaMancante", "RilevamentoUbicazione", new { rigaId = pezzo.RigaId })"
-                                    style="@(Model.IsSolaLettura ? "cursor: not-allowed; pointer-events: auto !important;" : "")"
-                                    @(Model.IsSolaLettura ? "disabled" : "")>
-                                <i class="fa-solid @(Model.IsSolaLettura && pezzo.Stato == StatoRigaInventario.Mancante ? "fa-lock" : "fa-xmark")"></i>
-                                Mancante
-                            </button>
-                        </div>
+                            <div class="d-flex gap-2" role="group">
+
+                                <button class="@btnPresenteClass flex-fill"
+                                        onclick="aggiornaStato(this, '@pezzo.RigaId', 'presente')"
+                                        data-url="@Url.Action("SegnaPresente", "RilevamentoUbicazione", new { rigaId = pezzo.RigaId })"
+                                        @(Model.IsSolaLettura ? "disabled" : "")>
+                                    @if (Model.IsSolaLettura && pezzo.Stato == StatoRigaInventario.Trovato)
+                                    {
+                                        <i class="fa-solid fa-lock"></i>
+                                    }
+                                    else
+                                    {
+                                        <i class="fa-solid fa-check"></i>
+                                    }
+                                    <span class="ms-1">Presente</span>
+                                </button>
+
+                                <button class="@btnMancanteClass flex-fill"
+                                        onclick="aggiornaStato(this, '@pezzo.RigaId', 'mancante')"
+                                        data-url="@Url.Action("SegnaMancante", "RilevamentoUbicazione", new { rigaId = pezzo.RigaId })"
+                                        @(Model.IsSolaLettura ? "disabled" : "")>
+                                    @if (Model.IsSolaLettura && pezzo.Stato == StatoRigaInventario.Mancante)
+                                    {
+                                        <i class="fa-solid fa-lock"></i>
+                                    }
+                                    else
+                                    {
+                                        <i class="fa-solid fa-xmark"></i>
+                                    }
+                                    <span class="ms-1">Mancante</span>
+                                </button>
+
+                            </div>
+                   
                     </div>
+
                 </div>
             </div>
         }
@@ -208,7 +225,7 @@
             @if (Model.IsSolaLettura)
             {
                 <button type="button"
-                        class="btn btn-primary w-100 py-2 fw-bold shadow-sm disabled"
+                        class="btn btn-secondary w-100 py-2 fw-bold shadow-sm disabled"
                         title="Ubicazione già completata"
                         style="cursor:not-allowed; pointer-events:auto !important;">
                     <i class="fa-solid fa-lock me-2"></i>

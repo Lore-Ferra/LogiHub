@@ -22,99 +22,106 @@ public partial class DiscrepanzeController : AuthenticatedBaseController
         _context = context;
     }
 
-   [HttpGet]
-public virtual async Task<IActionResult> Index(
-    Guid id,
-    [FromQuery] string query,
-    [FromQuery] SearchCardFiltersViewModel Filters,
-    int page = 1,
-    int pageSize = 25)
-{
-    if (id == Guid.Empty) return NotFound("ID Sessione non valido.");
-    Filters ??= new SearchCardFiltersViewModel();
-
-    var tutte = await _service.OttieniDiscrepanzeAsync(id);
-    var sessione = await _service.OttieniDettaglioSessioneAsync(id);
-    
-    bool isSolaLettura = sessione.Ubicazioni.Any(u => !u.Completata);
-    bool haAperte = tutte.Any(x => x.Stato == StatoDiscrepanza.Aperta);
-
-
-    var btnRisolviAttivo = new SearchCardButton
+    [HttpGet]
+    public virtual async Task<IActionResult> Index(
+        Guid id,
+        [FromQuery] string query,
+        [FromQuery] SearchCardFiltersViewModel Filters,
+        int page = 1,
+        int pageSize = 25)
     {
-        Text = "Risolvi Tutto",
-        CssClass = "btn-success",
-        IconClass = "fa-solid fa-wand-magic-sparkles",
-        Type = "button",
-        HtmlAttributes = new Dictionary<string, string>
+        if (id == Guid.Empty) return NotFound("ID Sessione non valido.");
+        Filters ??= new SearchCardFiltersViewModel();
+
+        var tutte = await _service.OttieniDiscrepanzeAsync(id);
+        var sessione = await _service.OttieniDettaglioSessioneAsync(id);
+
+        bool isSolaLettura = sessione.Ubicazioni.Any(u => !u.Completata);
+        bool haAperte = tutte.Any(x => x.Stato == StatoDiscrepanza.Aperta);
+
+
+        var btnRisolviAttivo = new SearchCardButton
         {
-            { "data-confirm-trigger", "true" },
-            { "data-url", Url.Action("RisolviTutto", "Discrepanze", new { area = "Inventari", id = id }) },
-            { "data-method", "POST"},
-            { "data-type", "form"},
-            { "data-message", "Sei sicuro di voler allineare tutto il magazzino?" }
-        }
-    };
+            Text = "Risolvi Tutto",
+            CssClass = "btn-primary",
+            IconClass = "fa-solid fa-wand-magic-sparkles",
+            Type = "button",
+            HtmlAttributes = new Dictionary<string, string>
+            {
+                { "data-confirm-trigger", "true" },
+                { "data-url", Url.Action("RisolviTutto", "Discrepanze", new { area = "Inventari", id = id }) },
+                { "data-method", "POST" },
+                { "data-type", "form" },
+                { "data-message", "Sei sicuro di voler allineare tutto il magazzino?" }
+            }
+        };
 
-    // 3. Bottone RISOLVI DISATTIVATO (Lucchetto)
-    var btnRisolviDisattivato = new SearchCardButton
-    {
-        Text = isSolaLettura ? "Risoluzione Bloccata" : "Tutto Risolto",
-        CssClass = "btn-success disabled",
-        IconClass = isSolaLettura ? "fa-solid fa-lock" : "fa-solid fa-check-double",
-        Type = "button",
-        HtmlAttributes = new Dictionary<string, string> 
-        { 
-            { "title", isSolaLettura ? "Completa prima tutte le ubicazioni" : "Nessuna discrepanza aperta" } 
-        }
-    };
+        // 3. Bottone RISOLVI DISATTIVATO (Lucchetto)
+        var btnRisolviDisattivato = new SearchCardButton
+        {
+            Text = isSolaLettura ? "Risoluzione Bloccata" : "Tutto Risolto",
+            CssClass = "btn-secondary disabled ",
+            IconClass = isSolaLettura ? "fa-solid fa-lock" : "fa-solid fa-check-double",
+            Type = "button",
+            HtmlAttributes = new Dictionary<string, string>
+            {
+                { "title", isSolaLettura ? "Completa prima tutte le ubicazioni" : "Nessuna discrepanza aperta" }
+            }
+        };
 
-    // Filtro di ricerca (eseguito dopo il controllo haAperte per coerenza globale)
-    if (!string.IsNullOrWhiteSpace(query))
-    {
-        tutte = tutte.Where(d =>
-            (d.Barcode?.Contains(query, StringComparison.OrdinalIgnoreCase) ?? false) ||
-            (d.Descrizione?.Contains(query, StringComparison.OrdinalIgnoreCase) ?? false) ||
-            (d.UbicazioneSnapshot?.Contains(query, StringComparison.OrdinalIgnoreCase) ?? false) ||
-            (d.UbicazioneRilevata?.Contains(query, StringComparison.OrdinalIgnoreCase) ?? false)
-        ).ToList();
+        // Filtro di ricerca (eseguito dopo il controllo haAperte per coerenza globale)
+        if (!string.IsNullOrWhiteSpace(query))
+        {
+            tutte = tutte.Where(d =>
+                (d.Barcode?.Contains(query, StringComparison.OrdinalIgnoreCase) ?? false) ||
+                (d.Descrizione?.Contains(query, StringComparison.OrdinalIgnoreCase) ?? false) ||
+                (d.UbicazioneSnapshot?.Contains(query, StringComparison.OrdinalIgnoreCase) ?? false) ||
+                (d.UbicazioneRilevata?.Contains(query, StringComparison.OrdinalIgnoreCase) ?? false)
+            ).ToList();
+        }
+
+        var headerButtons = new List<SearchCardButton>();
+        if (isSolaLettura)
+        {
+            headerButtons.Add(btnRisolviDisattivato);
+        }
+        else if (haAperte)
+        {
+            headerButtons.Add(btnRisolviAttivo);
+        }
+
+        var searchCard = new SearchCardViewModel
+        {
+            Title = "⚠️ Analisi Discrepanze",
+            Placeholder = "Cerca barcode o ubicazione...",
+            Query = query,
+            Filters = Filters,
+            ShowFilters = false,
+            ShowUscitoFilter = false,
+            ShowSearchInColumns = false,
+            HeaderButtons = headerButtons
+        };
+
+        var model = new DiscrepanzeViewModel
+        {
+            SessioneId = id,
+            IsSolaLettura = isSolaLettura,
+            SearchCard = searchCard,
+            SearchQuery = query,
+            DaSpostare = tutte.Where(x => x.Tipo == TipoDiscrepanzaOperativa.Spostato).ToList(),
+            DaAggiungere = tutte.Where(x => x.Tipo == TipoDiscrepanzaOperativa.Extra).ToList(),
+            DaRimuovere = tutte.Where(x => x.Tipo == TipoDiscrepanzaOperativa.Mancante).ToList(),
+            TotalItems = tutte.Count,
+            Page = page,
+            PageSize = pageSize
+        };
+        SetBreadcrumb(
+            ("Inventari", Url.Action("Index", "Sessioni", new { area = "Inventari" })),
+            (sessione.NomeSessione, Url.Action("Index", "Dettaglio", new { area = "Inventari", id = id })),
+            ("Discrepanze", "")
+        );
+        return View("Discrepanze", model);
     }
-
-    var searchCard = new SearchCardViewModel
-    {
-        Title = "⚠️ Analisi Discrepanze",
-        Placeholder = "Cerca barcode o ubicazione...",
-        Query = query,
-        Filters = Filters,
-        ShowFilters = false,
-        ShowUscitoFilter = false,
-        ShowSearchInColumns = false,
-        HeaderButtons = new List<SearchCardButton>
-        {
-            (!isSolaLettura && haAperte) ? btnRisolviAttivo : btnRisolviDisattivato
-        }
-    };
-
-    var model = new DiscrepanzeViewModel
-    {
-        SessioneId = id,
-        IsSolaLettura = isSolaLettura,
-        SearchCard = searchCard,
-        SearchQuery = query,
-        DaSpostare = tutte.Where(x => x.Tipo == TipoDiscrepanzaOperativa.Spostato).ToList(),
-        DaAggiungere = tutte.Where(x => x.Tipo == TipoDiscrepanzaOperativa.Extra).ToList(),
-        DaRimuovere = tutte.Where(x => x.Tipo == TipoDiscrepanzaOperativa.Mancante).ToList(),
-        TotalItems = tutte.Count,
-        Page = page,
-        PageSize = pageSize
-    };
-    SetBreadcrumb(
-        ("Inventari", Url.Action("Index", "Sessioni", new { area = "Inventari" })),
-        (sessione.NomeSessione, Url.Action("Index", "Dettaglio", new { area = "Inventari", id = id })),
-        ("Discrepanze", "")
-    );
-    return View("Discrepanze", model);
-}
 
     [HttpPost]
     [ValidateAntiForgeryToken]
@@ -149,7 +156,7 @@ public virtual async Task<IActionResult> Index(
 
         return RedirectToAction("Index", new { area = "Inventari", id });
     }
-    
+
     [HttpPost]
     [ValidateAntiForgeryToken]
     public virtual async Task<IActionResult> AnnullaDiscrepanza(Guid id, string barcode)

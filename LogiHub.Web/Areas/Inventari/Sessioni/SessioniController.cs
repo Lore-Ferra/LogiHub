@@ -67,7 +67,7 @@ public partial class SessioniController : AuthenticatedBaseController
         var bottoneDisabilitato = new SearchCardButton
         {
             Text = "Crea Inventario",
-            CssClass = "btn-primary disabled d-none d-md-inline-block",
+            CssClass = "btn-secondary disabled d-none d-md-inline-block",
             IconClass = "fa-solid fa-lock",
             Type = "button",
             HtmlAttributes = new Dictionary<string, string>
