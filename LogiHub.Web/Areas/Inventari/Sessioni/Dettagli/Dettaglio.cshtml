@@ -42,8 +42,8 @@
                 <thead class="bg-light">
                 <tr>
                     <th class="ps-4 text-start" style="width: 30%">Ubicazione</th>
+                    <th class="text-center" style="width: 50%">Dettagli Operatore</th>
                     <th class="text-center" style="width: 20%">Stato</th>
-                    <th class="text-end pe-4" style="width: 50%">Dettagli Operatore</th>
                 </tr>
                 </thead>
                 <tbody>
@@ -69,6 +69,14 @@
                             <td class="text-center">
                                 @if (ubi.InLavorazione)
                                 {
+                                    <small><i class="fa-solid fa-user-gear me-1"></i> In lavorazione da:
+                                        <strong>@ubi.OperatoreCorrente</strong></small>
+                                }
+                            </td>
+                            
+                            <td class="text-center">
+                                @if (ubi.InLavorazione)
+                                {
                                     <span class="badge bg-warning text-dark">
                                         <i class="fa-solid fa-circle fa-fade me-1"></i>In Corso
                                     </span>
@@ -76,14 +84,6 @@
                                 else
                                 {
                                     <span class="badge bg-light text-dark border">In attesa</span>
-                                }
-                            </td>
-                            
-                            <td class="text-end pe-4">
-                                @if (ubi.InLavorazione)
-                                {
-                                    <small><i class="fa-solid fa-user-gear me-1"></i> In lavorazione da:
-                                        <strong>@ubi.OperatoreCorrente</strong></small>
                                 }
                             </td>
                         </tr>
@@ -102,13 +102,13 @@
                             <td class="ps-4 text-start fw-bold text-muted">@ubi.Posizione</td>
 
                             @* Allineamento CENTRO *@
-                            <td class="text-center"><span class="badge bg-success">Completato</span></td>
-
-                            @* Allineamento DX *@
-                            <td class="text-end pe-4">
+                            <td class="text-center">
                                 <small class="text-muted"><i class="fa-solid fa-check-double me-1"></i> Chiuso da:
                                     <strong>@ubi.OperatoreCorrente</strong></small>
                             </td>
+
+                            @* Allineamento DX *@
+                            <td class="text-center"><span class="badge bg-success">Completato</span></td>
                         </tr>
                     }
                 }
