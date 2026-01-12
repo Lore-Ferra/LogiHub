@@ -27,24 +27,6 @@
     @await Html.PartialAsync("~/Features/SearchCard/_SearchCard.cshtml", Model.SearchCard)
 </div>
 
-@if (!Model.Chiuso)
-{
-    <div class="d-md-none mt-2 p-2">
-        <div class="d-flex justify-content-end">
-            <button type="button"
-                    class="btn btn-danger"
-                    data-confirm-trigger="true"
-                    data-url="@Url.Action("ChiudiSessione", "Dettaglio", new { area = "Inventari", id = Model.SessioneId })"
-                    data-method="POST"
-                    data-type="form"
-                    data-message="Vuoi davvero chiudere l’inventario <b>@Model.NomeSessione</b>?">
-                <i class="fa-solid fa-lock me-2"></i>
-                Termina
-            </button>
-        </div>
-    </div>
-}
-
 @* --- VERSIONE DESKTOP (TABLE) --- *@
 <div class="card border-0 shadow-sm mt-3 d-none d-md-block">
     <div class="card-body p-3">
@@ -196,6 +178,22 @@
         }
     }
 </div>
+
+@if (!Model.Chiuso)
+{
+    <div class="d-md-none mt-4 mb-3">
+        <button type="button"
+                class="btn btn-danger w-100 py-2 fw-bold shadow-sm"
+                data-confirm-trigger="true"
+                data-url="@Url.Action("ChiudiSessione", "Dettaglio", new { area = "Inventari", id = Model.SessioneId })"
+                data-method="POST"
+                data-type="form"
+                data-message="Vuoi davvero chiudere l’inventario <b>@Model.NomeSessione</b>?">
+            <i class="fa-solid fa-lock me-2"></i>
+            Termina Inventario
+        </button>
+    </div>
+}
 
 @Html.AntiForgeryToken()
 
