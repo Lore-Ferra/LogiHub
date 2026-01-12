@@ -27,6 +27,7 @@ public partial class RilevamentoUbicazioneController : AuthenticatedBaseControll
 
 
     [HttpGet]
+    [Route("Inventari/Sessioni/{sessioneId}/Rilevamento/{ubicazioneId}")]
     public virtual async Task<IActionResult> Index(
         Guid sessioneId,
         Guid ubicazioneId,
