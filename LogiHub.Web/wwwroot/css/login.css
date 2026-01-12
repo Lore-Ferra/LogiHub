@@ -2,7 +2,7 @@
     content: "";
     position: absolute;
     inset: 0;
-    background: #EA7915;
+    background: #2563EB;
     clip-path: polygon( 0 0, 100% 0, 100% 60%, 0 75% );
 }
 

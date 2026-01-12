@@ -7,12 +7,41 @@ $color-background-dark: #373737;
 $color-background-title: #E4E4E4;
 $color-background-subtitle: #EFEFEF;
 
-$primary: #EA7915;
-$secondary: #000000;
-$info: #3AAFB9;
-$warning: #FFF275;
-$danger: #9A031E;
-$success: #6BD425;
+// --- Core & Brand ---
+
+$primary:   #2563EB; // Blu Vivido: Azione principale. Comunica autorità e stabilità.
+
+$secondary: #64748B; // Grigio Ardesia: Per azioni secondarie (Annulla, Esporta). Non distrae.
+
+
+
+// --- Stati Semantici ---
+
+$success:   #16A34A; // Verde: "Disponibile". Ben visibile per conferma operativa.
+
+$info:      #0EA5E9; // Azzurro: Messaggi di sistema o aggiornamenti neutri.
+
+$warning:   #F59E0B; // Ambra: "Sottoscorta". Attira l'attenzione senza allarmare.
+
+$danger:    #DC2626; // Rosso: "Esaurito/Errore". Massima urgenza visiva.
+
+
+
+// --- Strutturali ---
+
+$dark:      #0F172A; // Blu Notte: Usato per Sidebar o Header per dare struttura.
+
+$light:     #F1F5F9; // Grigio Ghiaccio: Per bordi, divisori e sfondi di input.
+
+
+
+// Impostazioni specifiche per l'usabilità
+$body-bg:       #F8FAFC; // $light-bg-main
+$body-color:    #1E293B; // $text-primary
+$card-bg:       #FFFFFF; // $light-bg-surface
+$border-color:  #D1D5DB;
+$table-bg: #FFFFFF;      // stesso colore del body
+$input-bg: #FFFFFF;
 
 // Used to be able to edit values of bootstrap scss and css variables
 @import "../../node_modules/bootstrap/scss/_functions";
