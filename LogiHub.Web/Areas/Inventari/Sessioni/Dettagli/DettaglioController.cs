@@ -34,6 +34,10 @@ public partial class DettaglioController : AuthenticatedBaseController
         }
 
         var data = await _service.OttieniDettaglioSessioneAsync(id);
+        var discrepanze = await _service.OttieniDiscrepanzeAsync(id);
+
+        bool ciSonoDiscrepanzeAperte = discrepanze.Any(d => d.Stato == StatoDiscrepanza.Aperta);
+        bool ciSonoUbicazioniAperte = data.Ubicazioni.Any(u => !u.Completata);
 
         var ubicazioniFiltrate = data.Ubicazioni;
 
@@ -80,20 +84,42 @@ public partial class DettaglioController : AuthenticatedBaseController
         // Se la sessione non è chiusa, aggiungi il pulsante di chiusura
         if (!data.Chiuso)
         {
-            searchCardModel.HeaderButtons.Add(new SearchCardButton
+            if (ciSonoDiscrepanzeAperte || ciSonoUbicazioniAperte)
             {
-                Text = "Termina",
-                CssClass = "btn-primary d-none d-md-inline-flex align-items-center",
-                IconClass = "fa-solid fa-lock",
-                Type = "button",
-                HtmlAttributes = new Dictionary<string, string>
+                // BOTTONE DISABILITATO
+                searchCardModel.HeaderButtons.Add(new SearchCardButton
                 {
-                    { "data-post-action", "true" },
-                    { "data-url", Url.Action("ChiudiSessione", "Dettaglio", new { area = "Inventari", id }) },
-
-                    { "data-message", $"Vuoi davvero chiudere l’inventario <b>{data.NomeSessione}</b>?" }
-                }
-            });
+                    Text = "Termina",
+                    CssClass = "btn-secondary disabled d-none d-md-inline-flex align-items-center",
+                    IconClass = "fa-solid fa-lock",
+                    Type = "button",
+                    HtmlAttributes = new Dictionary<string, string>
+                    {
+                        { "disabled", "disabled" },
+                        { "title", "Completa tutte le ubicazioni e risolvi le discrepanze prima di terminare." },
+                        { "style", "cursor: not-allowed;" }
+                    }
+                });
+            }
+            else
+            {
+                // BOTTONE ABILITATO
+                searchCardModel.HeaderButtons.Add(new SearchCardButton
+                {
+                    Text = "Termina",
+                    CssClass = "btn-primary d-none d-md-inline-flex align-items-center",
+                    IconClass = "fa-solid fa-lock",
+                    Type = "button",
+                    HtmlAttributes = new Dictionary<string, string>
+                    {
+                        { "data-confirm-trigger", "true" },
+                        { "data-url", Url.Action("ChiudiSessione", "Dettaglio", new { area = "Inventari", id }) },
+                        { "data-method", "POST" },
+                        { "data-type", "form" },
+                        { "data-message", $"Vuoi davvero chiudere l’inventario <b>{data.NomeSessione}</b>?" }
+                    }
+                });
+            }
         }
 
         var model = new DettaglioSessioneViewModel
@@ -106,7 +132,9 @@ public partial class DettaglioController : AuthenticatedBaseController
             UbicazioniFiltrate = ubicazioniPaginate,
             Page = page,
             PageSize = pageSize,
-            TotalItems = totalItems
+            TotalItems = totalItems,
+            CiSonoDiscrepanzeAperte = ciSonoDiscrepanzeAperte,
+            CiSonoUbicazioniAperte = ciSonoUbicazioniAperte
         };
         
         SetBreadcrumb(

@@ -16,6 +16,11 @@ public class DettaglioSessioneViewModel: PagingViewModel
     public string Filter { get; set; }
     public string SearchQuery { get; set; }
     public IEnumerable<DettaglioSessioneDTO.UbicazioneConStato> UbicazioniFiltrate { get; set; }
+    
+    public bool CiSonoDiscrepanzeAperte { get; set; }
+    public bool CiSonoUbicazioniAperte { get; set; }
+    public bool PuoChiudere => !Chiuso && !CiSonoDiscrepanzeAperte && !CiSonoUbicazioniAperte;
+
     public override IActionResult GetRoute()
     {
         return MVC.Inventari.Dettaglio.Index(

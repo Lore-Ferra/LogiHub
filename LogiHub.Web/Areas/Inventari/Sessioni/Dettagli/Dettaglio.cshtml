@@ -8,20 +8,27 @@
     var ubiCompletate = Model.UbicazioniFiltrate.Where(u => u.Completata).ToList();
 }
 
-<div class="toast-container position-fixed end-0 p-3" style="z-index: 1050; top: 70px;">
-    @if (TempData["ErrorMessage"] != null)
-    {
-        <div id="errorToast" class="toast align-items-center text-bg-danger border-0" role="alert" aria-live="assertive"
-             aria-atomic="true">
-            <div class="d-flex">
-                <div class="toast-body"><i class="fa-solid fa-circle-exclamation me-2"></i> @TempData["ErrorMessage"]
-                </div>
-                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"
-                        aria-label="Close"></button>
-            </div>
+@if (!Model.Chiuso && (Model.CiSonoUbicazioniAperte || Model.CiSonoDiscrepanzeAperte))
+{
+    <div class="alert alert-warning border-0 shadow-sm mb-3 d-flex align-items-center">
+        <i class="fa-solid fa-lock me-3 fa-lg"></i>
+        <div>
+            <strong>Chiusura Bloccata:</strong>
+            @if (Model.CiSonoUbicazioniAperte && Model.CiSonoDiscrepanzeAperte)
+            {
+                <span>Ci sono ancora ubicazioni da completare e discrepanze da risolvere.</span>
+            }
+            else if (Model.CiSonoUbicazioniAperte)
+            {
+                <span>Ci sono ancora ubicazioni da completare.</span>
+            }
+            else
+            {
+                <span>Ci sono ancora discrepanze da risolvere.</span>
+            }
         </div>
-    }
-</div>
+    </div>
+}
 
 <div>
     @await Html.PartialAsync("~/Features/SearchCard/_SearchCard.cshtml", Model.SearchCard)
@@ -182,16 +189,29 @@
 @if (!Model.Chiuso)
 {
     <div class="d-md-none mt-4 mb-3">
-        <button type="button"
-                class="btn btn-primary w-100 py-2 fw-bold shadow-sm"
-                data-confirm-trigger="true"
-                data-url="@Url.Action("ChiudiSessione", "Dettaglio", new { area = "Inventari", id = Model.SessioneId })"
-                data-method="POST"
-                data-type="form"
-                data-message="Vuoi davvero chiudere l’inventario <b>@Model.NomeSessione</b>?">
-            <i class="fa-solid fa-lock me-2"></i>
-            Termina Inventario
-        </button>
+        @if (Model.PuoChiudere)
+        {
+            <button type="button"
+                    class="btn btn-primary w-100 py-2 fw-bold shadow-sm"
+                    data-confirm-trigger="true"
+                    data-url="@Url.Action("ChiudiSessione", "Dettaglio", new { area = "Inventari", id = Model.SessioneId })"
+                    data-method="POST"
+                    data-type="form"
+                    data-message="Vuoi davvero chiudere l’inventario <b>@Model.NomeSessione</b>?">
+                <i class="fa-solid fa-lock me-2"></i>
+                Termina Inventario
+            </button>
+        }
+        else
+        {
+            <button type="button"
+                    class="btn btn-secondary w-100 py-2 fw-bold shadow-sm disabled"
+                    title="Completa prima l'inventario"
+                    style="cursor:not-allowed; pointer-events:auto !important;">
+                <i class="fa-solid fa-lock me-2"></i>
+                Termina Inventario
+            </button>
+        }
     </div>
 }
 
