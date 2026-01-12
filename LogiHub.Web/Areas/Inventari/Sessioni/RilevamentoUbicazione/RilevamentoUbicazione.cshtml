@@ -2,10 +2,6 @@
 @using LogiHub.Models.Shared
 @model LogiHub.Web.Areas.Inventari.Sessioni.RilevamentoUbicazioneViewModel
 
-@section Styles {
-    <link rel="stylesheet" href="~/css/fab-button.css"/>
-}
-
 
 @{
     ViewData["Title"] = "Rilevamento " + Model.NomeUbicazione;
@@ -32,40 +28,16 @@
         new { area = "Inventari", sessioneId = Model.SessioneId, ubicazioneId = Model.UbicazioneId });
 }
 
-<div class="d-md-none d-flex justify-content-end mb-2 p-2">
-
-    @if (Model.IsSolaLettura)
+<div class="d-md-none mb-3 mt-2">
+    @if (!Model.IsSolaLettura)
     {
         <button type="button"
-                class="btn btn-primary disabled"
-                title="Ubicazione già completata"
-                style="cursor:not-allowed; pointer-events:auto !important;">
-            <i class="fa-solid fa-lock me-2"></i>
-            Concludi
+                class="btn btn-outline-primary w-100 py-2 fw-bold shadow-sm"
+                data-bs-toggle="modal"
+                data-bs-target="#modalAggiungiExtra">
+            <i class="fa-solid fa-plus me-2"></i>
+            Aggiungi Extra
         </button>
-    }
-    else if (inAttesa > 0)
-    {
-        <button type="button"
-                class="btn btn-primary"
-                data-confirm-trigger="true"
-                data-url="@urlConcludi"
-                data-method="POST"
-                data-type="form"
-                data-message="Attenzione: ci sono @inAttesa pezzi non rilevati. Verranno segnati come MANCANTI. Vuoi procedere?">
-            <i class="fa-solid fa-check-double me-2"></i>
-            Concludi
-        </button>
-    }
-    else
-    {
-        <form method="post" action="@urlConcludi" class="m-0">
-            @Html.AntiForgeryToken()
-            <button type="submit" class="btn btn-primary">
-                <i class="fa-solid fa-check-double me-2"></i>
-                Concludi
-            </button>
-        </form>
     }
 </div>
 
@@ -217,23 +189,41 @@
             </div>
         }
 
-        @if (!Model.IsSolaLettura)
-        {
-            <button type="button"
-                    class="fab d-md-none border-0"
-                    data-bs-toggle="modal"
-                    data-bs-target="#modalAggiungiExtra"
-                    style="width: auto; padding: 0 20px; border-radius: 30px;">
-                <i class="fa-solid fa-plus me-1"></i> Extra
-            </button>
-        }
-        else
-        {
-            <button class="fab d-md-none btn btn-primary disabled" title="Aggiunta bloccata"
-                    style="cursor: not-allowed; pointer-events: auto !important; width: auto; padding: 0 20px; border-radius: 30px;">
-                <i class="fa-solid fa-lock"></i> Extra
-            </button>
-        }
+        <div class="mt-4 mb-3">
+            @if (Model.IsSolaLettura)
+            {
+                <button type="button"
+                        class="btn btn-primary w-100 py-2 fw-bold shadow-sm disabled"
+                        title="Ubicazione già completata"
+                        style="cursor:not-allowed; pointer-events:auto !important;">
+                    <i class="fa-solid fa-lock me-2"></i>
+                    Concludi
+                </button>
+            }
+            else if (inAttesa > 0)
+            {
+                <button type="button"
+                        class="btn btn-primary w-100 py-2 fw-bold shadow-sm"
+                        data-confirm-trigger="true"
+                        data-url="@urlConcludi"
+                        data-method="POST"
+                        data-type="form"
+                        data-message="Attenzione: ci sono @inAttesa pezzi non rilevati. Verranno segnati come MANCANTI. Vuoi procedere?">
+                    <i class="fa-solid fa-check-double me-2"></i>
+                    Concludi
+                </button>
+            }
+            else
+            {
+                <form method="post" action="@urlConcludi" class="m-0">
+                    @Html.AntiForgeryToken()
+                    <button type="submit" class="btn btn-primary w-100 py-2 fw-bold shadow-sm">
+                        <i class="fa-solid fa-check-double me-2"></i>
+                        Concludi
+                    </button>
+                </form>
+            }
+        </div>
     </div>
 
 </div>
