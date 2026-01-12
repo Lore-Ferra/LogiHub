@@ -134,7 +134,7 @@ public partial class SessioniController : AuthenticatedBaseController
             queryBase = queryBase.Where(x =>
                 (cols.Contains("NomeSessione") &&
                  x.NomeSessione != null &&
-                 x.NomeSessione.Contains(q))
+                 x.NomeSessione.ToLower().Contains(q.ToLower()))
 
                 ||
 
