@@ -378,7 +378,7 @@ public partial class SemiLavoratiController : AuthenticatedBaseController
         string barcode;
         do
         {
-            barcode = "PZ-" + Random.Shared.Next(0001, 9999);
+            barcode = "#" + Random.Shared.Next(0001, 9999);
         } while (await _context.SemiLavorati.AnyAsync(x => x.Barcode == barcode));
 
         return Json(barcode);
