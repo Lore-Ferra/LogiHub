@@ -83,10 +83,14 @@
                             <td class="text-end pe-3">
                                 @if (item.Stato != StatoDiscrepanza.Aperta)
                                 {
-                                    <button class="btn btn-secondary disabled">
-                                        <i class="fa-solid fa-lock" title="Completa prima l'inventario"></i>
-                                    </button>
-                                   
+                                    <div class="btn-group">
+                                        <button class="btn btn-sm btn-secondary disabled">
+                                            <i class="fa-solid fa-lock me-2"></i>Risolvi
+                                        </button>
+                                        <button class="btn btn-sm btn-secondary disabled">
+                                            <i class="fa-solid fa-lock me-2"></i>Annulla
+                                        </button>
+                                    </div>
                                 }
                                 else if (Model.IsSolaLettura)
                                 {
@@ -163,8 +167,13 @@
                         <div class="action-cell">
                             @if (item.Stato != StatoDiscrepanza.Aperta)
                             {
-                                <div class="text-end text-success">
-                                    <i class="fa-solid fa-circle-check fa-2x"></i>
+                                <div class="d-flex gap-2">
+                                    <button class="btn btn-secondary flex-grow-1 fw-bold py-2 disabled">
+                                        <i class="fa-solid fa-lock me-2"></i>Risolvi
+                                    </button>
+                                    <button class="btn btn-secondary py-2 px-3 disabled">
+                                        <i class="fa-solid fa-lock"></i>
+                                    </button>
                                 </div>
                             }
                             else if (Model.IsSolaLettura)
@@ -367,14 +376,26 @@
             
             if (tr) {
                 tr.cells[2].innerHTML = statusHtml;
-                tr.cells[3].innerHTML = `<i class="fa-solid fa-circle-check text-success" title="Gestita"></i>`;
+                tr.cells[3].innerHTML = `
+                    <div class="btn-group">
+                        <button class="btn btn-sm btn-secondary disabled"><i class="fa-solid fa-lock me-2"></i>Risolvi</button>
+                        <button class="btn btn-sm btn-secondary disabled"><i class="fa-solid fa-lock me-2"></i>Annulla</button>
+                    </div>`;
                 tr.classList.add('opacity-75', 'bg-light');
             } else if (card) {
                 const statusEl = card.querySelector('.status-cell');
                 if(statusEl) statusEl.innerHTML = statusHtml;
                 
                 const actionEl = card.querySelector('.action-cell');
-                if(actionEl) actionEl.innerHTML = `<div class="text-end"><i class="fa-solid fa-circle-check text-success fa-2x"></i></div>`;
+                if(actionEl) actionEl.innerHTML = `
+                    <div class="d-flex gap-2">
+                        <button class="btn btn-secondary flex-grow-1 fw-bold py-2 disabled">
+                            <i class="fa-solid fa-lock me-2"></i>Risolvi
+                        </button>
+                        <button class="btn btn-secondary py-2 px-3 disabled">
+                            <i class="fa-solid fa-lock"></i>
+                        </button>
+                    </div>`;
                 
                 card.classList.remove('border-primary');
                 if (data.stato === 'Risolta') card.classList.add('border-success');
