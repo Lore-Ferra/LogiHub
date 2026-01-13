@@ -399,10 +399,11 @@ namespace LogiHub.Infrastructure
         }
 
         private static void SeedInventariDemo(TemplateDbContext context)
-        {
+{
             if (context.SessioniInventario.Any()) return;
 
             var marioId = Guid.Parse("3de6883f-9a0b-4667-aa53-0fbc52c4d300");
+            var now = BaseDate.AddDays(-5);
 
             var ubi = context.Ubicazioni.ToDictionary(u => u.Posizione, u => u.UbicazioneId);
 
@@ -412,135 +413,180 @@ namespace LogiHub.Infrastructure
                 .OrderBy(sl => sl.Barcode)
                 .ToList();
 
-            if (semilavoratiMagazzino.Count == 0) return;
+            if (semilavoratiMagazzino.Count < 6) return;
 
-            var s1Id = StableGuid("INV-DEMO-1");
-            var s1 = new SessioneInventario
+            RigaInventario RigaRisolta(
+                Guid sessioneId,
+                SemiLavorato sl,
+                Guid? ubiSnap,
+                Guid? ubiRil,
+                StatoRigaInventario stato,
+                TipoRisoluzione tipoRisoluzione,
+                int minutesOffset)
             {
-                Id = s1Id,
-                NomeSessione = "Inventario #2",
-                DataCreazione = BaseDate.AddDays(-5),
-                DataChiusura = BaseDate.AddDays(-5).AddHours(2),
+                return new RigaInventario
+                {
+                    Id = StableGuid($"SEED-RIGA-{sessioneId}-{sl.Barcode}-{stato}-{minutesOffset}"),
+                    SessioneInventarioId = sessioneId,
+                    SemiLavoratoId = sl.Id,
+
+                    UbicazioneSnapshotId = ubiSnap,
+                    UbicazioneRilevataId = ubiRil,
+
+                    Stato = stato,
+                    RilevatoDaUserId = marioId,
+                    DataRilevamento = now.AddMinutes(minutesOffset),
+
+                    StatoDiscrepanza = StatoDiscrepanza.Risolta,
+                    TipoRisoluzione = tipoRisoluzione,
+                    RisoltoDaUserId = marioId,
+                    DataRisoluzione = now.AddMinutes(minutesOffset + 30)
+                };
+            }
+
+            var inv1Id = StableGuid("INV-DEMO-1");
+            var inv1 = new SessioneInventario
+            {
+                Id = inv1Id,
+                NomeSessione = "Inventario #1",
+                DataCreazione = now.AddDays(-10),
+                DataChiusura = now.AddDays(-10).AddHours(1),
                 Chiuso = true,
                 CreatoDaUserId = marioId
             };
 
-            var s1Ubi = new[] { "A3", "B1", "C2", "E4" }
+            var inv1Ubi = new[] { "A3", "B1", "C2", "E4" }
                 .Where(pos => ubi.ContainsKey(pos))
                 .ToList();
 
-            foreach (var pos in s1Ubi)
+            foreach (var pos in inv1Ubi)
             {
-                s1.StatiUbicazioni.Add(new SessioneUbicazione
+                inv1.StatiUbicazioni.Add(new SessioneUbicazione
                 {
                     Id = StableGuid($"INV1-UBI-{pos}"),
-                    SessioneInventarioId = s1Id,
+                    SessioneInventarioId = inv1Id,
                     UbicazioneId = ubi[pos],
                     OperatoreCorrenteId = marioId,
                     Completata = true,
-                    DataCompletamento = BaseDate.AddDays(-5).AddHours(1)
+                    DataCompletamento = now.AddDays(-10).AddMinutes(40)
                 });
             }
 
-            var righeBase1 = semilavoratiMagazzino.Take(15).ToList();
-
-            for (int i = 0; i < righeBase1.Count; i++)
+            foreach (var (sl, idx) in semilavoratiMagazzino.Take(10).Select((x, i) => (x, i)))
             {
-                var sl = righeBase1[i];
-
-                var stato = StatoRigaInventario.Trovato;
-                if (i == 3 || i == 9) stato = StatoRigaInventario.Mancante;
-
-                s1.Righe.Add(new RigaInventario
+                inv1.Righe.Add(new RigaInventario
                 {
-                    Id = StableGuid($"INV1-RIGA-{sl.Barcode}"),
-                    SessioneInventarioId = s1Id,
+                    Id = StableGuid($"INV1-RIGA-OK-{sl.Barcode}"),
+                    SessioneInventarioId = inv1Id,
                     SemiLavoratoId = sl.Id,
-
                     UbicazioneSnapshotId = sl.UbicazioneId,
-                    UbicazioneRilevataId = (stato == StatoRigaInventario.Trovato) ? sl.UbicazioneId : null,
-
-                    Stato = stato,
-                    DataRilevamento = BaseDate.AddDays(-5).AddMinutes(20 + i),
-                    RilevatoDaUserId = marioId
+                    UbicazioneRilevataId = sl.UbicazioneId,
+                    Stato = StatoRigaInventario.Trovato,
+                    RilevatoDaUserId = marioId,
+                    DataRilevamento = now.AddDays(-10).AddMinutes(10 + idx),
+                    StatoDiscrepanza = StatoDiscrepanza.Annullata
                 });
             }
 
-            if (ubi.ContainsKey("A3"))
-            {
-                s1.Righe.Add(new RigaInventario
-                {
-                    Id = StableGuid("INV1-EXTRA-1"),
-                    SessioneInventarioId = s1Id,
-                    SemiLavoratoId = semilavoratiMagazzino[0].Id,
-                    UbicazioneSnapshotId = null,
-                    UbicazioneRilevataId = ubi["A3"],
-                    Stato = StatoRigaInventario.Extra,
-                    DataRilevamento = BaseDate.AddDays(-5).AddMinutes(200),
-                    RilevatoDaUserId = marioId
-                });
-            }
+            var m1 = semilavoratiMagazzino[10];
+            var m2 = semilavoratiMagazzino[11];
 
-            var s2Id = StableGuid("INV-DEMO-2");
-            var s2 = new SessioneInventario
+            inv1.Righe.Add(RigaRisolta(
+                inv1Id, m1,
+                ubiSnap: m1.UbicazioneId,
+                ubiRil: null,
+                stato: StatoRigaInventario.Mancante,
+                tipoRisoluzione: TipoRisoluzione.Rimuovi,
+                minutesOffset: 200));
+
+            inv1.Righe.Add(RigaRisolta(
+                inv1Id, m2,
+                ubiSnap: m2.UbicazioneId,
+                ubiRil: null,
+                stato: StatoRigaInventario.Mancante,
+                tipoRisoluzione: TipoRisoluzione.Rimuovi,
+                minutesOffset: 210));
+
+            var inv2Id = StableGuid("INV-DEMO-2");
+            var inv2 = new SessioneInventario
             {
-                Id = s2Id,
-                NomeSessione = "Inventario #1",
-                DataCreazione = BaseDate.AddDays(-15),
-                DataChiusura = BaseDate.AddDays(-15).AddHours(1),
+                Id = inv2Id,
+                NomeSessione = "Inventario #2",
+                DataCreazione = now.AddDays(-5),
+                DataChiusura = now.AddDays(-5).AddHours(2),
                 Chiuso = true,
                 CreatoDaUserId = marioId
             };
 
-            var s2Ubi = new[] { "A1", "A3", "B1", "C2" }
+            var inv2Ubi = new[] { "A3", "B1", "C2", "E4" }
                 .Where(pos => ubi.ContainsKey(pos))
                 .ToList();
 
-            foreach (var pos in s2Ubi)
+            foreach (var pos in inv2Ubi)
             {
-                s2.StatiUbicazioni.Add(new SessioneUbicazione
+                inv2.StatiUbicazioni.Add(new SessioneUbicazione
                 {
                     Id = StableGuid($"INV2-UBI-{pos}"),
-                    SessioneInventarioId = s2Id,
+                    SessioneInventarioId = inv2Id,
                     UbicazioneId = ubi[pos],
                     OperatoreCorrenteId = marioId,
                     Completata = true,
-                    DataCompletamento = BaseDate.AddDays(-15).AddMinutes(40)
+                    DataCompletamento = now.AddDays(-5).AddHours(1)
                 });
             }
 
-            var righeBase2 = semilavoratiMagazzino.Skip(5).Take(12).ToList();
-
-            for (int i = 0; i < righeBase2.Count; i++)
+            foreach (var (sl, idx) in semilavoratiMagazzino.Take(8).Select((x, i) => (x, i)))
             {
-                var sl = righeBase2[i];
-
-                Guid? ubiRilevata = sl.UbicazioneId;
-                var stato = StatoRigaInventario.Trovato;
-
-                if (i == 2 && ubi.ContainsKey("B1")) ubiRilevata = ubi["B1"];
-                if (i == 7 && ubi.ContainsKey("A1")) ubiRilevata = ubi["A1"];
-
-                s2.Righe.Add(new RigaInventario
+                inv2.Righe.Add(new RigaInventario
                 {
-                    Id = StableGuid($"INV2-RIGA-{sl.Barcode}"),
-                    SessioneInventarioId = s2Id,
+                    Id = StableGuid($"INV2-RIGA-OK-{sl.Barcode}"),
+                    SessioneInventarioId = inv2Id,
                     SemiLavoratoId = sl.Id,
-
                     UbicazioneSnapshotId = sl.UbicazioneId,
-                    UbicazioneRilevataId = ubiRilevata,
-
-                    Stato = stato,
-                    DataRilevamento = BaseDate.AddDays(-15).AddMinutes(10 + i),
-                    RilevatoDaUserId = marioId
+                    UbicazioneRilevataId = sl.UbicazioneId,
+                    Stato = StatoRigaInventario.Trovato,
+                    RilevatoDaUserId = marioId,
+                    DataRilevamento = now.AddDays(-5).AddMinutes(10 + idx),
+                    StatoDiscrepanza = StatoDiscrepanza.Annullata
                 });
             }
 
-            context.SessioniInventario.AddRange(s1, s2);
+            var slSpostato = semilavoratiMagazzino[12];
+
+            Guid ubiTrovata = ubi.ContainsKey("A3") ? ubi["A3"] :
+                              ubi.ContainsKey("C2") ? ubi["C2"] :
+                              ubi.Values.First();
+
+            inv2.Righe.Add(RigaRisolta(
+                inv2Id, slSpostato,
+                ubiSnap: slSpostato.UbicazioneId,
+                ubiRil: null,
+                stato: StatoRigaInventario.Mancante,
+                tipoRisoluzione: TipoRisoluzione.Sposta,
+                minutesOffset: 300));
+
+            inv2.Righe.Add(RigaRisolta(
+                inv2Id, slSpostato,
+                ubiSnap: slSpostato.UbicazioneId,
+                ubiRil: ubiTrovata,
+                stato: StatoRigaInventario.Extra,
+                tipoRisoluzione: TipoRisoluzione.Sposta,
+                minutesOffset: 305));
+
+            var slExtraPuro = semilavoratiMagazzino[13];
+            inv2.Righe.Add(RigaRisolta(
+                inv2Id, slExtraPuro,
+                ubiSnap: null,
+                ubiRil: ubiTrovata,
+                stato: StatoRigaInventario.Extra,
+                tipoRisoluzione: TipoRisoluzione.Aggiungi,
+                minutesOffset: 360));
+
+            context.SessioniInventario.AddRange(inv1, inv2);
 
             Console.WriteLine("=== INVENTARI DEMO CREATI ===");
-            Console.WriteLine($"- {s1.NomeSessione} (Chiuso={s1.Chiuso}) | Righe={s1.Righe.Count} | Ubi={s1.StatiUbicazioni.Count}");
-            Console.WriteLine($"- {s2.NomeSessione} (Chiuso={s2.Chiuso}) | Righe={s2.Righe.Count} | Ubi={s2.StatiUbicazioni.Count}");
+            Console.WriteLine($"- {inv1.NomeSessione} (Chiuso={inv1.Chiuso}) | Righe={inv1.Righe.Count} | Ubi={inv1.StatiUbicazioni.Count}");
+            Console.WriteLine($"- {inv2.NomeSessione} (Chiuso={inv2.Chiuso}) | Righe={inv2.Righe.Count} | Ubi={inv2.StatiUbicazioni.Count}");
             Console.WriteLine("=============================");
         }
     }
