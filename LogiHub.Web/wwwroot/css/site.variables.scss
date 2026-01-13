@@ -7,40 +7,36 @@ $color-background-dark: #373737;
 $color-background-title: #E4E4E4;
 $color-background-subtitle: #EFEFEF;
 
-// --- Core & Brand ---
 
-$primary:   #2563EB; // Blu Vivido: Azione principale. Comunica autorità e stabilità.
+$primary:   #2563EB;
 
-$secondary: #64748B; // Grigio Ardesia: Per azioni secondarie (Annulla, Esporta). Non distrae.
-
-
-
-// --- Stati Semantici ---
-
-$success:   #16A34A; // Verde: "Disponibile". Ben visibile per conferma operativa.
-
-$info:      #0EA5E9; // Azzurro: Messaggi di sistema o aggiornamenti neutri.
-
-$warning:   #F59E0B; // Ambra: "Sottoscorta". Attira l'attenzione senza allarmare.
-
-$danger:    #DC2626; // Rosso: "Esaurito/Errore". Massima urgenza visiva.
+$secondary: #64748B;
 
 
 
-// --- Strutturali ---
 
-$dark:      #0F172A; // Blu Notte: Usato per Sidebar o Header per dare struttura.
+$success:   #16A34A;
 
-$light:     #F1F5F9; // Grigio Ghiaccio: Per bordi, divisori e sfondi di input.
+$info:      #0EA5E9;
+
+$warning:   #F59E0B;
+
+$danger:    #DC2626;
 
 
 
-// Impostazioni specifiche per l'usabilità
-$body-bg:       #F8FAFC; // $light-bg-main
-$body-color:    #1E293B; // $text-primary
-$card-bg:       #FFFFFF; // $light-bg-surface
+
+$dark:      #0F172A;
+
+$light:     #F1F5F9;
+
+
+
+$body-bg:       #F8FAFC;
+$body-color:    #1E293B;
+$card-bg:       #FFFFFF; 
 $border-color:  #D1D5DB;
-$table-bg: #FFFFFF;      // stesso colore del body
+$table-bg: #FFFFFF;
 $input-bg: #FFFFFF;
 
 // Used to be able to edit values of bootstrap scss and css variables
