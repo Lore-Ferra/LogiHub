@@ -434,9 +434,9 @@
             }
 
 
-            const btnConcludi = document.querySelector('button[data-url*="ConcludiUbicazione"]');
+            const btnsConcludi = document.querySelectorAll('button[data-url*="ConcludiUbicazione"]');
 
-            if (btnConcludi) {
+            btnsConcludi.forEach(btnConcludi => {
                 if (inAttesa > 0) {
                     btnConcludi.setAttribute('data-confirm-trigger', 'true');
                     btnConcludi.setAttribute('data-message', `Attenzione: ci sono ${inAttesa} pezzi non rilevati. Verranno segnati come MANCANTI. Vuoi procedere?`);
@@ -444,7 +444,7 @@
                     btnConcludi.removeAttribute('data-confirm-trigger');
                     btnConcludi.removeAttribute('data-message');
                 }
-            }
+            });
 }
 
         function aggiornaUIElementiRiga(rigaId, tipo) {

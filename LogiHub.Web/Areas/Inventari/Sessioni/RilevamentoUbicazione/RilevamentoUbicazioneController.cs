@@ -37,7 +37,15 @@ public partial class RilevamentoUbicazioneController : AuthenticatedBaseControll
     {
         var userId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
 
-        await _service.BloccaUbicazioneAsync(sessioneId, ubicazioneId, userId);
+        try
+        {
+            await _service.BloccaUbicazioneAsync(sessioneId, ubicazioneId, userId);
+        }
+        catch (InvalidOperationException ex)
+        {
+            TempData["ErrorMessage"] = ex.Message;
+            return RedirectToAction("Index", "Dettaglio", new { area = "Inventari", id = sessioneId });
+        }
 
         var status = await _service.OttieniStatusUbicazioneAsync(sessioneId, ubicazioneId);
         var sessione = await _service.OttieniDettaglioSessioneAsync(sessioneId);
