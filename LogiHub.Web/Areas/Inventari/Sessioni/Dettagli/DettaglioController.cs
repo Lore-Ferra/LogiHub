@@ -108,7 +108,7 @@ public partial class DettaglioController : AuthenticatedBaseController
                 {
                     Text = "Termina",
                     CssClass = "btn-primary d-none d-md-inline-flex align-items-center",
-                    IconClass = "fa-solid fa-lock",
+                    IconClass = "fa-solid fa-check",
                     Type = "button",
                     HtmlAttributes = new Dictionary<string, string>
                     {
