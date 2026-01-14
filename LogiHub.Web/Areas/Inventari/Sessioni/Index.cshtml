@@ -214,12 +214,12 @@
 @if (!isBloccato)
 {
     <button type="button"
-            class="fab d-md-none border-0"
+            class="fab d-md-none border-0 d-flex align-items-center justify-content-center"
             data-confirm-trigger
             data-url="@Url.Action("AggiungiSessioneInventario", "Sessioni", new { area = "Inventari" })"
             data-type="form"
-            data-message="Vuoi avviare una nuova sessione? Il magazzino verrà bloccato.">
-        <i class="fa-solid fa-plus text-white"></i>
+            data-message="Vuoi avviare una nuova sessione di inventario? Il magazzino verrà bloccato.">
+        <i class="fa-solid fa-clipboard-check text-white"></i>
     </button>
 }
 else
