@@ -85,70 +85,51 @@
 <div class="card shadow-sm mb-3 border-0">
     <div class="card-body p-2 p-md-3">
         <form method="get">
-            @{
-                var anyRightFilter = Model.ShowUscitoFilter;
-                var addBottomSpacing = anyRightFilter || Model.ShowSearchInColumns;
-            }
-
-            <div class="row g-2 @(addBottomSpacing ? "mb-3" : "")">
-                <div class="@(anyRightFilter ? "col-8 col-md-8" : "col-12 col-md-10")">
-                    <div class="input-group">
-                        <span class="input-group-text bg-transparent border-end-0 text-muted">
-                            <i class="fas fa-search"></i>
-                        </span>
-                        <div class="form-floating">
-                            <input name="Query"
-                                   id="searchQuery"
-                                   type="text"
-                                   value="@Model.Query"
-                                   class="form-control border-start-0"
-                                   placeholder="@(string.IsNullOrEmpty(Model.Placeholder) ? "Cerca..." : Model.Placeholder)"/>
-                            <label for="searchQuery">Ricerca</label>
+            <div class="row g-2 align-items-end @(Model.ShowSearchInColumns || Model.ShowUscitoFilter ? "mb-3" : "")">
+                
+                @* Sezione Ricerca *@
+                <div class="col">
+                    <label for="searchQuery" class="form-label small fw-semibold text-muted">Ricerca</label>
+                    <div class="d-flex gap-2">
+                        <div class="input-group flex-grow-1">
+                            <span class="input-group-text bg-transparent text-muted">
+                                <i class="fas fa-search"></i>
+                            </span>
+                            <input name="Query" id="searchQuery" type="search" 
+                                   value="@Model.Query" class="form-control" placeholder="Cerca...">
                         </div>
+                        <button type="submit" class="btn btn-primary flex-shrink-0">
+                            <i class="fas fa-search me-2"></i>Cerca
+                        </button>
                     </div>
                 </div>
 
+                @* Filtro Uscito - Ora alto come la barra *@
                 @if (Model.ShowUscitoFilter)
                 {
-                    <div class="col-4 col-md-2">
-                        <div class="form-floating">
-                            <select class="form-select" id="filterUscito" name="Filters.Uscito"
-                                    onchange="this.form.submit()">
-                                <option value="0" selected="@(Model.Filters.Uscito == TriState.All)">Tutti</option>
-                                <option value="1" selected="@(Model.Filters.Uscito == TriState.True)">Sì</option>
-                                <option value="2" selected="@(Model.Filters.Uscito == TriState.False)">No</option>
-                            </select>
-                            <label for="filterUscito">Uscito</label>
-                        </div>
+                    <div class="col-auto">
+                        <label for="filterUscito" class="form-label small fw-semibold text-muted">Uscito</label>
+                        <select class="form-select" id="filterUscito" name="Filters.Uscito" 
+                                style="min-width: 100px;" onchange="this.form.submit()">
+                            <option value="0" selected="@(Model.Filters.Uscito == TriState.All)">Tutti</option>
+                            <option value="1" selected="@(Model.Filters.Uscito == TriState.True)">Sì</option>
+                            <option value="2" selected="@(Model.Filters.Uscito == TriState.False)">No</option>
+                        </select>
                     </div>
                 }
-
-                <div class="col-12 col-md-2">
-                    <button type="submit"
-                            class="btn btn-primary w-100 h-100 d-flex align-items-center justify-content-center">
-                        <i class="fas fa-search me-2"></i>Cerca
-                    </button>
-                </div>
             </div>
 
+            @* Checkbox sotto *@
             @if (Model.ShowSearchInColumns)
             {
                 <div class="d-flex align-items-center flex-wrap gap-2">
                     <span class="small text-uppercase text-muted fw-bold">Cerca in:</span>
-
-                    @{
-                        var options = Model.SearchInColumns ?? new List<SearchInColumnOption>();
-                        var currentFilters = Model.Filters.SearchInColumns ?? new List<string>();
-                    }
-
-                    @foreach (var opt in options)
+                    @foreach (var opt in Model.SearchInColumns ?? new List<SearchInColumnOption>())
                     {
-                        var isChecked = currentFilters.Contains(opt.Key);
+                        var isChecked = Model.Filters.SearchInColumns?.Contains(opt.Key) ?? false;
                         var id = $"col_{opt.Key}";
-
-                        <input type="checkbox" class="btn-check" id="@id" name="Filters.SearchInColumns"
-                               value="@opt.Key"
-                               autocomplete="off" @(isChecked ? "checked" : "")>
+                        <input type="checkbox" class="btn-check" id="@id" name="Filters.SearchInColumns" 
+                               value="@opt.Key" @(isChecked ? "checked" : "")>
                         <label class="btn btn-outline-primary btn-sm rounded-pill" for="@id">@opt.Label</label>
                     }
                 </div>
