@@ -110,7 +110,7 @@ public partial class RilevamentoUbicazioneController : AuthenticatedBaseControll
         {
             Text = "Concludi",
             CssClass = "btn-primary d-none d-md-inline-block",
-            IconClass = "fa-solid fa-check-double",
+            IconClass = "fa-solid fa-check",
             Type = "button",
             HtmlAttributes = attributiConcludi
         };
