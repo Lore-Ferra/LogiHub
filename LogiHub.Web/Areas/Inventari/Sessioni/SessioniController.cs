@@ -51,9 +51,9 @@ public partial class SessioniController : AuthenticatedBaseController
 
         var bottoneAttivo = new SearchCardButton
         {
-            Text = "Inizia Inventario",
+            Text = "Avvia Inventario",
             CssClass = "btn-primary d-none d-md-inline-block",
-            IconClass = "fa-solid fa-play",
+            IconClass = "fa-solid fa-clipboard-check",
             Type = "button",
             HtmlAttributes = new Dictionary<string, string>
             {
@@ -66,7 +66,7 @@ public partial class SessioniController : AuthenticatedBaseController
         
         var bottoneDisabilitato = new SearchCardButton
         {
-            Text = "Inizia Inventario",
+            Text = "Avvia Inventario",
             CssClass = "btn-secondary disabled d-none d-md-inline-block",
             IconClass = "fa-solid fa-lock",
             Type = "button",
