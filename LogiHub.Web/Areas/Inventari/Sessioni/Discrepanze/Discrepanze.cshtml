@@ -37,8 +37,8 @@
                 <tr>
                     <th class="w-25 text-break">Pezzo</th>
                     <th class="w-20">Info</th>
-                    <th class="w-20">Dettagli Gestione</th>
-                    <th class="w-20">Stato</th>
+                    <th class="w-15">Dettagli Gestione</th>
+                    <th class="w-20 text-center">Stato</th>
                     <th class="w-25 text-center">Azioni</th>
                 </tr>
                 </thead>
@@ -78,10 +78,10 @@
                             }
                         </td>
 
-                        <td class="stato-cell text-nowrap">
+                        <td class="stato-cell text-center text-nowrap">
                             <span class="badge @GetStatoBadge(item.Stato)">@item.Stato</span>
                         </td>
-                        <td class="text-center">
+                        <td>
                             @if (item.Stato != StatoDiscrepanza.Aperta)
                             {
                                 <div class="d-inline-flex gap-1">
