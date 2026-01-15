@@ -35,11 +35,11 @@
             <table class="table table-hover align-middle mb-0">
                 <thead class="bg-light">
                 <tr>
-                    <th class="w-25 text-break">Pezzo</th>
-                    <th class="w-20">Info</th>
-                    <th class="w-15">Dettagli Gestione</th>
-                    <th class="w-20 text-center">Stato</th>
-                    <th class="w-25 text-center">Azioni</th>
+                    <th class="text-break">Pezzo</th>
+                    <th class="">Info</th>
+                    <th class="">Dettagli Gestione</th>
+                    <th class="text-center">Stato</th>
+                    <th class="text-center">Azioni</th>
                 </tr>
                 </thead>
                 <tbody>
@@ -50,38 +50,38 @@
                             <div class="fw-bold">@item.Barcode</div>
                             <div class="small text-muted">@item.Descrizione</div>
                         </td>
-                        <td>
+                        <td class="text-nowrap">
                             @if (item.Tipo == TipoDiscrepanzaOperativa.Spostato)
                             {
-                                <small>Da <b>@item.UbicazioneSnapshot</b> Trovato in <b>@item.UbicazioneRilevata</b></small>
+                                <p>Da <b>@item.UbicazioneSnapshot</b> Trovato in <b>@item.UbicazioneRilevata</b></p>
                             }
                             else if (item.Tipo == TipoDiscrepanzaOperativa.Extra)
                             {
-                                <small>Trovato in <b>@item.UbicazioneRilevata</b></small>
+                                <p>Trovato in <b>@item.UbicazioneRilevata</b></p>
                             }
                             else
                             {
-                                <small>Mancante da <b>@item.UbicazioneSnapshot</b></small>
+                                <p>Mancante da <b>@item.UbicazioneSnapshot</b></p>
                             }
                         </td>
                         <td class="gestione-cell">
                             @if (item.Stato != StatoDiscrepanza.Aperta)
                             {
-                                <div class="x-small text-muted" style="font-size: 0.7rem;">
+                                <div class="text-muted">
                                     <div><b>@item.GestitaDa</b></div>
-                                    <div>@item.DataGestione?.ToString("dd/MM HH:mm")</div>
+                                    <div class="small text-nowrap">@item.DataGestione?.ToString("dd/MM/yyyy HH:mm")</div>
                                 </div>
                             }
                             else
                             {
-                                <span class="text-muted small">---</span>
+                                <span class="text-muted">---</span>
                             }
                         </td>
 
                         <td class="stato-cell text-center text-nowrap">
                             <span class="badge @GetStatoBadge(item.Stato)">@item.Stato</span>
                         </td>
-                        <td>
+                        <td class="text-center text-nowrap ">
                             @if (item.Stato != StatoDiscrepanza.Aperta)
                             {
                                 <div class="d-inline-flex gap-1">
