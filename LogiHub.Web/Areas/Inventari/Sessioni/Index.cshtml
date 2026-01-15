@@ -106,9 +106,9 @@
             <table class="table table-hover align-middle mb-0">
                 <thead>
                 <tr>
-                    <th class="ps-4">Sessione</th>
-                    <th class="text-center">Data Apertura</th>
-                    <th class="text-center">Data Chiusura</th>
+                    <th class="">Sessione</th>
+                    <th>Data Apertura</th>
+                    <th>Data Chiusura</th>
                     <th class="text-center">Stato</th>
                 </tr>
                 </thead>
@@ -118,7 +118,7 @@
                 @if (sessioniAperte.Any())
                 {
                     <tr class="table-secondary">
-                        <td colspan="4" class="ps-4 fw-bold bg-body-secondary text-muted small text-uppercase">In Corso</td>
+                        <td colspan="4" class="fw-bold bg-body-secondary text-muted small text-uppercase">In Corso</td>
                     </tr>
                     foreach (var item in sessioniAperte)
                     {
@@ -126,19 +126,19 @@
                             style="cursor:pointer"
                             onclick="window.location.href='@Url.Action("Index", "Dettaglio", new { id = item.Id })'">
 
-                            <td class="ps-3">
+                            <td>
                                 <div class="text-primary mb-1">
                                     @item.NomeSessione
                                 </div>
                             </td>
 
-                            <td class="text-center">
+                            <td>
                                 <small class="text-muted">
                                     @item.DataCreazione.ToString("dd/MM/yyyy HH:mm")
                                 </small>
                             </td>
 
-                            <td class="text-center">
+                            <td>
                                 <span class="text-muted">---</span>
                             </td>
 
@@ -156,7 +156,7 @@
                 @if (sessioniChiuse.Any())
                 {
                     <tr class="table-secondary">
-                        <td colspan="4" class="ps-4 fw-bold bg-body-secondary text-muted small text-uppercase">Chiuse</td>
+                        <td colspan="4" class="fw-bold bg-body-secondary text-muted small text-uppercase">Chiuse</td>
                     </tr>
                     foreach (var item in sessioniChiuse)
                     {
@@ -164,19 +164,19 @@
                             style="cursor:pointer"
                             onclick="window.location.href='@Url.Action("Index", "Dettaglio", new { id = item.Id })'">
 
-                            <td class="ps-3">
+                            <td>
                                 <div class="mb-1">
                                     @item.NomeSessione
                                 </div>
                             </td>
 
-                            <td class="text-center">
+                            <td>
                                 <small class="text-muted">
                                     @item.DataCreazione.ToString("dd/MM/yyyy HH:mm")
                                 </small>
                             </td>
 
-                            <td class="text-center">
+                            <td>
                                 @if (item.DataChiusura.HasValue)
                                 {
                                     <small class="text-muted">

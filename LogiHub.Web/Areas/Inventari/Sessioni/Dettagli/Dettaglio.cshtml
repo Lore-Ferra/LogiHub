@@ -41,16 +41,16 @@
             <table class="table table-hover align-middle mb-0">
                 <thead class="bg-light">
                 <tr>
-                    <th class="ps-4 text-start" style="width: 30%">Ubicazione</th>
-                    <th class="text-center" style="width: 50%">Dettagli Operatore</th>
-                    <th class="text-center" style="width: 20%">Stato</th>
+                    <th>Ubicazione</th>
+                    <th>Dettagli Gestione</th>
+                    <th class="text-center">Stato</th>
                 </tr>
                 </thead>
                 <tbody>
                 @if (ubiDaFare.Any())
                 {
                     <tr class="table-secondary">
-                        <td colspan="3" class="ps-4 fw-bold bg-body-secondary text-muted small text-uppercase">Da Fare</td>
+                        <td colspan="3" class="fw-bold bg-body-secondary text-muted small text-uppercase">Da Fare</td>
                     </tr>
                     @foreach (var ubi in ubiDaFare)
                     {
@@ -64,9 +64,9 @@
                             </text>
                             }>
                             
-                            <td class="ps-4 text-start fw-bold text-primary">@ubi.Posizione</td>
+                            <td class="fw-bold text-primary">@ubi.Posizione</td>
                             
-                            <td class="text-center">
+                            <td>
                                 @if (ubi.InLavorazione)
                                 {
                                     <small><i class="fa-solid fa-user-gear me-1"></i> In lavorazione da:
@@ -92,22 +92,20 @@
                 @if (ubiCompletate.Any())
                 {
                     <tr class="table-secondary">
-                        <td colspan="3" class="ps-4 fw-bold bg-body-secondary text-muted small text-uppercase">Completati</td>
+                        <td colspan="3" class="fw-bold bg-body-secondary text-muted small text-uppercase">Completati</td>
                     </tr>
                     @foreach (var ubi in ubiCompletate)
                     {
                         <tr class="bg-light" style="cursor:pointer"
                             onclick="window.location.href='@Url.Action("Index", "RilevamentoUbicazione", new { sessioneId = Model.SessioneId, ubicazioneId = ubi.UbicazioneId })'">
-                            @* Allineamento SX *@
-                            <td class="ps-4 text-start fw-bold text-muted">@ubi.Posizione</td>
+                            <td class="text-start fw-bold text-muted">@ubi.Posizione</td>
 
-                            @* Allineamento CENTRO *@
-                            <td class="text-center">
+                     
+                            <td>
                                 <small class="text-muted"><i class="fa-solid fa-check-double me-1"></i> Chiuso da:
                                     <strong>@ubi.OperatoreCorrente</strong></small>
                             </td>
-
-                            @* Allineamento DX *@
+                            
                             <td class="text-center"><span class="badge bg-success">Completato</span></td>
                         </tr>
                     }

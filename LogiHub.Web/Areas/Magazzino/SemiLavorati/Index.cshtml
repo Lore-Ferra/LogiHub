@@ -81,7 +81,7 @@
                             data-success-action="reload"
                             title="Elimina"
                             style="@(isBloccato ? "cursor: not-allowed; pointer-events: auto !important;" : "")">
-                        <i class="@(isBloccato ? "fa-solid fa-lock" : "fa-solid fa-trash")"></i>
+                            <i class="@(isBloccato ? "fa-solid fa-lock" : "fa-solid fa-trash")"></i>
                         </button>
                     </div>
                 </div>
@@ -103,11 +103,11 @@
             <table class="table table-hover align-middle mb-0">
                 <thead>
                 <tr>
-                    <th class="ps-4">Barcode</th>
+                    <th class="">Barcode</th>
                     <th>Descrizione</th>
-                    <th>Ubicazione</th>
+                    <th class="text-center">Ubicazione</th>
                     <th>Ultima Modifica</th>
-                    <th>Azioni</th>
+                    <th class="text-center">Azioni</th>
                 </tr>
                 </thead>
                 <tbody id="desktop-table-body">
@@ -119,18 +119,18 @@
                         title="Dettagli Semilavorato"
                         data-title="Dettagli Semilavorato"
                         data-url="/Magazzino/SemiLavorati/Dettagli?id=@item.Id">
-                        <td class="ps-4 fw-bold text-primary">
+                        <td class="fw-bold text-primary">
                             <div>@item.Barcode</div>
                         </td>
                         <td>@item.Descrizione</td>
-                        <td>
+                        <td class="text-center">
                                 <span class="badge @(item.Uscito ? "bg-info text-dark" : "bg-secondary")">
                                     @(item.Uscito ? "Uscito" : item.CodiceUbicazione)
                                 </span>
                         </td>
 
                         <td>@item.UltimaModifica.ToString("dd/MM/yyyy")</td>
-                        <td>
+                        <td class="text-center">
                             <button
                                 type="button"
                                 class="btn btn-sm @(isBloccato ? "btn-secondary disabled" : "btn-outline-danger")"
@@ -224,7 +224,7 @@ else
 @section Scripts {
     <script src="~/js/Features/Modals/ConfirmModal.js"></script>
     <script src="~/js/Features/Offcanvas/offcanvas.js"></script>
-    
+
     <script>
         document.addEventListener('submit', function (e) {
 
@@ -358,11 +358,11 @@ else
         }, true);
     </script>
     <script>
-        document.addEventListener("DOMContentLoaded", function() {
+        document.addEventListener("DOMContentLoaded", function () {
             const counter = document.getElementById('semilavorati-counter');
-            
+
             const updateCounter = () => {
-                if(!counter) return;
+                if (!counter) return;
                 let count = parseInt(counter.innerText);
                 if (!isNaN(count) && count > 0) {
                     counter.innerText = count - 1;
@@ -377,7 +377,7 @@ else
                 });
             });
 
-            const config = { childList: true };
+            const config = {childList: true};
             const mobileContainer = document.getElementById('mobile-list-container');
             const desktopBody = document.getElementById('desktop-table-body');
 

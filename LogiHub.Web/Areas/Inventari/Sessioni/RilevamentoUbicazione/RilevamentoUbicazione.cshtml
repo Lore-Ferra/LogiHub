@@ -96,10 +96,10 @@
                 <table class="table table-hover align-middle mb-0">
                     <thead class="bg-light">
                     <tr>
-                        <th class="ps-4" style="width: 20%">Barcode</th>
-                        <th style="width: 50%">Descrizione</th>
-                        <th class="text-center" style="width: 10%">Stato</th>
-                        <th class="text-end pe-4" style="width: 20%">Azioni</th>
+                        <th>Barcode</th>
+                        <th>Descrizione</th>
+                        <th class="text-center">Stato</th>
+                        <th class="text-center">Azioni</th>
                     </tr>
                     </thead>
                     <tbody>
@@ -108,7 +108,7 @@
                         @foreach (var pezzo in Model.Pezzi)
                         {
                             <tr id="row-@pezzo.RigaId">
-                                <td class="ps-4 fw-bold text-primary">@pezzo.Barcode</td>
+                                <td class="fw-bold text-primary">@pezzo.Barcode</td>
                                 <td class="text-muted">@pezzo.Descrizione</td>
 
                                 <td class="text-center">
@@ -118,7 +118,7 @@
                                     </span>
                                 </td>
 
-                                <td class="text-end pe-4">
+                                <td class="text-center">
                                     <div class="d-inline-flex gap-1 text-nowrap" role="group">
 
                                         <button class="@btnPresenteClass flex-fill"
