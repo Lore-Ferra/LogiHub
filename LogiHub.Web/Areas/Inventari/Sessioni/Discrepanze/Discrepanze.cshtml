@@ -20,6 +20,7 @@
 }
 
 @functions {
+
     string GetStatoBadge(StatoDiscrepanza stato) => stato switch
     {
         StatoDiscrepanza.Risolta => "bg-success",
@@ -69,7 +70,8 @@
                             {
                                 <div class="text-muted">
                                     <div><b>@item.GestitaDa</b></div>
-                                    <div class="small text-nowrap">@item.DataGestione?.ToString("dd/MM/yyyy HH:mm")</div>
+                                    <div
+                                        class="small text-nowrap">@item.DataGestione?.ToString("dd/MM/yyyy HH:mm")</div>
                                 </div>
                             }
                             else
@@ -85,8 +87,12 @@
                             @if (item.Stato != StatoDiscrepanza.Aperta)
                             {
                                 <div class="d-inline-flex gap-1">
-                                    <button class="btn btn-sm btn-secondary disabled"><i class="fa-solid fa-lock me-2"></i>Risolvi</button>
-                                    <button class="btn btn-sm btn-secondary disabled"><i class="fa-solid fa-lock me-2"></i>Annulla</button>
+                                    <button class="btn btn-sm btn-secondary disabled"><i
+                                            class="fa-solid fa-lock me-2"></i>Risolvi
+                                    </button>
+                                    <button class="btn btn-sm btn-secondary disabled"><i
+                                            class="fa-solid fa-lock me-2"></i>Annulla
+                                    </button>
                                 </div>
                             }
                             else if (Model.IsSolaLettura)
@@ -151,11 +157,13 @@
                         <div class="mb-3 small bg-light p-2 rounded text-muted">
                             @if (item.Tipo == TipoDiscrepanzaOperativa.Spostato)
                             {
-                                <span><i class="fa-solid fa-arrow-right-arrow-left me-1"></i> Da <b>@item.UbicazioneSnapshot</b> &rarr; <b>@item.UbicazioneRilevata</b></span>
+                                <span><i
+                                        class="fa-solid fa-arrow-right-arrow-left me-1"></i> Da <b>@item.UbicazioneSnapshot</b> &rarr; <b>@item.UbicazioneRilevata</b></span>
                             }
                             else if (item.Tipo == TipoDiscrepanzaOperativa.Extra)
                             {
-                                <span><i class="fa-solid fa-plus me-1"></i> Trovato in <b>@item.UbicazioneRilevata</b></span>
+                                <span><i
+                                        class="fa-solid fa-plus me-1"></i> Trovato in <b>@item.UbicazioneRilevata</b></span>
                             }
                             else
                             {
@@ -212,7 +220,9 @@
     {
         <div class="accordion-item border-0 shadow-sm mb-2">
             <h2 class="accordion-header" id="heading-@id">
-                <button class="accordion-button fw-bold @(!isOpen ? "collapsed" : "")" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-@id" aria-expanded="@isOpen" aria-controls="collapse-@id">
+                <button class="accordion-button fw-bold @(!isOpen ? "collapsed" : "")" type="button"
+                        data-bs-toggle="collapse" data-bs-target="#collapse-@id" aria-expanded="@isOpen"
+                        aria-controls="collapse-@id">
                     <i class="@icon me-2 text-@colorClass"></i> @title
                     @if (count > 0)
                     {
@@ -220,13 +230,15 @@
                     }
                 </button>
             </h2>
-            <div id="collapse-@id" class="accordion-collapse collapse @(isOpen ? "show" : "")" aria-labelledby="heading-@id" data-bs-parent="#discrepanzeAccordion">
+            <div id="collapse-@id" class="accordion-collapse collapse @(isOpen ? "show" : "")"
+                 aria-labelledby="heading-@id" data-bs-parent="#discrepanzeAccordion">
                 <div class="accordion-body p-0 p-md-3 bg-white">
                     @{ await RenderTabella(items, colorClass, tipo); }
                 </div>
             </div>
         </div>
     }
+
 }
 
 <div>
@@ -243,9 +255,9 @@
         }
 
         @{ await RenderAccordionItem("spostati", "Spostamenti", "fa-solid fa-right-left", countSpostati, Model.DaSpostare, "primary", TipoRisoluzione.Sposta, openSpostati); }
-        
+
         @{ await RenderAccordionItem("extra", "Extra", "fa-solid fa-plus", countExtra, Model.DaAggiungere, "warning", TipoRisoluzione.Aggiungi, openExtra); }
-        
+
         @{ await RenderAccordionItem("mancanti", "Mancanti", "fa-solid fa-minus", countMancanti, Model.DaRimuovere, "danger", TipoRisoluzione.Rimuovi, openMancanti); }
     </div>
 </div>
@@ -264,7 +276,7 @@
         ConfirmButtonClass = "btn-primary", // BLU
         IconClass = "fa-solid fa-circle-question text-primary"
     })
-    
+
 @* --- MODALE STANDARD (Fallback) --- *@
 @await Html.PartialAsync(
     "~/Features/Modals/_ConfirmModal.cshtml",
@@ -282,11 +294,11 @@
     <script src="~/js/Features/Modals/ConfirmModal.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function () {
-            const hash = window.location.hash; 
+            const hash = window.location.hash;
             if (hash) {
                 const targetEl = document.querySelector(hash);
                 if (targetEl) {
-                    new bootstrap.Collapse(targetEl, { show: true });
+                    new bootstrap.Collapse(targetEl, {show: true});
                 }
             }
 
@@ -305,7 +317,7 @@
                 const url = btn.getAttribute('data-url');
                 const msg = btn.getAttribute('data-message') || 'Confermi?';
 
-                avviaRisoluzione(btn, url, msg, { reloadOnSuccess: true });
+                avviaRisoluzione(btn, url, msg, {reloadOnSuccess: true});
             });
         });
 
@@ -335,7 +347,7 @@
                     const formData = new FormData();
                     formData.append('__RequestVerificationToken', tokenEl.value);
 
-                    const res = await fetch(url, { method: 'POST', body: formData });
+                    const res = await fetch(url, {method: 'POST', body: formData});
 
                     if (res.ok) {
                         const ct = res.headers.get("content-type") || "";
@@ -369,6 +381,7 @@
 
             modal.show();
         }
+
         function aggiornaRigaUI(btn, data) {
             const owner = btn.closest('[data-barcode]');
             if (!owner) return;
@@ -452,5 +465,4 @@
                 }
             }
         }
-    </script>
-}
+    </script>}
