@@ -23,7 +23,7 @@ namespace LogiHub.Infrastructure
 
             SeedSemiLavorati(context);
             context.SaveChanges();
-            
+
             SeedInventariDemo(context);
             context.SaveChanges();
 
@@ -43,26 +43,26 @@ namespace LogiHub.Infrastructure
             if (context.Users.Any()) return;
 
             context.Users.AddRange(
-                new User 
-                { 
-                    Id = Guid.Parse("3de6883f-9a0b-4667-aa53-0fbc52c4d300"), 
-                    Email = "email1@test.it", 
+                new User
+                {
+                    Id = Guid.Parse("3de6883f-9a0b-4667-aa53-0fbc52c4d300"),
+                    Email = "email1@test.it",
                     Password = "M0Cuk9OsrcS/rTLGf5SY6DUPqU2rGc1wwV2IL88GVGo=", // SHA-256 of text "Prova"
-                    FirstName = "Mario", LastName = "Rossi" 
+                    FirstName = "Mario", LastName = "Rossi"
                 },
-                new User 
-                { 
-                    Id = Guid.Parse("a030ee81-31c7-47d0-9309-408cb5ac0ac7"), 
-                    Email = "email2@test.it", 
+                new User
+                {
+                    Id = Guid.Parse("a030ee81-31c7-47d0-9309-408cb5ac0ac7"),
+                    Email = "email2@test.it",
                     Password = "Uy6qvZV0iA2/drm4zACDLCCm7BE9aCKZVQ16bg80XiU=", // SHA-256 of text "Test"
-                    FirstName = "Alessio", LastName = "Verdi" 
+                    FirstName = "Alessio", LastName = "Verdi"
                 },
-                new User 
-                { 
-                    Id = Guid.Parse("bfdef48b-c7ea-4227-8333-c635af267354"), 
-                    Email = "email3@test.it", 
+                new User
+                {
+                    Id = Guid.Parse("bfdef48b-c7ea-4227-8333-c635af267354"),
+                    Email = "email3@test.it",
                     Password = "Uy6qvZV0iA2/drm4zACDLCCm7BE9aCKZVQ16bg80XiU=", // SHA-256 of text "Test"
-                    FirstName = "Francesco", LastName = "Bianchi" 
+                    FirstName = "Francesco", LastName = "Bianchi"
                 }
             );
         }
@@ -228,6 +228,7 @@ namespace LogiHub.Infrastructure
 
                 counter++;
             }
+
             Console.WriteLine("=== SEMILAVORATI SEED ===");
             foreach (var sl in context.SemiLavorati
                          .OrderBy(x => x.Barcode)
@@ -247,6 +248,7 @@ namespace LogiHub.Infrastructure
                     $"{sl.Descrizione}"
                 );
             }
+
             Console.WriteLine("=========================");
         }
 
@@ -399,7 +401,7 @@ namespace LogiHub.Infrastructure
         }
 
         private static void SeedInventariDemo(TemplateDbContext context)
-{
+        {
             if (context.SessioniInventario.Any()) return;
 
             var marioId = Guid.Parse("3de6883f-9a0b-4667-aa53-0fbc52c4d300");
@@ -551,42 +553,13 @@ namespace LogiHub.Infrastructure
                 });
             }
 
-            var slSpostato = semilavoratiMagazzino[12];
-
-            Guid ubiTrovata = ubi.ContainsKey("A3") ? ubi["A3"] :
-                              ubi.ContainsKey("C2") ? ubi["C2"] :
-                              ubi.Values.First();
-
-            inv2.Righe.Add(RigaRisolta(
-                inv2Id, slSpostato,
-                ubiSnap: slSpostato.UbicazioneId,
-                ubiRil: null,
-                stato: StatoRigaInventario.Mancante,
-                tipoRisoluzione: TipoRisoluzione.Sposta,
-                minutesOffset: 300));
-
-            inv2.Righe.Add(RigaRisolta(
-                inv2Id, slSpostato,
-                ubiSnap: slSpostato.UbicazioneId,
-                ubiRil: ubiTrovata,
-                stato: StatoRigaInventario.Extra,
-                tipoRisoluzione: TipoRisoluzione.Sposta,
-                minutesOffset: 305));
-
-            var slExtraPuro = semilavoratiMagazzino[13];
-            inv2.Righe.Add(RigaRisolta(
-                inv2Id, slExtraPuro,
-                ubiSnap: null,
-                ubiRil: ubiTrovata,
-                stato: StatoRigaInventario.Extra,
-                tipoRisoluzione: TipoRisoluzione.Aggiungi,
-                minutesOffset: 360));
-
             context.SessioniInventario.AddRange(inv1, inv2);
 
             Console.WriteLine("=== INVENTARI DEMO CREATI ===");
-            Console.WriteLine($"- {inv1.NomeSessione} (Chiuso={inv1.Chiuso}) | Righe={inv1.Righe.Count} | Ubi={inv1.StatiUbicazioni.Count}");
-            Console.WriteLine($"- {inv2.NomeSessione} (Chiuso={inv2.Chiuso}) | Righe={inv2.Righe.Count} | Ubi={inv2.StatiUbicazioni.Count}");
+            Console.WriteLine(
+                $"- {inv1.NomeSessione} (Chiuso={inv1.Chiuso}) | Righe={inv1.Righe.Count} | Ubi={inv1.StatiUbicazioni.Count}");
+            Console.WriteLine(
+                $"- {inv2.NomeSessione} (Chiuso={inv2.Chiuso}) | Righe={inv2.Righe.Count} | Ubi={inv2.StatiUbicazioni.Count}");
             Console.WriteLine("=============================");
         }
     }
