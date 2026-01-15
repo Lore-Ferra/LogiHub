@@ -154,7 +154,15 @@ public partial class DiscrepanzeController : AuthenticatedBaseController
         var userId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
         await _service.RisolviTuttoAsync(id, userId);
 
-        return RedirectToAction("Index", new { area = "Inventari", id });
+        var user = await _context.Users.FindAsync(userId);
+        var nomeOperatore = user != null ? $"{user.FirstName} {user.LastName}" : User.Identity?.Name ?? "Operatore";
+
+        return Json(new
+        {
+            success = true,
+            gestitaDa = nomeOperatore,
+            dataGestione = DateTime.Now.ToString("dd/MM HH:mm")
+        });
     }
 
     [HttpPost]
