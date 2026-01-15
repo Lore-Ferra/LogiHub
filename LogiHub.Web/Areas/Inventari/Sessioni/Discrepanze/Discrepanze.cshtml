@@ -75,7 +75,7 @@
                         <td class="text-end pe-3">
                             @if (item.Stato != StatoDiscrepanza.Aperta)
                             {
-                                <div class="btn-group">
+                                <div class="d-inline-flex gap-1">
                                     <button class="btn btn-sm btn-secondary disabled"><i class="fa-solid fa-lock me-2"></i>Risolvi</button>
                                     <button class="btn btn-sm btn-secondary disabled"><i class="fa-solid fa-lock me-2"></i>Annulla</button>
                                 </div>
@@ -88,7 +88,7 @@
                             }
                             else
                             {
-                                <div class="btn-group">
+                                <div class="d-inline-flex gap-1">
                                     <button class="btn btn-sm btn-outline-success" type="button"
                                             onclick="avviaRisoluzione(this, '@Url.Action("Risolvi", "Discrepanze", new { area = "Inventari", id = Model.SessioneId, barcode = item.Barcode, tipo = tipoDefault })', 'Confermi la risoluzione (aggiornamento magazzino)?')">
                                         <i class="fa-solid fa-check-double me-2"></i>Risolvi
@@ -370,7 +370,7 @@
             if (tr) {
                 tr.cells[2].innerHTML = statusHtml;
                 tr.cells[3].innerHTML = `
-                    <div class="btn-group">
+                    <div class="d-inline-flex gap-1">
                         <button class="btn btn-sm btn-secondary disabled"><i class="fa-solid fa-lock me-2"></i>Risolvi</button>
                         <button class="btn btn-sm btn-secondary disabled"><i class="fa-solid fa-lock me-2"></i>Annulla</button>
                     </div>`;
