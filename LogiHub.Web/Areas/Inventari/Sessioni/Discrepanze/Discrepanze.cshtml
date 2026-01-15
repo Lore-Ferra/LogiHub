@@ -37,6 +37,7 @@
                 <tr>
                     <th class="w-25 text-break">Pezzo</th>
                     <th class="w-20">Info</th>
+                    <th class="w-20">Dettagli Gestione</th>
                     <th class="w-20">Stato</th>
                     <th class="w-25 text-center">Azioni</th>
                 </tr>
@@ -63,14 +64,22 @@
                                 <small>Mancante da <b>@item.UbicazioneSnapshot</b></small>
                             }
                         </td>
-                        <td>
-                            <span class="badge @GetStatoBadge(item.Stato)">@item.Stato</span>
+                        <td class="gestione-cell">
                             @if (item.Stato != StatoDiscrepanza.Aperta)
                             {
-                                <div class="x-small text-muted mt-1" style="font-size: 0.7rem;">
-                                    @item.GestitaDa il @item.DataGestione?.ToString("dd/MM HH:mm")
+                                <div class="x-small text-muted" style="font-size: 0.7rem;">
+                                    <div><b>@item.GestitaDa</b></div>
+                                    <div>@item.DataGestione?.ToString("dd/MM HH:mm")</div>
                                 </div>
                             }
+                            else
+                            {
+                                <span class="text-muted small">---</span>
+                            }
+                        </td>
+
+                        <td class="stato-cell text-nowrap">
+                            <span class="badge @GetStatoBadge(item.Stato)">@item.Stato</span>
                         </td>
                         <td class="text-center">
                             @if (item.Stato != StatoDiscrepanza.Aperta)
@@ -118,14 +127,24 @@
                                 <div class="fw-bold fs-5">@item.Barcode</div>
                                 <div class="small text-muted">@item.Descrizione</div>
                             </div>
-                            <div class="status-cell text-end">
-                                <span class="badge @GetStatoBadge(item.Stato)">@item.Stato</span>
-                                @if (item.Stato != StatoDiscrepanza.Aperta)
-                                {
-                                    <div class="x-small text-muted mt-1" style="font-size: 0.7rem;">
-                                        @item.GestitaDa <br/> il @item.DataGestione?.ToString("dd/MM HH:mm")
-                                    </div>
-                                }
+                            <div class="text-end">
+                                <div class="gestione-cell">
+                                    @if (item.Stato != StatoDiscrepanza.Aperta)
+                                    {
+                                        <div class="x-small text-muted" style="font-size: 0.7rem;">
+                                            <div><b>@item.GestitaDa</b></div>
+                                            <div>@item.DataGestione?.ToString("dd/MM HH:mm")</div>
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        <div class="x-small text-muted" style="font-size: 0.7rem;">---</div>
+                                    }
+                                </div>
+
+                                <div class="stato-cell mt-1">
+                                    <span class="badge @GetStatoBadge(item.Stato)">@item.Stato</span>
+                                </div>
                             </div>
                         </div>
 
@@ -365,37 +384,49 @@
                     data.stato === 'Annullata' ? 'bg-secondary' :
                         'bg-warning text-dark';
 
-            const statusHtml = `
-                <span class="badge ${badgeClass}">${data.stato}</span>
-                <div class="x-small text-muted mt-1" style="font-size: 0.7rem;">
-                    ${data.gestitaDa} il ${data.dataGestione}
-                </div>
-            `;
+            const gestioneHtml = (data.stato !== 'Aperta')
+                ? `
+            <div class="x-small text-muted" style="font-size: 0.7rem;">
+                <div><b>${data.gestitaDa}</b></div>
+                <div>${data.dataGestione}</div>
+            </div>
+          `
+                : `<span class="text-muted small">---</span>`;
+
+            const statoHtml = `<span class="badge ${badgeClass}">${data.stato}</span>`;
 
             if (tr) {
-                tr.cells[2].innerHTML = statusHtml;
-                tr.cells[3].innerHTML = `
-            <div class="d-inline-flex gap-1">
-                <button class="btn btn-sm btn-secondary disabled"><i class="fa-solid fa-lock me-2"></i>Risolvi</button>
-                <button class="btn btn-sm btn-secondary disabled"><i class="fa-solid fa-lock me-2"></i>Annulla</button>
-            </div>`;
+                const gestioneCell = tr.querySelector('.gestione-cell');
+                const statoCell = tr.querySelector('.stato-cell');
+
+                if (gestioneCell) gestioneCell.innerHTML = gestioneHtml;
+                if (statoCell) statoCell.innerHTML = statoHtml;
+
+                tr.cells[4].innerHTML = `
+                <div class="d-inline-flex gap-1">
+                    <button class="btn btn-sm btn-secondary disabled"><i class="fa-solid fa-lock me-2"></i>Risolvi</button>
+                    <button class="btn btn-sm btn-secondary disabled"><i class="fa-solid fa-lock me-2"></i>Annulla</button>
+                </div>`;
                 tr.classList.add('bg-light');
             }
 
             if (card) {
-                const statusEl = card.querySelector('.status-cell');
-                if (statusEl) statusEl.innerHTML = statusHtml;
+                const gestioneEl = card.querySelector('.gestione-cell');
+                const statoEl = card.querySelector('.stato-cell');
+
+                if (gestioneEl) gestioneEl.innerHTML = gestioneHtml;
+                if (statoEl) statoEl.innerHTML = statoHtml;
 
                 const actionEl = card.querySelector('.action-cell');
                 if (actionEl) actionEl.innerHTML = `
-            <div class="d-flex gap-2">
-                <button class="btn btn-secondary flex-grow-1 fw-bold py-2 disabled">
-                    <i class="fa-solid fa-lock me-2"></i>Risolvi
-                </button>
-                <button class="btn btn-secondary py-2 px-3 disabled">
-                    <i class="fa-solid fa-lock"></i>
-                </button>
-            </div>`;
+                <div class="d-flex gap-2">
+                    <button class="btn btn-secondary flex-grow-1 fw-bold py-2 disabled">
+                        <i class="fa-solid fa-lock me-2"></i>Risolvi
+                    </button>
+                    <button class="btn btn-secondary py-2 px-3 disabled">
+                        <i class="fa-solid fa-lock"></i>
+                    </button>
+                </div>`;
 
                 card.classList.remove('border-primary', 'border-warning', 'border-danger', 'border-success', 'border-secondary');
                 if (data.stato === 'Risolta') card.classList.add('border-success');
