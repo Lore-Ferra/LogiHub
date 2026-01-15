@@ -3,7 +3,6 @@
 @{
     ViewData["Title"] = "Analisi Discrepanze";
 
-    // Conteggi
     var countSpostati = Model.DaSpostare?.Count(x => x.Stato == StatoDiscrepanza.Aperta) ?? 0;
     var countExtra = Model.DaAggiungere?.Count(x => x.Stato == StatoDiscrepanza.Aperta) ?? 0;
     var countMancanti = Model.DaRimuovere?.Count(x => x.Stato == StatoDiscrepanza.Aperta) ?? 0;
@@ -21,7 +20,6 @@
 }
 
 @functions {
-    // Helper per i colori dei badge
     string GetStatoBadge(StatoDiscrepanza stato) => stato switch
     {
         StatoDiscrepanza.Risolta => "bg-success",
@@ -114,7 +112,6 @@
             {
                 <div class="card shadow-sm mt-2 border-0 border-start border-4 @(item.Stato == StatoDiscrepanza.Risolta ? "border-success" : item.Stato == StatoDiscrepanza.Annullata ? "border-danger" : "border-" + colorClass) mb-2 mobile-item-card @(item.Stato != StatoDiscrepanza.Aperta ? "bg-light" : "")">
                     <div class="card-body p-2">
-                        @* Header Card *@
                         <div class="d-flex justify-content-between align-items-start mb-2">
                             <div>
                                 <div class="fw-bold fs-5">@item.Barcode</div>
@@ -131,7 +128,6 @@
                             </div>
                         </div>
 
-                        @* Dettagli Spostamento/Extra/Mancante *@
                         <div class="mb-3 small bg-light p-2 rounded text-muted">
                             @if (item.Tipo == TipoDiscrepanzaOperativa.Spostato)
                             {
@@ -192,7 +188,6 @@
         </div>
     }
 
-    // Helper per creare l'item dell'accordion
     async Task RenderAccordionItem(string id, string title, string icon, int count, IEnumerable<DiscrepanzaDTO> items, string colorClass, TipoRisoluzione tipo, bool isOpen = false)
     {
         <div class="accordion-item border-0 shadow-sm mb-2">
@@ -222,7 +217,6 @@
     @* --- ACCORDION CONTAINER --- *@
     <div class="accordion" id="discrepanzeAccordion">
         @{
-            // Logica apertura default
             bool openSpostati = countSpostati > 0 || (countSpostati == 0 && countExtra == 0 && countMancanti == 0);
             bool openExtra = !openSpostati && countExtra > 0;
             bool openMancanti = !openSpostati && !openExtra;
@@ -268,7 +262,6 @@
     <script src="~/js/Features/Modals/ConfirmModal.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function () {
-            // 1. Gestione URL Hash all'avvio (apre accordion corretto)
             const hash = window.location.hash; 
             if (hash) {
                 const targetEl = document.querySelector(hash);
@@ -277,7 +270,6 @@
                 }
             }
 
-            // 2. Aggiorna URL al click sugli accordion
             const collapses = document.querySelectorAll('.accordion-collapse');
             collapses.forEach(el => {
                 el.addEventListener('shown.bs.collapse', (e) => {
@@ -286,45 +278,67 @@
             });
         });
 
-        // --- FUNZIONE AJAX COMPLETA ---
-        function avviaRisoluzione(btn, url, msg) {
+        document.querySelectorAll('[data-confirm-trigger="true"][data-url]').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.preventDefault();
+
+                const url = btn.getAttribute('data-url');
+                const msg = btn.getAttribute('data-message') || 'Confermi?';
+
+                avviaRisoluzione(btn, url, msg, { reloadOnSuccess: true });
+            });
+        });
+
+        function avviaRisoluzione(btn, url, msg, options = {}) {
             const modalEl = document.getElementById('ajaxConfirmModal');
             const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
-            
-            // Imposta messaggio
+
             const msgEl = modalEl.querySelector('[data-confirm-message]');
-            if(msgEl) msgEl.innerText = msg;
-            
+            if (msgEl) msgEl.innerText = msg;
+
             const confirmBtn = modalEl.querySelector('[data-confirm-btn]');
-            
-            // Clona il bottone per rimuovere vecchi event listener
+
             const newBtn = confirmBtn.cloneNode(true);
             confirmBtn.parentNode.replaceChild(newBtn, confirmBtn);
-            
-            // Logica click conferma
+
             newBtn.onclick = async () => {
                 newBtn.disabled = true;
                 newBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-2"></i>Attendere...';
-                
+
                 try {
-                    const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
+                    const tokenEl = document.querySelector('input[name="__RequestVerificationToken"]');
+                    if (!tokenEl) {
+                        alert("Token antiforgery mancante");
+                        return;
+                    }
+
                     const formData = new FormData();
-                    formData.append('__RequestVerificationToken', token);
-                    
+                    formData.append('__RequestVerificationToken', tokenEl.value);
+
                     const res = await fetch(url, { method: 'POST', body: formData });
-                    
-                    if(res.ok) {
-                        const data = await res.json();
-                        if(data.success) {
+
+                    if (res.ok) {
+                        const ct = res.headers.get("content-type") || "";
+                        const data = ct.includes("application/json") ? await res.json() : null;
+
+                        if (!data || data.success) {
                             modal.hide();
-                            aggiornaRigaUI(btn, data); // Aggiorna UI senza refresh
+
+                            if (options.reloadOnSuccess) {
+                                location.reload();
+                                return;
+                            }
+
+                            if (data) {
+                                aggiornaRigaUI(btn, data);
+                            }
                         } else {
                             alert("Errore: " + (data.message || "Operazione fallita"));
                         }
                     } else {
                         alert("Errore server: " + res.statusText);
                     }
-                } catch(err) {
+                } catch (err) {
                     console.error(err);
                     alert("Errore di connessione");
                 } finally {
@@ -332,14 +346,13 @@
                     newBtn.innerText = "Conferma";
                 }
             };
-            
+
             modal.show();
         }
 
-        // --- AGGIORNAMENTO UI POST-AJAX COMPLETO ---
         function aggiornaRigaUI(btn, data) {
-            const tr = btn.closest('tr'); // Cerca riga tabella
-            const card = btn.closest('.mobile-item-card'); // Cerca card mobile
+            const tr = btn.closest('tr');
+            const card = btn.closest('.mobile-item-card');
             const container = tr || card;
             
             if(!container) return;
@@ -356,7 +369,6 @@
             // 2. Aggiorna Riga Desktop
             if (tr) {
                 tr.cells[2].innerHTML = statusHtml;
-                // Disabilita azioni
                 tr.cells[3].innerHTML = `
                     <div class="btn-group">
                         <button class="btn btn-sm btn-secondary disabled"><i class="fa-solid fa-lock me-2"></i>Risolvi</button>
@@ -370,7 +382,6 @@
                 if(statusEl) statusEl.innerHTML = statusHtml;
                 
                 const actionEl = card.querySelector('.action-cell');
-                // Disabilita azioni card
                 if(actionEl) actionEl.innerHTML = `
                     <div class="d-flex gap-2">
                         <button class="btn btn-secondary flex-grow-1 fw-bold py-2 disabled">
@@ -381,7 +392,6 @@
                         </button>
                     </div>`;
                 
-                // Aggiorna bordo colorato
                 card.classList.remove('border-primary', 'border-warning', 'border-danger');
                 if (data.stato === 'Risolta') card.classList.add('border-success');
                 else if (data.stato === 'Annullata') card.classList.add('border-secondary');
@@ -402,7 +412,7 @@
                         if(!isNaN(count)) {
                             count--;
                             if(count > 0) badge.innerText = count;
-                            else badge.remove(); // Rimuovi badge se 0
+                            else badge.remove();
                         }
                     }
                 }
