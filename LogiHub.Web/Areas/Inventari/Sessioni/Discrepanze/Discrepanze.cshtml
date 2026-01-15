@@ -44,7 +44,7 @@
                 <tbody>
                 @foreach (var item in items)
                 {
-                    <tr class="@(item.Stato != StatoDiscrepanza.Aperta ? "bg-light" : "")">
+                    <tr data-barcode="@item.Barcode" class="@(item.Stato != StatoDiscrepanza.Aperta ? "bg-light" : "")">
                         <td>
                             <div class="fw-bold">@item.Barcode</div>
                             <div class="small text-muted">@item.Descrizione</div>
@@ -110,7 +110,8 @@
         <div class="d-md-none">
             @foreach (var item in items)
             {
-                <div class="card shadow-sm mt-2 border-0 border-start border-4 @(item.Stato == StatoDiscrepanza.Risolta ? "border-success" : item.Stato == StatoDiscrepanza.Annullata ? "border-danger" : "border-" + colorClass) mb-2 mobile-item-card @(item.Stato != StatoDiscrepanza.Aperta ? "bg-light" : "")">
+                <div data-barcode="@item.Barcode"
+                     class="card shadow-sm mt-2 border-0 border-start border-4 @(item.Stato == StatoDiscrepanza.Risolta ? "border-success" : item.Stato == StatoDiscrepanza.Annullata ? "border-danger" : "border-" + colorClass) mb-2 mobile-item-card @(item.Stato != StatoDiscrepanza.Aperta ? "bg-light" : "")">
                     <div class="card-body p-2">
                         <div class="d-flex justify-content-between align-items-start mb-2">
                             <div>
@@ -349,69 +350,71 @@
 
             modal.show();
         }
-
         function aggiornaRigaUI(btn, data) {
-            const tr = btn.closest('tr');
-            const card = btn.closest('.mobile-item-card');
-            const container = tr || card;
-            
-            if(!container) return;
-            
-            // 1. Definisci HTML dello stato aggiornato
-            const badgeClass = data.stato === 'Risolta' ? 'bg-success' : 'bg-secondary';
+            const owner = btn.closest('[data-barcode]');
+            if (!owner) return;
+
+            const barcode = owner.getAttribute('data-barcode');
+            if (!barcode) return;
+
+            const tr = document.querySelector(`tr[data-barcode="${barcode}"]`);
+            const card = document.querySelector(`.mobile-item-card[data-barcode="${barcode}"]`);
+
+            const badgeClass =
+                data.stato === 'Risolta' ? 'bg-success' :
+                    data.stato === 'Annullata' ? 'bg-secondary' :
+                        'bg-warning text-dark';
+
             const statusHtml = `
                 <span class="badge ${badgeClass}">${data.stato}</span>
                 <div class="x-small text-muted mt-1" style="font-size: 0.7rem;">
                     ${data.gestitaDa} il ${data.dataGestione}
                 </div>
             `;
-            
-            // 2. Aggiorna Riga Desktop
+
             if (tr) {
                 tr.cells[2].innerHTML = statusHtml;
                 tr.cells[3].innerHTML = `
-                    <div class="d-inline-flex gap-1">
-                        <button class="btn btn-sm btn-secondary disabled"><i class="fa-solid fa-lock me-2"></i>Risolvi</button>
-                        <button class="btn btn-sm btn-secondary disabled"><i class="fa-solid fa-lock me-2"></i>Annulla</button>
-                    </div>`;
+            <div class="d-inline-flex gap-1">
+                <button class="btn btn-sm btn-secondary disabled"><i class="fa-solid fa-lock me-2"></i>Risolvi</button>
+                <button class="btn btn-sm btn-secondary disabled"><i class="fa-solid fa-lock me-2"></i>Annulla</button>
+            </div>`;
                 tr.classList.add('bg-light');
-            } 
-            // 3. Aggiorna Card Mobile
-            else if (card) {
+            }
+
+            if (card) {
                 const statusEl = card.querySelector('.status-cell');
-                if(statusEl) statusEl.innerHTML = statusHtml;
-                
+                if (statusEl) statusEl.innerHTML = statusHtml;
+
                 const actionEl = card.querySelector('.action-cell');
-                if(actionEl) actionEl.innerHTML = `
-                    <div class="d-flex gap-2">
-                        <button class="btn btn-secondary flex-grow-1 fw-bold py-2 disabled">
-                            <i class="fa-solid fa-lock me-2"></i>Risolvi
-                        </button>
-                        <button class="btn btn-secondary py-2 px-3 disabled">
-                            <i class="fa-solid fa-lock"></i>
-                        </button>
-                    </div>`;
-                
-                card.classList.remove('border-primary', 'border-warning', 'border-danger');
+                if (actionEl) actionEl.innerHTML = `
+            <div class="d-flex gap-2">
+                <button class="btn btn-secondary flex-grow-1 fw-bold py-2 disabled">
+                    <i class="fa-solid fa-lock me-2"></i>Risolvi
+                </button>
+                <button class="btn btn-secondary py-2 px-3 disabled">
+                    <i class="fa-solid fa-lock"></i>
+                </button>
+            </div>`;
+
+                card.classList.remove('border-primary', 'border-warning', 'border-danger', 'border-success', 'border-secondary');
                 if (data.stato === 'Risolta') card.classList.add('border-success');
                 else if (data.stato === 'Annullata') card.classList.add('border-secondary');
-                
+
                 card.classList.add('bg-light');
             }
-            
-            // 4. Aggiorna Contatore Accordion
-            const accordionCollapse = container.closest('.accordion-collapse');
-            if(accordionCollapse) {
+
+            const accordionCollapse = owner.closest('.accordion-collapse');
+            if (accordionCollapse) {
                 const headerId = accordionCollapse.getAttribute('aria-labelledby');
                 const headerBtn = document.querySelector(`#${headerId} button`);
-                
-                if(headerBtn) {
+                if (headerBtn) {
                     const badge = headerBtn.querySelector('.badge-count');
-                    if(badge) {
-                        let count = parseInt(badge.innerText.trim());
-                        if(!isNaN(count)) {
+                    if (badge) {
+                        let count = parseInt(badge.innerText.trim(), 10);
+                        if (!isNaN(count)) {
                             count--;
-                            if(count > 0) badge.innerText = count;
+                            if (count > 0) badge.innerText = count;
                             else badge.remove();
                         }
                     }
