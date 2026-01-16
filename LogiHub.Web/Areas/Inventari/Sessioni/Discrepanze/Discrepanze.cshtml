@@ -134,7 +134,7 @@
             @foreach (var item in items)
             {
                 <div data-barcode="@item.Barcode"
-                     class="card shadow-sm mt-2 border-0 border-start border-4 @(item.Stato == StatoDiscrepanza.Risolta ? "border-success" : item.Stato == StatoDiscrepanza.Annullata ? "border-danger" : "border-" + colorClass) mb-2 mobile-item-card @(item.Stato != StatoDiscrepanza.Aperta ? "bg-light" : "")">
+                     class="card shadow mt-1 border-0 border-start border-3 @(item.Stato == StatoDiscrepanza.Risolta ? "border-success" : item.Stato == StatoDiscrepanza.Annullata ? "border-danger" : "border-" + colorClass) mb-1 mobile-item-card @(item.Stato != StatoDiscrepanza.Aperta ? "bg-light" : "")">
                     <div class="card-body p-2">
                         <div class="d-flex justify-content-between align-items-start mb-2">
                             <div>
