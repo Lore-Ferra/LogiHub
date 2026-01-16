@@ -19,6 +19,14 @@
     </div>
 }
 
+@section Styles {
+    <style>
+        .accordion-button:focus {
+            box-shadow: none;
+        }
+    </style>
+}
+
 @functions {
 
     string GetStatoBadge(StatoDiscrepanza stato) => stato switch
