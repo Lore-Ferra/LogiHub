@@ -226,7 +226,8 @@ public class SessioniService : ISessioniService
     {
         return await _context.RigheInventario
             .Where(r => r.SessioneInventarioId == query.SessioneId &&
-                        r.UbicazioneSnapshotId == query.UbicazioneId) 
+                        r.UbicazioneSnapshotId == query.UbicazioneId &&
+                        r.Stato != StatoRigaInventario.Extra) 
             .Select(r => new PezzoInventarioDTO
             {
                 RigaId = r.Id,
@@ -249,7 +250,7 @@ public class SessioniService : ISessioniService
             .FirstOrDefaultAsync(u => u.SessioneInventarioId == sessioneId && u.UbicazioneId == ubicazioneId);
 
         // Filtriamo i due gruppi
-        var previsti = righe.Where(r => r.UbicazioneSnapshotId == ubicazioneId).ToList();
+        var previsti = righe.Where(r => r.UbicazioneSnapshotId == ubicazioneId && r.Stato != StatoRigaInventario.Extra).ToList();
         var extraQui = righe.Where(r => r.UbicazioneRilevataId == ubicazioneId && 
                                         r.Stato == StatoRigaInventario.Extra).ToList();
 
