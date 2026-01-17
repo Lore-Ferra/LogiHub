@@ -49,9 +49,6 @@
                 <tbody>
                 @if (ubiDaFare.Any())
                 {
-                    <tr class="table-secondary">
-                        <td colspan="3" class="fw-bold bg-body-secondary text-muted small text-uppercase">Da Fare</td>
-                    </tr>
                     @foreach (var ubi in ubiDaFare)
                     {
                         var isMyUbi = ubi.OperatoreCorrenteId == currentUserId;
@@ -91,10 +88,6 @@
                 }
                 @if (ubiCompletate.Any())
                 {
-                    <tr class="table-secondary">
-                        <td colspan="3" class="fw-bold bg-body-secondary text-muted small text-uppercase">Completati
-                        </td>
-                    </tr>
                     @foreach (var ubi in ubiCompletate)
                     {
                         <tr class="bg-light" style="cursor:pointer"
