@@ -114,7 +114,7 @@
                                 <td class="text-center">
                                     <span id="badge-d-@pezzo.RigaId"
                                           class="badge @(pezzo.Stato == StatoRigaInventario.InAttesa ? "badge bg-light text-dark border" : pezzo.Stato == StatoRigaInventario.Trovato ? "bg-success" : "bg-danger")">
-                                        @(pezzo.Stato == StatoRigaInventario.InAttesa ? "In Attesa" : pezzo.Stato.ToString())
+                                        @(pezzo.Stato == StatoRigaInventario.InAttesa ? "In Attesa" : pezzo.Stato == StatoRigaInventario.Trovato ? "Presente" : "Mancante")
                                     </span>
                                 </td>
 
@@ -174,7 +174,7 @@
                         <p class="fw-bold fs-5 m-0 text-primary">@pezzo.Barcode</p>
                         <span id="badge-m-@pezzo.RigaId"
                               class="badge @(pezzo.Stato == StatoRigaInventario.InAttesa ? "badge bg-light text-dark border" : pezzo.Stato == StatoRigaInventario.Trovato ? "bg-success" : "bg-danger")">
-                            @(pezzo.Stato == StatoRigaInventario.InAttesa ? "In Attesa" : pezzo.Stato.ToString())
+                            @(pezzo.Stato == StatoRigaInventario.InAttesa ? "In Attesa" : pezzo.Stato == StatoRigaInventario.Trovato ? "Presente" : "Mancante")
                         </span>
                     </div>
                     <hr class="my-1">
@@ -351,8 +351,8 @@
             const bD = document.getElementById('badge-d-' + rigaId);
             const bM = document.getElementById('badge-m-' + rigaId);
 
-            return (bD && bD.classList.contains('bg-secondary')) ||
-                (bM && bM.classList.contains('bg-secondary'));
+            return (bD && bD.classList.contains('bg-light')) ||
+                (bM && bM.classList.contains('bg-light'));
         }
 
         async function aggiornaStato(btn, rigaId, tipo) {
@@ -448,7 +448,7 @@
 
             [bD, bM].forEach(badge => {
                 if (!badge) return;
-                badge.classList.remove('bg-secondary', 'bg-success', 'bg-danger');
+                badge.classList.remove('bg-light', 'text-dark', 'border', 'bg-secondary', 'bg-success', 'bg-danger');
                 if (tipo === 'presente') {
                     badge.classList.add('bg-success');
                     badge.textContent = 'Presente';
