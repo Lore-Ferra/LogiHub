@@ -32,7 +32,6 @@
     @* SEZIONE IN CORSO *@
     @if (sessioniAperte.Any())
     {
-        <div class="text-muted fw-bold text-uppercase ms-1 mb-2">In Corso:</div>
         foreach (var item in sessioniAperte)
         {
             <div class="card shadow-sm border-0 border-start border-5 mt-2 border-warning"
@@ -70,7 +69,6 @@
     @* SEZIONE CHIUSE *@
     @if (sessioniChiuse.Any())
     {
-        <div class="text-muted text-uppercase mt-2 ms-1 mb-2">Chiuse:</div>
         foreach (var item in sessioniChiuse)
         {
             <div class="card shadow-sm border-0 border-start border-5 mt-2 border-secondary border-opacity-75"
@@ -133,9 +131,6 @@
                 @* GRUPPO IN CORSO *@
                 @if (sessioniAperte.Any())
                 {
-                    <tr class="table-secondary">
-                        <td colspan="4" class="text-muted fw-bold bg-body-secondary text-uppercase">In Corso</td>
-                    </tr>
                     foreach (var item in sessioniAperte)
                     {
                         <tr class=""
@@ -171,9 +166,6 @@
                 @* GRUPPO CHIUSE *@
                 @if (sessioniChiuse.Any())
                 {
-                    <tr class="table-secondary">
-                        <td colspan="4" class="fw-bold bg-body-secondary text-muted text-uppercase">Chiuse</td>
-                    </tr>
                     foreach (var item in sessioniChiuse)
                     {
                         <tr class="bg-light text-muted"
