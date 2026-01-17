@@ -49,7 +49,8 @@ public class SessioniService : ISessioniService
             SessioneInventarioId = sessione.Id,
             SemiLavoratoId = sl.Id,
             UbicazioneSnapshotId = sl.UbicazioneId,
-            Stato = StatoRigaInventario.InAttesa
+            Stato = StatoRigaInventario.InAttesa,
+            DescrizioneRilevata = sl.Descrizione
         }).ToList();
 
         var tutteUbicazioni = await _context.Ubicazioni.AsNoTracking().ToListAsync();
@@ -225,6 +226,7 @@ public class SessioniService : ISessioniService
     public async Task<List<PezzoInventarioDTO>> OttieniPezziUbicazioneAsync(PezziUbicazioneQuery query)
     {
         return await _context.RigheInventario
+            .IgnoreQueryFilters()
             .Where(r => r.SessioneInventarioId == query.SessioneId &&
                         r.UbicazioneSnapshotId == query.UbicazioneId &&
                         r.Stato != StatoRigaInventario.Extra) 
@@ -232,7 +234,7 @@ public class SessioniService : ISessioniService
             {
                 RigaId = r.Id,
                 Barcode = r.SemiLavorato.Barcode,
-                Descrizione = r.SemiLavorato.Descrizione,
+                Descrizione = r.DescrizioneRilevata ?? r.SemiLavorato.Descrizione,
                 Stato = r.Stato
             })
             .OrderBy(r => r.Barcode)
@@ -441,10 +443,15 @@ public async Task AggiungiExtraAsync(Guid sessioneId, Guid ubicazioneId, string 
         var rif = righe.FirstOrDefault(r => r.StatoDiscrepanza == StatoDiscrepanza.Aperta)
                   ?? righe.OrderByDescending(r => r.DataRisoluzione).First();
 
+        var rigaExtra = righe.FirstOrDefault(r => r.Stato == StatoRigaInventario.Extra);
+        var rigaMancante = righe.FirstOrDefault(r => r.Stato == StatoRigaInventario.Mancante);
+
+        var descrizioneDisplay = rigaExtra?.DescrizioneRilevata ?? rigaMancante?.DescrizioneRilevata ?? rif.SemiLavorato.Descrizione;
+
         var dto = new DiscrepanzaDTO
         {
             Barcode = gruppo.Key,
-            Descrizione = rif.SemiLavorato.Descrizione,
+            Descrizione = descrizioneDisplay,
             SemiLavoratoId = rif.SemiLavoratoId,
             Stato = rif.StatoDiscrepanza,
             DataRilevamento = righe.Max(r => r.DataRilevamento),
@@ -463,9 +470,6 @@ public async Task AggiungiExtraAsync(Guid sessioneId, Guid ubicazioneId, string 
             // CASO 1: SPOSTATO
             dto.Tipo = TipoDiscrepanzaOperativa.Spostato;
             
-            var rigaMancante = righe.First(r => r.Stato == StatoRigaInventario.Mancante);
-            var rigaExtra = righe.First(r => r.Stato == StatoRigaInventario.Extra);
-
             dto.UbicazioneSnapshot = rigaMancante.UbicazioneSnapshot?.Posizione ?? "N/D";
             dto.UbicazioneRilevata = rigaExtra.UbicazioneRilevata?.Posizione ?? "N/D";
             dto.UbicazioneRilevataId = rigaExtra.UbicazioneRilevataId;
@@ -477,7 +481,6 @@ public async Task AggiungiExtraAsync(Guid sessioneId, Guid ubicazioneId, string 
             // non viene dichiarata "Mancante" (è ancora InAttesa), questo rimane un Extra puro.
             dto.Tipo = TipoDiscrepanzaOperativa.Extra;
             
-            var rigaExtra = righe.First(r => r.Stato == StatoRigaInventario.Extra);
             dto.UbicazioneRilevata = rigaExtra.UbicazioneRilevata?.Posizione ?? "N/D";
             dto.UbicazioneRilevataId = rigaExtra.UbicazioneRilevataId;
             
@@ -489,7 +492,6 @@ public async Task AggiungiExtraAsync(Guid sessioneId, Guid ubicazioneId, string 
             // CASO 3: MANCANTE
             dto.Tipo = TipoDiscrepanzaOperativa.Mancante;
             
-            var rigaMancante = righe.First(r => r.Stato == StatoRigaInventario.Mancante);
             dto.UbicazioneSnapshot = rigaMancante.UbicazioneSnapshot?.Posizione ?? "N/D";
         }
 
@@ -532,7 +534,9 @@ public async Task AggiungiExtraAsync(Guid sessioneId, Guid ubicazioneId, string 
             throw new InvalidOperationException("Nessuna riga inventario trovata per questo barcode.");
 
         // Cerchiamo se in una delle righe (quella rilevata) c'è una nuova descrizione
-        var rigaConNuovaDesc = righeCoinvolte.FirstOrDefault(r => !string.IsNullOrEmpty(r.DescrizioneRilevata));
+        var rigaConNuovaDesc = righeCoinvolte
+            .Where(r => r.Stato == StatoRigaInventario.Extra && !string.IsNullOrEmpty(r.DescrizioneRilevata))
+            .FirstOrDefault();
         string descrizioneDaUsare = d.Descrizione;
 
         if (rigaConNuovaDesc != null)
