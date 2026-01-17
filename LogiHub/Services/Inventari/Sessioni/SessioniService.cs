@@ -141,7 +141,7 @@ public class SessioniService : ISessioniService
         if (sessione != null)
         {
             sessione.Chiuso = true;
-            sessione.DataChiusura = DateTime.Now;
+            sessione.DataCompletamento = DateTime.Now;
             await _context.SaveChangesAsync();
         }
     }

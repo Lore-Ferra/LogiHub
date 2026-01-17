@@ -452,7 +452,7 @@ namespace LogiHub.Infrastructure
                 Id = inv1Id,
                 NomeSessione = "Inventario #1",
                 DataCreazione = now.AddDays(-10),
-                DataChiusura = now.AddDays(-10).AddHours(1),
+                DataCompletamento = now.AddDays(-10).AddHours(1),
                 Chiuso = true,
                 CreatoDaUserId = marioId
             };
@@ -515,7 +515,7 @@ namespace LogiHub.Infrastructure
                 Id = inv2Id,
                 NomeSessione = "Inventario #2",
                 DataCreazione = now.AddDays(-5),
-                DataChiusura = now.AddDays(-5).AddHours(2),
+                DataCompletamento = now.AddDays(-5).AddHours(2),
                 Chiuso = true,
                 CreatoDaUserId = marioId
             };

@@ -94,7 +94,7 @@
                         </div>
                         <div class="d-flex align-items-center">
                             <i class="text-secondary fa-solid fa-calendar-check me-2"></i>
-                            <span>Chiusura: @(item.DataChiusura?.ToString("dd/MM/yyyy HH:mm") ?? "---")</span>
+                            <span>Chiusura: @(item.DataCompletamento?.ToString("dd/MM/yyyy HH:mm") ?? "---")</span>
                         </div>
                     </div>
 
@@ -121,8 +121,8 @@
                 <thead>
                 <tr>
                     <th class="">Sessione</th>
-                    <th>Data Apertura</th>
-                    <th>Data Chiusura</th>
+                    <th>Data Creazione</th>
+                    <th>Data Completamento</th>
                     <th class="text-center">Stato</th>
                 </tr>
                 </thead>
@@ -185,9 +185,9 @@
                             </td>
 
                             <td class="text-muted">
-                                @if (item.DataChiusura.HasValue)
+                                @if (item.DataCompletamento.HasValue)
                                 {
-                                    @item.DataChiusura.Value.ToString("dd/MM/yyyy HH:mm")
+                                    @item.DataCompletamento.Value.ToString("dd/MM/yyyy HH:mm")
                                 }
                                 else
                                 {

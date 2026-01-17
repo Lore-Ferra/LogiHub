@@ -13,7 +13,7 @@ public class SessioniIndexDTO
         public Guid Id { get; set; }
         public string NomeSessione { get; set; }
         public DateTime DataCreazione { get; set; }
-        public DateTime? DataChiusura { get; set; } 
+        public DateTime? DataCompletamento { get; set; } 
         public bool Chiuso { get; set; }
     }
 }
