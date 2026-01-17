@@ -123,7 +123,6 @@
 
     @if (ubiDaFare.Any())
     {
-        <div class="text-muted small fw-bold text-uppercase ms-1">Da Fare:</div>
         foreach (var ubi in ubiDaFare)
         {
             var isMyUbi = ubi.OperatoreCorrenteId == currentUserId;
@@ -160,7 +159,6 @@
 
     @if (ubiCompletate.Any())
     {
-        <div class="text-muted small fw-bold text-uppercase mt-3 ms-1">Completati:</div>
         @foreach (var ubi in ubiCompletate)
         {
             <div class="card shadow-sm border-0 border-start border-5 mt-2 border-secondary border-opacity-75"
