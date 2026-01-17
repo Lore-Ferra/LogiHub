@@ -48,7 +48,7 @@
                         @* Badge Extra (Nuovo) *@
                         @if (Model.ConteggioExtra > 0)
                         {
-                            <span class="badge bg-info ms-2" title="Pezzi extra trovati in questa zona">
+                            <span class="badge bg-info text-dark ms-2" title="Pezzi extra trovati in questa zona">
                                 <i class="fa-solid fa-plus me-1"></i>@Model.ConteggioExtra Extra
                             </span>
                         }
@@ -113,7 +113,7 @@
 
                                 <td class="text-center">
                                     <span id="badge-d-@pezzo.RigaId"
-                                          class="badge @(pezzo.Stato == StatoRigaInventario.InAttesa ? "bg-secondary" : pezzo.Stato == StatoRigaInventario.Trovato ? "bg-success" : "bg-danger")">
+                                          class="badge @(pezzo.Stato == StatoRigaInventario.InAttesa ? "badge bg-light text-dark border" : pezzo.Stato == StatoRigaInventario.Trovato ? "bg-success" : "bg-danger")">
                                         @(pezzo.Stato == StatoRigaInventario.InAttesa ? "In Attesa" : pezzo.Stato.ToString())
                                     </span>
                                 </td>
@@ -173,12 +173,12 @@
                     <div class="d-flex justify-content-between align-items-start">
                         <p class="fw-bold fs-5 m-0 text-primary">@pezzo.Barcode</p>
                         <span id="badge-m-@pezzo.RigaId"
-                              class="badge @(pezzo.Stato == StatoRigaInventario.InAttesa ? "bg-secondary" : pezzo.Stato == StatoRigaInventario.Trovato ? "bg-success" : "bg-danger")">
+                              class="badge @(pezzo.Stato == StatoRigaInventario.InAttesa ? "badge bg-light text-dark border" : pezzo.Stato == StatoRigaInventario.Trovato ? "bg-success" : "bg-danger")">
                             @(pezzo.Stato == StatoRigaInventario.InAttesa ? "In Attesa" : pezzo.Stato.ToString())
                         </span>
                     </div>
                     <hr class="my-1">
-                    <p class="small text-muted mb-0">@pezzo.Descrizione</p>
+                    <p class="mb-0">@pezzo.Descrizione</p>
                     <div class="row g-2 mt-1 ">
 
                             <div class="d-flex gap-2" role="group">

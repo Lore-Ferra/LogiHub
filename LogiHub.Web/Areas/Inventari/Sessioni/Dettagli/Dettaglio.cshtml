@@ -63,9 +63,9 @@
                             <text>onclick="window.location.href='@Url.Action("Index", "RilevamentoUbicazione", new { sessioneId = Model.SessioneId, ubicazioneId = ubi.UbicazioneId })'"
                             </text>
                             }>
-                            
+
                             <td class="fw-bold text-primary">@ubi.Posizione</td>
-                            
+
                             <td>
                                 @if (ubi.InLavorazione)
                                 {
@@ -73,7 +73,7 @@
                                         <strong>@ubi.OperatoreCorrente</strong></small>
                                 }
                             </td>
-                            
+
                             <td class="text-center">
                                 @if (ubi.InLavorazione)
                                 {
@@ -83,7 +83,7 @@
                                 }
                                 else
                                 {
-                                    <span class="badge bg-light text-dark border">In attesa</span>
+                                    <span class="badge bg-light text-dark border">In Attesa</span>
                                 }
                             </td>
                         </tr>
@@ -92,7 +92,8 @@
                 @if (ubiCompletate.Any())
                 {
                     <tr class="table-secondary">
-                        <td colspan="3" class="fw-bold bg-body-secondary text-muted small text-uppercase">Completati</td>
+                        <td colspan="3" class="fw-bold bg-body-secondary text-muted small text-uppercase">Completati
+                        </td>
                     </tr>
                     @foreach (var ubi in ubiCompletate)
                     {
@@ -100,13 +101,13 @@
                             onclick="window.location.href='@Url.Action("Index", "RilevamentoUbicazione", new { sessioneId = Model.SessioneId, ubicazioneId = ubi.UbicazioneId })'">
                             <td class="text-start fw-bold text-muted">@ubi.Posizione</td>
 
-                     
+
                             <td>
                                 <small class="text-muted"><i class="fa-solid fa-check-double me-1"></i> Chiuso da:
                                     <strong>@ubi.OperatoreCorrente</strong></small>
                             </td>
-                            
-                            <td class="text-center"><span class="badge bg-success">Completato</span></td>
+
+                            <td class="text-center"><span class="badge bg-secondary opacity-75">Completato</span></td>
                         </tr>
                     }
                 }
@@ -119,7 +120,7 @@
 @* --- VERSIONE MOBILE (CARDS) --- *@
 
 <div class="d-md-none">
-    
+
     @if (ubiDaFare.Any())
     {
         <div class="text-muted small fw-bold text-uppercase ms-1">Da Fare:</div>
@@ -127,20 +128,19 @@
         {
             var isMyUbi = ubi.OperatoreCorrenteId == currentUserId;
             var canEnter = !ubi.InLavorazione || isMyUbi;
-            <div class="card shadow-sm border-0 border-start border-5 mt-2 @(ubi.InLavorazione ? "border-warning" : "border-bg-light")"
-                 style="@(canEnter ? "cursor:pointer" : "")"
-                 @if (canEnter)
-                 {
-                     <text>onclick="window.location.href='@Url.Action("Index", "RilevamentoUbicazione", new { sessioneId = Model.SessioneId, ubicazioneId = ubi.UbicazioneId })'"
-                     </text>
-                 }>
+            <div
+                class="card shadow-sm border-0 border-start border-5 mt-2 @(ubi.InLavorazione ? "border-warning" : "border-bg-light")"
+                style="@(canEnter ? "cursor:pointer" : "")"
+                @if (canEnter)
+                {
+                <text>onclick="window.location.href='@Url.Action("Index", "RilevamentoUbicazione", new { sessioneId = Model.SessioneId, ubicazioneId = ubi.UbicazioneId })'"
+                </text>
+                }>
                 <div class="card-body p-2">
                     <div class="d-flex justify-content-between align-items-center">
                         <div class="fw-bold">
                             <div class="text-primary mb-1">@ubi.Posizione</div>
-                            <small class="text-muted">
-                                <i class="fa-solid fa-user me-1"></i> @(ubi.InLavorazione ? ubi.OperatoreCorrente : "Nessun operatore")
-                            </small>
+                            <i class="fa-solid fa-user me-1"></i> @(ubi.InLavorazione ? ubi.OperatoreCorrente : "Nessun operatore")
                         </div>
                         <div>
                             @if (ubi.InLavorazione)
@@ -149,7 +149,7 @@
                             }
                             else
                             {
-                                <span class="badge border text-secondary bg-light">In attesa</span>
+                                <span class="badge border text-secondary bg-light">In Attesa</span>
                             }
                         </div>
                     </div>
@@ -163,19 +163,21 @@
         <div class="text-muted small fw-bold text-uppercase mt-3 ms-1">Completati:</div>
         @foreach (var ubi in ubiCompletate)
         {
-            <div class="card shadow-sm border-0 border-start border-5 mt-2 border-success"
+            <div class="card shadow-sm border-0 border-start border-5 mt-2 border-secondary border-opacity-75"
                  style="cursor:pointer"
                  onclick="window.location.href='@Url.Action("Index", "RilevamentoUbicazione", new { sessioneId = Model.SessioneId, ubicazioneId = ubi.UbicazioneId })'">
                 <div class="card-body p-2">
                     <div class="d-flex justify-content-between align-items-center">
-                        <div class="fw-bold">
+                        <div>
                             @* Rimossa classe text-decoration-line-through *@
                             <div class="text-muted mb-1">@ubi.Posizione</div>
-                            <small class="text-muted"><i class="fa-solid fa-check me-1"></i> Chiuso
-                                da: @ubi.OperatoreCorrente</small>
+                            <span class="fw-bold">
+                                <i class="fa-solid fa-check-double me-1"></i>
+                                Chiuso da: <span class="fw-normal">@ubi.OperatoreCorrente</span>
+                            </span>
                         </div>
                         <div>
-                            <span class="badge bg-success">Completato</span>
+                            <span class="badge bg-secondary opacity-75">Completato</span>
                         </div>
                     </div>
                 </div>
@@ -228,13 +230,13 @@
 
 @section Scripts {
     <script src="~/js/Features/Modals/ConfirmModal.js"></script>
-    
+
     <script>
         console.log("Dettaglio.cshtml scripts loaded");
         document.addEventListener('DOMContentLoaded', function () {
             const toastEl = document.getElementById('errorToast');
             if (toastEl) {
-                const toast = new bootstrap.Toast(toastEl, { delay: 5000 });
+                const toast = new bootstrap.Toast(toastEl, {delay: 5000});
                 toast.show();
             }
         });
