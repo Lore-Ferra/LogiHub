@@ -365,6 +365,17 @@
                         if (!data || data.success) {
                             modal.hide();
 
+                            if (data && data.redirectUrl) {
+                                sessionStorage.setItem('refreshDettaglio', 'true');
+
+                                if (window.history.length > 1) {
+                                    window.history.back();
+                                } else {
+                                    window.location.replace(data.redirectUrl);
+                                }
+                                return;
+                            }
+
                             if (options.reloadOnSuccess) {
                                 location.reload();
                                 return;
