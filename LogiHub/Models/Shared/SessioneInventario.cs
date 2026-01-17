@@ -13,7 +13,7 @@ public class SessioneInventario
     [Required]
     public string NomeSessione { get; set; }
     public DateTime DataCreazione { get; set; } = DateTime.Now;
-    public DateTime? DataChiusura { get; set; }
+    public DateTime? DataCompletamento { get; set; }
     public bool Chiuso { get; set; } = false;
     
     public Guid CreatoDaUserId { get; set; }
