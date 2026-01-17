@@ -112,10 +112,8 @@ public partial class DettaglioController : AuthenticatedBaseController
                     Type = "button",
                     HtmlAttributes = new Dictionary<string, string>
                     {
-                        { "data-confirm-trigger", "true" },
+                        { "onclick", "chiudiInventario(event)" },
                         { "data-url", Url.Action("ChiudiSessione", "Dettaglio", new { area = "Inventari", id }) },
-                        { "data-method", "POST" },
-                        { "data-type", "form" },
                         { "data-message", $"Vuoi davvero chiudere l’inventario <b>{data.NomeSessione}</b>?" }
                     }
                 });
@@ -152,12 +150,11 @@ public partial class DettaglioController : AuthenticatedBaseController
         {
             var userId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
             await _service.ChiudiSessioneAsync(id, userId);
-            return RedirectToAction("Index", "Sessioni");
+            return Json(new { success = true, redirectUrl = Url.Action("Index", "Sessioni") });
         }
         catch (InvalidOperationException ex)
         {
-            TempData["ErrorMessage"] = ex.Message;
-            return RedirectToAction(nameof(Index), new { id });
+            return Json(new { success = false, message = ex.Message });
         }
     }
 }

@@ -90,21 +90,9 @@ public partial class RilevamentoUbicazioneController : AuthenticatedBaseControll
 
         var attributiConcludi = new Dictionary<string, string>
         {
-            {
-                "data-url",
-                Url.Action("ConcludiUbicazione", "RilevamentoUbicazione",
-                    new { area = "Inventari", sessioneId, ubicazioneId })
-            },
-            { "data-method", "POST" },
-            { "data-type", "form" }
+            { "onclick", "gestisciClickConcludi(event)" }
         };
 
-        if (status.InAttesa > 0)
-        {
-            attributiConcludi.Add("data-confirm-trigger", "true");
-            attributiConcludi.Add("data-message",
-                $"Attenzione: ci sono {status.InAttesa} pezzi non rilevati. Verranno segnati come MANCANTI. Vuoi procedere?");
-        }
 
         var bottoneConcludi = new SearchCardButton
         {
@@ -250,7 +238,7 @@ public partial class RilevamentoUbicazioneController : AuthenticatedBaseControll
         await _service.CompletaUbicazioneAsync(sessioneId, ubicazioneId);
         TempData["SuccessMessage"] = "Ubicazione chiusa con successo.";
 
-        return RedirectToAction("Index", "Dettaglio", new { area = "Inventari", id = sessioneId });
+        return Json(new { success = true, redirectUrl = Url.Action("Index", "Dettaglio", new { area = "Inventari", id = sessioneId }) });
     }
 
     [HttpPost]

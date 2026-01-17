@@ -191,10 +191,8 @@
         {
             <button type="button"
                     class="btn btn-primary w-100 py-2 fw-bold shadow-sm"
-                    data-confirm-trigger="true"
+                    onclick="chiudiInventario(event)"
                     data-url="@Url.Action("ChiudiSessione", "Dettaglio", new { area = "Inventari", id = Model.SessioneId })"
-                    data-method="POST"
-                    data-type="form"
                     data-message="Vuoi davvero chiudere l’inventario <b>@Model.NomeSessione</b>?">
                 <i class="fa-solid fa-check me-2"></i>
                 Termina Inventario
@@ -231,6 +229,56 @@
     
     <script>
         console.log("Dettaglio.cshtml scripts loaded");
+
+        function chiudiInventario(e) {
+            e.preventDefault();
+            const btn = e.currentTarget;
+            const url = btn.getAttribute('data-url');
+            const msg = btn.getAttribute('data-message');
+
+            const modalEl = document.getElementById('actionConfirmModal');
+            const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+
+            modalEl.querySelector('.modal-title').innerText = "Conferma";
+            const msgEl = modalEl.querySelector('[data-confirm-message]');
+            if(msgEl) msgEl.innerHTML = msg; // innerHTML per supportare il grassetto nel nome sessione
+
+            const confirmBtn = modalEl.querySelector('[data-confirm-btn]');
+            const newBtn = confirmBtn.cloneNode(true);
+            confirmBtn.parentNode.replaceChild(newBtn, confirmBtn);
+
+            newBtn.onclick = async () => {
+                newBtn.disabled = true;
+                newBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-2"></i>Attendere...';
+
+                try {
+                    const tokenInput = document.querySelector('input[name="__RequestVerificationToken"]');
+                    const formData = new FormData();
+                    if (tokenInput) formData.append('__RequestVerificationToken', tokenInput.value);
+
+                    const res = await fetch(url, { method: 'POST', body: formData });
+                    const data = await res.json();
+
+                    if (res.ok && data.success && data.redirectUrl) {
+                        sessionStorage.setItem('refreshSessioni', 'true');
+
+                        if (window.history.length > 1) {
+                            window.history.back();
+                        } else {
+                            window.location.replace(data.redirectUrl);
+                        }
+                    } else {
+                        alert("Errore: " + (data.message || "Impossibile chiudere la sessione."));
+                        location.reload();
+                    }
+                } catch (err) {
+                    console.error(err);
+                    alert("Errore di connessione");
+                }
+            };
+            modal.show();
+        }
+
         document.addEventListener('DOMContentLoaded', function () {
             const toastEl = document.getElementById('errorToast');
             if (toastEl) {
@@ -240,7 +288,8 @@
         });
 
         window.addEventListener('pageshow', function (event) {
-            if (event.persisted) {
+            if (event.persisted || sessionStorage.getItem('refreshDettaglio') === 'true') {
+                sessionStorage.removeItem('refreshDettaglio');
                 window.location.reload();
             }
         });

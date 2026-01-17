@@ -73,12 +73,7 @@
                         <button
                             type="button"
                             class="btn btn-md @(isBloccato ? "btn-secondary disabled" : "btn-outline-danger")"
-                            data-type="form"
-                            data-confirm-trigger="true"
-                            data-method="POST"
-                            data-url="/Magazzino/SemiLavorati/Elimina?semiLavoratoId=@item.Id"
-                            data-message="Sei sicuro di voler eliminare <strong>@item.Barcode</strong>?"
-                            data-success-action="reload"
+                            onclick="eliminaSemilavorato(event, '@Url.Action("Elimina", "SemiLavorati", new { area = "Magazzino", semiLavoratoId = item.Id })', 'Sei sicuro di voler eliminare <strong>@item.Barcode</strong>?')"
                             title="Elimina"
                             style="@(isBloccato ? "cursor: not-allowed; pointer-events: auto !important;" : "")">
                             <i class="@(isBloccato ? "fa-solid fa-lock" : "fa-solid fa-trash")"></i>
@@ -134,12 +129,7 @@
                             <button
                                 type="button"
                                 class="btn btn-sm @(isBloccato ? "btn-secondary disabled" : "btn-outline-danger")"
-                                data-type="form"
-                                data-confirm-trigger="true"
-                                data-method="POST"
-                                data-url="/Magazzino/SemiLavorati/Elimina?semiLavoratoId=@item.Id"
-                                data-message="Sei sicuro di voler eliminare <strong>@item.Barcode</strong>?"
-                                data-success-action="reload"
+                                onclick="eliminaSemilavorato(event, '@Url.Action("Elimina", "SemiLavorati", new { area = "Magazzino", semiLavoratoId = item.Id })', 'Sei sicuro di voler eliminare <strong>@item.Barcode</strong>?')"
                                 title="Elimina"
                                 style="@(isBloccato ? "cursor: not-allowed; pointer-events: auto !important;" : "")">
                                 <i class="@(isBloccato ? "fa-solid fa-lock me-1" : "fa-solid fa-trash")"></i>
@@ -226,6 +216,50 @@ else
     <script src="~/js/Features/Offcanvas/offcanvas.js"></script>
 
     <script>
+        function eliminaSemilavorato(e, url, msg) {
+            e.preventDefault();
+            e.stopPropagation();
+
+            if (e.currentTarget.classList.contains('disabled')) return;
+
+            const modalEl = document.getElementById('confirmDeleteModal');
+            const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+
+            const msgEl = modalEl.querySelector('.modal-body');
+            if (msgEl) msgEl.innerHTML = msg;
+
+            const confirmBtn = modalEl.querySelector('[data-confirm-btn]');
+            const newBtn = confirmBtn.cloneNode(true);
+            confirmBtn.parentNode.replaceChild(newBtn, confirmBtn);
+
+            newBtn.onclick = async () => {
+                newBtn.disabled = true;
+                newBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-2"></i>Attendere...';
+
+                try {
+                    const tokenInput = document.querySelector('input[name="__RequestVerificationToken"]');
+                    const formData = new FormData();
+                    if (tokenInput) formData.append('__RequestVerificationToken', tokenInput.value);
+
+                    const res = await fetch(url, { method: 'POST', body: formData });
+                    const data = await res.json();
+
+                    if (res.ok && data.success) {
+                        window.location.replace(window.location.href);
+                    } else {
+                        alert("Errore: " + (data.message || "Impossibile eliminare."));
+                        window.location.reload();
+                    }
+                } catch (err) {
+                    console.error(err);
+                    alert("Errore di connessione");
+                    window.location.reload();
+                }
+            };
+
+            modal.show();
+        }
+
         document.addEventListener('submit', function (e) {
 
             const form = e.target;

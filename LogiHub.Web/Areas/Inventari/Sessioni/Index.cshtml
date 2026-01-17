@@ -215,9 +215,8 @@
 {
     <button type="button"
             class="fab d-md-none border-0 d-flex align-items-center justify-content-center"
-            data-confirm-trigger
+            onclick="creaNuovaSessione(event)"
             data-url="@Url.Action("AggiungiSessioneInventario", "Sessioni", new { area = "Inventari" })"
-            data-type="form"
             data-message="Vuoi avviare una nuova sessione di inventario? Il magazzino verrà bloccato.">
         <i class="fa-solid fa-clipboard-check text-white"></i>
     </button>
@@ -242,6 +241,57 @@ else
 
 @section Scripts {
     <script src="~/js/Features/Modals/ConfirmModal.js"></script>
+    <script>
+        window.addEventListener('pageshow', function (event) {
+            if (event.persisted || sessionStorage.getItem('refreshSessioni') === 'true') {
+                sessionStorage.removeItem('refreshSessioni');
+                window.location.reload();
+            }
+        });
+
+        function creaNuovaSessione(e) {
+            e.preventDefault();
+            const btn = e.currentTarget;
+            const url = btn.getAttribute('data-url');
+            const msg = btn.getAttribute('data-message');
+
+            const modalEl = document.getElementById('actionConfirmModal');
+            const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+
+            modalEl.querySelector('.modal-title').innerText = "Conferma Operazione";
+            const msgEl = modalEl.querySelector('[data-confirm-message]');
+            if(msgEl) msgEl.innerText = msg;
+
+            const confirmBtn = modalEl.querySelector('[data-confirm-btn]');
+            const newBtn = confirmBtn.cloneNode(true);
+            confirmBtn.parentNode.replaceChild(newBtn, confirmBtn);
+
+            newBtn.onclick = async () => {
+                newBtn.disabled = true;
+                newBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-2"></i>Attendere...';
+
+                try {
+                    const tokenInput = document.querySelector('input[name="__RequestVerificationToken"]');
+                    const formData = new FormData();
+                    if (tokenInput) formData.append('__RequestVerificationToken', tokenInput.value);
+
+                    const res = await fetch(url, { method: 'POST', body: formData });
+                    const data = await res.json();
+
+                    if (res.ok && data.success) {
+                        location.reload(); // Ricarica la pagina senza creare history duplicata
+                    } else {
+                        alert("Errore: " + (data.message || "Impossibile creare la sessione."));
+                        location.reload();
+                    }
+                } catch (err) {
+                    console.error(err);
+                    alert("Errore di connessione");
+                }
+            };
+            modal.show();
+        }
+    </script>
 }
 
 @Html.AntiForgeryToken()

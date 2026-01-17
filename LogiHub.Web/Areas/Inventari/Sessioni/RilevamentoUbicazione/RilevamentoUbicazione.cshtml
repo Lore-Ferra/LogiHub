@@ -232,28 +232,15 @@
                     Concludi
                 </button>
             }
-            else if (inAttesa > 0)
-            {
-                <button type="button"
-                        class="btn btn-primary w-100 py-2 fw-bold shadow-sm"
-                        data-confirm-trigger="true"
-                        data-url="@urlConcludi"
-                        data-method="POST"
-                        data-type="form"
-                        data-message="Attenzione: ci sono @inAttesa pezzi non rilevati. Verranno segnati come MANCANTI. Vuoi procedere?">
-                    <i class="fa-solid fa-check me-2"></i>
-                    Concludi
-                </button>
-            }
             else
             {
-                <form method="post" action="@urlConcludi" class="m-0">
-                    @Html.AntiForgeryToken()
-                    <button type="submit" class="btn btn-primary w-100 py-2 fw-bold shadow-sm">
-                        <i class="fa-solid fa-check-double me-2"></i>
-                        Concludi
-                    </button>
-                </form>
+                <button type="button"
+                        id="btnConcludi"
+                        class="btn btn-primary w-100 py-2 fw-bold shadow-sm"
+                        onclick="gestisciClickConcludi(event)">
+                    <i id="iconConcludi" class="fa-solid @(inAttesa > 0 ? "fa-check" : "fa-check-double") me-2"></i>
+                    Concludi
+                </button>
             }
         </div>
     </div>
@@ -357,6 +344,8 @@
     <script>
         let rilevati = @Model.PezziRilevati;
         const totali = @Model.TotaliPezzi;
+        const urlConcludi = '@Html.Raw(urlConcludi)';
+        const urlDettaglio = '@Url.Action("Index", "Dettaglio", new { area = "Inventari", id = Model.SessioneId })';
 
         function eraInAttesaPrima(rigaId) {
             const bD = document.getElementById('badge-d-' + rigaId);
@@ -433,19 +422,17 @@
                 }
             }
 
-
-            const btnsConcludi = document.querySelectorAll('button[data-url*="ConcludiUbicazione"]');
-
-            btnsConcludi.forEach(btnConcludi => {
+            // Aggiorna UI bottone Concludi
+            const btnConcludi = document.getElementById('btnConcludi');
+            const iconConcludi = document.getElementById('iconConcludi');
+            if (btnConcludi && iconConcludi) {
                 if (inAttesa > 0) {
-                    btnConcludi.setAttribute('data-confirm-trigger', 'true');
-                    btnConcludi.setAttribute('data-message', `Attenzione: ci sono ${inAttesa} pezzi non rilevati. Verranno segnati come MANCANTI. Vuoi procedere?`);
+                    iconConcludi.className = "fa-solid fa-check me-2";
                 } else {
-                    btnConcludi.removeAttribute('data-confirm-trigger');
-                    btnConcludi.removeAttribute('data-message');
+                    iconConcludi.className = "fa-solid fa-check-double me-2";
                 }
-            });
-}
+            }
+        }
 
         function aggiornaUIElementiRiga(rigaId, tipo) {
             // Aggiorna bordo Card (Mobile)
@@ -545,6 +532,75 @@
             document.getElementById('inputBarcodeExtra').value = randomCode;
         }
 
+        function gestisciClickConcludi(e) {
+            if (e) e.preventDefault();
+            const inAttesa = totali - rilevati;
+            if (inAttesa > 0) {
+                const msg = `Attenzione: ci sono ${inAttesa} pezzi non rilevati. Verranno segnati come MANCANTI. Vuoi procedere?`;
+                mostraModaleConfermaChiusura(msg);
+            } else {
+                eseguiChiusura();
+            }
+        }
+
+        function mostraModaleConfermaChiusura(msg) {
+            const modalEl = document.getElementById('actionConfirmModal');
+            const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+
+            modalEl.querySelector('.modal-title').innerHTML = '<i class="fa-solid fa-triangle-exclamation text-warning me-2"></i>Conferma operazione';
+            const msgEl = modalEl.querySelector('[data-confirm-message]');
+            if(msgEl) msgEl.innerText = msg;
+
+            const confirmBtn = modalEl.querySelector('[data-confirm-btn]');
+            const newBtn = confirmBtn.cloneNode(true);
+            confirmBtn.parentNode.replaceChild(newBtn, confirmBtn);
+
+            newBtn.onclick = () => {
+                modal.hide();
+                eseguiChiusura();
+            };
+
+            modal.show();
+        }
+
+        async function eseguiChiusura() {
+            const btn = document.getElementById('btnConcludi');
+            if(btn) {
+                btn.disabled = true;
+                btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-2"></i>Attendere...';
+            }
+
+            const tokenInput = document.querySelector('input[name="__RequestVerificationToken"]');
+            const formData = new FormData();
+            if (tokenInput) formData.append('__RequestVerificationToken', tokenInput.value);
+
+            try {
+                const res = await fetch(urlConcludi, { method: 'POST', body: formData });
+                if (res.ok) {
+                    const data = await res.json();
+                    if (data.success && data.redirectUrl) {
+                        // Segnala a Dettaglio di ricaricarsi
+                        sessionStorage.setItem('refreshDettaglio', 'true');
+
+                        // Torna indietro per evitare duplicati nella history
+                        if (window.history.length > 1) {
+                            window.history.back();
+                        } else {
+                            window.location.replace(data.redirectUrl);
+                        }
+                    } else {
+                        location.reload();
+                    }
+                } else {
+                    alert("Errore durante la chiusura.");
+                    location.reload();
+                }
+            } catch (e) {
+                console.error(e);
+                alert("Errore di connessione");
+                location.reload();
+            }
+        }
 
         document.addEventListener('DOMContentLoaded', function() {
             aggiornaInterfacciaStats();

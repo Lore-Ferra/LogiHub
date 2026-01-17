@@ -57,9 +57,8 @@ public partial class SessioniController : AuthenticatedBaseController
             Type = "button",
             HtmlAttributes = new Dictionary<string, string>
             {
-                { "data-confirm-trigger", "true" },
+                { "onclick", "creaNuovaSessione(event)" },
                 { "data-url", Url.Action("AggiungiSessioneInventario", "Sessioni", new { area = "Inventari" }) },
-                { "data-type", "form" },
                 { "data-message", "Vuoi avviare una nuova sessione? Il magazzino verrà bloccato." }
             }
         };
@@ -213,10 +212,17 @@ public partial class SessioniController : AuthenticatedBaseController
     [ValidateAntiForgeryToken]
     public virtual async Task<IActionResult> AggiungiSessioneInventario()
     {
-        var userId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
-
-        var dto = new AggiungiSessioneInventarioDTO { UserId = userId };
-        var sessione = await _service.AggiungiSessioneAsync(dto);
-        return RedirectToAction(nameof(Index));
+        try
+        {
+            var userId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
+            var dto = new AggiungiSessioneInventarioDTO { UserId = userId };
+            await _service.AggiungiSessioneAsync(dto);
+            
+            return Json(new { success = true });
+        }
+        catch (Exception ex)
+        {
+            return Json(new { success = false, message = ex.Message });
+        }
     }
 }
