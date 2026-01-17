@@ -73,7 +73,7 @@
         <div class="text-muted text-uppercase mt-2 ms-1 mb-2">Chiuse:</div>
         foreach (var item in sessioniChiuse)
         {
-            <div class="card shadow-sm border-0 border-start border-5 mt-2 border-secondary"
+            <div class="card shadow-sm border-0 border-start border-5 mt-2 border-secondary border-opacity-75"
                  style="cursor:pointer"
                  onclick="window.location.href='@Url.Action("Index", "Dettaglio", new { id = item.Id })'">
                 <div class="card-body p-2">
@@ -83,7 +83,7 @@
                         <div class="text-dark text-truncate pe-2">
                             @item.NomeSessione
                         </div>
-                        <span class="badge bg-secondary  border text-nowrap">
+                        <span class="badge bg-secondary opacity-75 border text-nowrap">
                             Completato
                         </span>
                     </div>
@@ -204,7 +204,7 @@
                             </td>
 
                             <td class="text-center">
-                                <span class="badge bg-success border-0 ">Completato</span>
+                                <span class="badge bg-secondary opacity-75 border-0 ">Completato</span>
                             </td>
                         </tr>
                     }
