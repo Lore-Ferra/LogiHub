@@ -257,9 +257,9 @@
     @* --- ACCORDION CONTAINER --- *@
     <div class="accordion" id="discrepanzeAccordion">
         @{
-            bool openSpostati = countSpostati > 0 || (countSpostati == 0 && countExtra == 0 && countMancanti == 0);
-            bool openExtra = !openSpostati && countExtra > 0;
-            bool openMancanti = !openSpostati && !openExtra;
+            bool openSpostati = false;
+            bool openExtra = false;
+            bool openMancanti = false;
         }
 
         @{ await RenderAccordionItem("spostati", "Spostamenti", "fa-solid fa-right-left", countSpostati, Model.DaSpostare, "primary", TipoRisoluzione.Sposta, openSpostati); }
@@ -302,19 +302,20 @@
     <script src="~/js/Features/Modals/ConfirmModal.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function () {
-            const hash = window.location.hash;
-            if (hash) {
-                const targetEl = document.querySelector(hash);
-                if (targetEl) {
-                    new bootstrap.Collapse(targetEl, {show: true});
-                }
+            const storageKey = 'discrepanze_active_tab';
+            const accordion = document.getElementById('discrepanzeAccordion');
+
+            const lastOpen = sessionStorage.getItem(storageKey);
+            if (lastOpen) {
+                const target = document.getElementById(lastOpen);
+                if (target) new bootstrap.Collapse(target, { show: true });
             }
 
-            const collapses = document.querySelectorAll('.accordion-collapse');
-            collapses.forEach(el => {
-                el.addEventListener('shown.bs.collapse', (e) => {
-                    history.replaceState(null, null, '#' + e.target.id);
-                });
+            accordion.addEventListener('shown.bs.collapse', function (e) {
+                sessionStorage.setItem(storageKey, e.target.id);
+            });
+            accordion.addEventListener('hidden.bs.collapse', function (e) {
+                if (sessionStorage.getItem(storageKey) === e.target.id) sessionStorage.removeItem(storageKey);
             });
         });
 
