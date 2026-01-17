@@ -136,7 +136,7 @@
                 <div data-barcode="@item.Barcode"
                      class="card shadow mt-1 border-0 border-start border-3 @(item.Stato == StatoDiscrepanza.Risolta ? "border-success" : item.Stato == StatoDiscrepanza.Annullata ? "border-danger" : "border-" + colorClass) mb-1 mobile-item-card @(item.Stato != StatoDiscrepanza.Aperta ? "bg-light" : "")">
                     <div class="card-body p-2">
-                        <div class="d-flex justify-content-between align-items-start mb-2">
+                        <div class="d-flex justify-content-between align-items-start">
                             <div>
                                 <div class="fw-bold fs-5">@item.Barcode</div>
                                 <div class="small text-muted">@item.Descrizione</div>
@@ -145,24 +145,24 @@
                                 <div class="gestione-cell">
                                     @if (item.Stato != StatoDiscrepanza.Aperta)
                                     {
-                                        <div class="x-small text-muted" style="font-size: 0.7rem;">
+                                        <div class="x-small text-muted">
                                             <div><b>@item.GestitaDa</b></div>
                                             <div>@item.DataGestione?.ToString("dd/MM HH:mm")</div>
                                         </div>
                                     }
                                     else
                                     {
-                                        <div class="x-small text-muted" style="font-size: 0.7rem;">---</div>
+                                        <div class="x-small text-muted">---</div>
                                     }
                                 </div>
 
-                                <div class="stato-cell mt-1">
+                                <div class="stato-cell">
                                     <span class="badge @GetStatoBadge(item.Stato)">@item.Stato</span>
                                 </div>
                             </div>
                         </div>
 
-                        <div class="mb-3 small bg-light p-2 rounded text-muted">
+                        <div class="py-1">
                             @if (item.Tipo == TipoDiscrepanzaOperativa.Spostato)
                             {
                                 <span><i
