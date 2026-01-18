@@ -18,13 +18,9 @@
 {
     @* CASO 1: TUTTO RISOLTO (Verde) *@
     <div class="alert alert-success border-0 shadow-sm mb-3 d-flex align-items-center">
-        <i class="fa-solid fa-circle-check me-3 fa-lg"></i>
-        <div>
-            <p class="h5 alert-heading fw-bold mb-1">Ottimo lavoro!</p>
-            <div>
-                Tutte le discrepanze sono state allineate.
-            </div>
-        </div>
+        <i class="fa-solid fa-circle-check me-2 fa-lg"></i>
+        <span class="fw-bold me-1">Ottimo lavoro!</span>
+        <span>Tutte le discrepanze sono state allineate.</span>
     </div>
 }
 else if (Model.IsSolaLettura && totalOpen > 0)
@@ -33,8 +29,8 @@ else if (Model.IsSolaLettura && totalOpen > 0)
     <div class="alert alert-warning border-0 shadow-sm mb-3 d-flex align-items-center">
         <i class="fa-solid fa-lock me-3 fa-lg"></i>
         <div>
-            <strong>Risoluzione Bloccata:</strong> Ci sono ancora ubicazioni aperte.
-            Devi terminare il conteggio fisico prima di allineare il magazzino.
+            <strong>Risoluzione Bloccata:</strong>
+            Terminare il controllo prima di allineare il magazzino.
         </div>
     </div>
 }
@@ -255,7 +251,7 @@ else if (Model.IsSolaLettura && totalOpen > 0)
             </h2>
             <div id="collapse-@id" class="accordion-collapse collapse @(isOpen ? "show" : "")"
                  aria-labelledby="heading-@id" data-bs-parent="#discrepanzeAccordion">
-                <div class="accordion-body p-0 p-md-3 bg-white">
+                <div class="accordion-body p-0 p-md-2 bg-white">
                     @{ await RenderTabella(items, colorClass, tipo); }
                 </div>
             </div>
