@@ -245,11 +245,11 @@ else
                     const data = await res.json();
 
                     if (res.ok && data.success) {
-                        notify(data.message || "Semilavorato eliminato con successo!", "success");
-
-                        setTimeout(() => {
-                            window.location.replace(window.location.href);
-                        }, 2000);
+                        sessionStorage.setItem("pendingToast", JSON.stringify({
+                            msg: data.message || "Semilavorato eliminato con successo!",
+                            type: "success"
+                        }));
+                        window.location.replace(window.location.href);
                     } else {
                         notify(data.message || "Impossibile eliminare il semilavorato.", "danger");
                     }
@@ -301,7 +301,7 @@ else
                     if (response.ok) {
                         // 4. Notifica dinamica
                         const msg = offcanvasAggiungi ? "Semilavorato aggiunto!" : "Semilavorato modificato!";
-                        notify(msg, "success");
+                        sessionStorage.setItem("pendingToast", JSON.stringify({ msg, type: "success" }));
 
                         // 5. Chiudi l'offcanvas attivo (Aggiungi o Dettagli)
                         const activeOffcanvas = offcanvasAggiungi || offcanvasDettagli;
@@ -309,9 +309,7 @@ else
                         if (instance) instance.hide();
 
                         // 6. Ricarica la tabella
-                        setTimeout(() => {
-                            window.location.reload();
-                        }, 1200);
+                        window.location.reload();
                     } else {
                         // 7. Gestione Errore (Ricarica la partial con gli errori)
                         const html = await response.text();
@@ -456,5 +454,18 @@ else
             if (mobileContainer) observer.observe(mobileContainer, config);
             if (desktopBody) observer.observe(desktopBody, config);
         });
+    </script>
+    <script>
+    document.addEventListener("DOMContentLoaded", () => {
+        const pending = sessionStorage.getItem("pendingToast");
+        if (!pending) return;
+    
+        try {
+            const { msg, type } = JSON.parse(pending);
+            notify(msg, type || "success");
+        } finally {
+            sessionStorage.removeItem("pendingToast");
+        }
+            });
     </script>
 }

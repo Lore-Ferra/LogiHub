@@ -285,9 +285,17 @@ else
                     const data = await res.json();
 
                     if (res.ok && data.success) {
-                        location.reload(); // Ricarica la pagina senza creare history duplicata
+                        sessionStorage.setItem("pendingToast", JSON.stringify({
+                            msg: data.message || "Sessione di inventario avviata!",
+                            type: "success"
+                        }));
+                        modal.hide();
+                        location.reload();
                     } else {
-                        alert("Errore: " + (data.message || "Impossibile creare la sessione."));
+                        sessionStorage.setItem("pendingToast", JSON.stringify({
+                            msg: data.message || "Impossibile creare la sessione.",
+                            type: "danger"
+                        }));
                         location.reload();
                     }
                 } catch (err) {
@@ -297,6 +305,19 @@ else
             };
             modal.show();
         }
+    </script>
+    <script>
+    document.addEventListener("DOMContentLoaded", () => {
+        const pending = sessionStorage.getItem("pendingToast");
+        if (!pending) return;
+    
+        try {
+            const { msg, type } = JSON.parse(pending);
+            notify(msg, type || "success");
+        } finally {
+            sessionStorage.removeItem("pendingToast");
+        }
+            });
     </script>
 }
 

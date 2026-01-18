@@ -479,6 +479,13 @@
                 const data = await response.json();
 
                 if (data.success) {
+                    const modalAggiungi = bootstrap.Modal.getInstance(document.getElementById('modalAggiungiExtra'));
+                    if (modalAggiungi) modalAggiungi.hide();
+
+                    sessionStorage.setItem("pendingToast", JSON.stringify({
+                        msg: data.message || "Pezzo extra aggiunto!",
+                        type: "success"
+                    }));
                     location.reload();
                 } else {
                     const modalAggiungi = bootstrap.Modal.getInstance(document.getElementById('modalAggiungiExtra'));
@@ -606,5 +613,18 @@
         document.addEventListener('DOMContentLoaded', function() {
             aggiornaInterfacciaStats();
         });
+    </script>
+    <script>
+    document.addEventListener("DOMContentLoaded", () => {
+        const pending = sessionStorage.getItem("pendingToast");
+        if (!pending) return;
+    
+        try {
+            const { msg, type } = JSON.parse(pending);
+            notify(msg, type || "success");
+        } finally {
+            sessionStorage.removeItem("pendingToast");
+        }
+            });
     </script>
 }

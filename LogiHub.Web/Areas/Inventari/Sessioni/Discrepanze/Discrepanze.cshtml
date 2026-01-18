@@ -347,33 +347,51 @@ else
 
 @section Scripts {
     <script src="~/js/Features/Modals/ConfirmModal.js"></script>
+
     <script>
         document.addEventListener('DOMContentLoaded', function () {
+
+            const pending = sessionStorage.getItem("pendingToast");
+            if (pending) {
+                try {
+                    const { msg, type } = JSON.parse(pending);
+                    notify(msg, type || "success");
+                } finally {
+                    sessionStorage.removeItem("pendingToast");
+                }
+            }
+
+            // ---- ACCORDION: ricorda ultima tab aperta ----
             const storageKey = 'discrepanze_active_tab';
             const accordion = document.getElementById('discrepanzeAccordion');
 
             const lastOpen = sessionStorage.getItem(storageKey);
             if (lastOpen) {
                 const target = document.getElementById(lastOpen);
-                if (target) new bootstrap.Collapse(target, {show: true});
+                if (target) new bootstrap.Collapse(target, { show: true });
             }
 
-            accordion.addEventListener('shown.bs.collapse', function (e) {
-                sessionStorage.setItem(storageKey, e.target.id);
-            });
-            accordion.addEventListener('hidden.bs.collapse', function (e) {
-                if (sessionStorage.getItem(storageKey) === e.target.id) sessionStorage.removeItem(storageKey);
-            });
-        });
+            if (accordion) {
+                accordion.addEventListener('shown.bs.collapse', function (e) {
+                    sessionStorage.setItem(storageKey, e.target.id);
+                });
 
-        document.querySelectorAll('[data-confirm-trigger="true"][data-url]').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                e.preventDefault();
+                accordion.addEventListener('hidden.bs.collapse', function (e) {
+                    if (sessionStorage.getItem(storageKey) === e.target.id) {
+                        sessionStorage.removeItem(storageKey);
+                    }
+                });
+            }
 
-                const url = btn.getAttribute('data-url');
-                const msg = btn.getAttribute('data-message') || 'Confermi?';
+            document.querySelectorAll('[data-confirm-trigger="true"][data-url]').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    e.preventDefault();
 
-                avviaRisoluzione(btn, url, msg, {reloadOnSuccess: true});
+                    const url = btn.getAttribute('data-url');
+                    const msg = btn.getAttribute('data-message') || 'Confermi?';
+
+                    avviaRisoluzione(btn, url, msg, { reloadOnSuccess: true });
+                });
             });
         });
 
@@ -403,23 +421,43 @@ else
                     const formData = new FormData();
                     formData.append('__RequestVerificationToken', tokenEl.value);
 
-                    const res = await fetch(url, {method: 'POST', body: formData});
+                    const res = await fetch(url, { method: 'POST', body: formData });
 
                     if (res.ok) {
                         const ct = res.headers.get("content-type") || "";
                         const data = ct.includes("application/json") ? await res.json() : null;
 
                         if (!data || data.success) {
+
+                            // 1) Messaggio specifico: dal backend se possibile
+                            let toastMsg = (data && data.message) ? data.message : null;
+
+                            // Fallback: capisco l'azione dall'URL se il backend non manda message
+                            if (!toastMsg) {
+                                if (url.includes("AnnullaDiscrepanza")) toastMsg = "Operazione annullata con successo.";
+                                else if (url.includes("Risolvi")) toastMsg = "Operazione risolta con successo.";
+                                else toastMsg = "Operazione completata con successo.";
+                            }
+
+                            const toastType = (data && data.toastType) ? data.toastType : "success";
                             modal.hide();
+                            notify(toastMsg, toastType);
+
+                            const willNavigate =
+                                (data && data.redirectUrl) ||
+                                options.reloadOnSuccess ||
+                                (data && data.goBack);
+
+                            if (willNavigate) {
+                                sessionStorage.setItem("pendingToast", JSON.stringify({ msg: toastMsg, type: toastType }));
+                            }
 
                             if (data && data.redirectUrl) {
                                 sessionStorage.setItem('refreshDettaglio', 'true');
 
-                                if (window.history.length > 1) {
-                                    window.history.back();
-                                } else {
-                                    window.location.replace(data.redirectUrl);
-                                }
+                                if (window.history.length > 1) window.history.back();
+                                else window.location.replace(data.redirectUrl);
+
                                 return;
                             }
 
@@ -431,7 +469,7 @@ else
                             if (data) {
                                 aggiornaRigaUI(btn, data);
                             }
-                        } else {
+                    } else {
                             alert("Errore: " + (data.message || "Operazione fallita"));
                         }
                     } else {
@@ -459,13 +497,15 @@ else
             const tr = document.querySelector(`tr[data-barcode="${barcode}"]`);
             const card = document.querySelector(`.mobile-item-card[data-barcode="${barcode}"]`);
 
-            // Cerca la parte "if (tr) {" e aggiungi:
-            const infoTd = tr.querySelector('.info-cell');
-            if (infoTd) infoTd.classList.add('text-muted');
+            if (tr) {
+                const infoTd = tr.querySelector('.info-cell');
+                if (infoTd) infoTd.classList.add('text-muted');
+            }
 
-// Cerca la parte "if (card) {" e aggiungi:
-            const infoDiv = card.querySelector('.info-cell');
-            if (infoDiv) infoDiv.classList.add('text-muted');
+            if (card) {
+                const infoDiv = card.querySelector('.info-cell');
+                if (infoDiv) infoDiv.classList.add('text-muted');
+            }
 
             const isAperta = data.stato === 'Aperta';
             const badgeClass = data.stato === 'Risolta' ? 'border border-success text-success bg-white' :
@@ -518,11 +558,11 @@ else
                 const actionEl = card.querySelector('.action-cell');
                 if (actionEl) {
                     actionEl.innerHTML = `
-                <div class="d-flex flex-nowrap mt-2">
-                    <button class="btn btn-sm btn-secondary disabled w-100">
-                        <i class="fa-solid fa-lock"></i>
-                    </button>
-                </div>`;
+                        <div class="d-flex flex-nowrap mt-2">
+                            <button class="btn btn-sm btn-secondary disabled w-100">
+                                <i class="fa-solid fa-lock"></i>
+                            </button>
+                        </div>`;
                 }
 
                 card.classList.remove('border-primary', 'border-warning', 'border-danger', 'border-success');
@@ -530,7 +570,6 @@ else
                 else if (data.stato === 'Annullata') card.classList.add('border-danger');
             }
 
-            // --- 4. COUNTER ACCORDION (Invariato) ---
             const accordionCollapse = owner.closest('.accordion-collapse');
             if (accordionCollapse) {
                 const headerId = accordionCollapse.getAttribute('aria-labelledby');
@@ -547,5 +586,6 @@ else
                     }
                 }
             }
+        }
+    </script>
 }
-    </script>}
