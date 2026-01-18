@@ -10,8 +10,11 @@
     var totalOpen = countSpostati + countExtra + countMancanti;
 }
 
-@* --- GESTIONE BANNER STATO --- *@
-@if (totalOpen == 0)
+@{
+    bool hasQuery = !string.IsNullOrWhiteSpace(Model.SearchCard?.Query);
+}
+
+@if (totalOpen == 0 && (!hasQuery || Model.IsSolaLettura))
 {
     @* CASO 1: TUTTO RISOLTO (Verde) *@
     <div class="alert alert-success border-0 shadow-sm mb-3 d-flex align-items-center">
@@ -24,7 +27,7 @@
         </div>
     </div>
 }
-else if (Model.IsSolaLettura)
+else if (Model.IsSolaLettura && totalOpen > 0)
 {
     @* CASO 2: BLOCCATO (Giallo) - Appare solo se ci sono ancora cose aperte *@
     <div class="alert alert-warning border-0 shadow-sm mb-3 d-flex align-items-center">
@@ -265,22 +268,54 @@ else if (Model.IsSolaLettura)
     @await Html.PartialAsync("~/Features/SearchCard/_SearchCard.cshtml", Model.SearchCard)
 </div>
 
-<div class="container-fluid p-0 mt-3">
-    @* --- ACCORDION CONTAINER --- *@
-    <div class="accordion" id="discrepanzeAccordion">
-        @{
-            bool openSpostati = false;
-            bool openExtra = false;
-            bool openMancanti = false;
-        }
+@{
+    var noResults =
+        (Model.DaSpostare == null || !Model.DaSpostare.Any()) &&
+        (Model.DaAggiungere == null || !Model.DaAggiungere.Any()) &&
+        (Model.DaRimuovere == null || !Model.DaRimuovere.Any());
+}
 
-        @{ await RenderAccordionItem("spostati", "Spostamenti", "fa-solid fa-right-left", countSpostati, Model.DaSpostare, "primary", TipoRisoluzione.Sposta, openSpostati); }
-
-        @{ await RenderAccordionItem("extra", "Extra", "fa-solid fa-plus", countExtra, Model.DaAggiungere, "warning", TipoRisoluzione.Aggiungi, openExtra); }
-
-        @{ await RenderAccordionItem("mancanti", "Mancanti", "fa-solid fa-minus", countMancanti, Model.DaRimuovere, "danger", TipoRisoluzione.Rimuovi, openMancanti); }
+@if (noResults)
+{
+    <div class="text-center py-5 text-muted">
+        <i class="fas fa-box-open fa-3x mb-3"></i>
+        <p>
+            @(string.IsNullOrWhiteSpace(Model.SearchCard?.Query)
+                ? "Nessuna discrepanza trovata."
+                : "Nessun risultato per la ricerca.")
+        </p>
     </div>
-</div>
+}
+else
+{
+    <div class="container-fluid p-0 mt-3">
+        @* --- ACCORDION CONTAINER --- *@
+        <div class="accordion" id="discrepanzeAccordion">
+            @{
+                bool hasSpostati = Model.DaSpostare != null && Model.DaSpostare.Any();
+                bool hasExtra = Model.DaAggiungere != null && Model.DaAggiungere.Any();
+                bool hasMancanti = Model.DaRimuovere != null && Model.DaRimuovere.Any();
+
+                bool openSpostati = false;
+                bool openExtra = false;
+                bool openMancanti = false;
+
+                if (hasQuery)
+                {
+                    if (hasSpostati) openSpostati = true;
+                    else if (hasExtra) openExtra = true;
+                    else if (hasMancanti) openMancanti = true;
+                }
+            }
+
+            @{ await RenderAccordionItem("spostati", "Spostamenti", "fa-solid fa-right-left", countSpostati, Model.DaSpostare, "primary", TipoRisoluzione.Sposta, openSpostati); }
+
+            @{ await RenderAccordionItem("extra", "Extra", "fa-solid fa-plus", countExtra, Model.DaAggiungere, "warning", TipoRisoluzione.Aggiungi, openExtra); }
+
+            @{ await RenderAccordionItem("mancanti", "Mancanti", "fa-solid fa-minus", countMancanti, Model.DaRimuovere, "danger", TipoRisoluzione.Rimuovi, openMancanti); }
+        </div>
+    </div>    
+}
 
 @Html.AntiForgeryToken()
 

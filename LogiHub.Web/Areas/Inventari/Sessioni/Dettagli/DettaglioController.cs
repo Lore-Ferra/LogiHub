@@ -43,9 +43,21 @@ public partial class DettaglioController : AuthenticatedBaseController
 
         if (!string.IsNullOrWhiteSpace(query))
         {
-            ubicazioniFiltrate = ubicazioniFiltrate
-                .Where(u => u.Posizione.Contains(query, StringComparison.OrdinalIgnoreCase))
-                .ToList();
+            if (!string.IsNullOrWhiteSpace(query))
+            {
+                if (!string.IsNullOrWhiteSpace(query))
+                {
+                    ubicazioniFiltrate = ubicazioniFiltrate
+                        .Where(u =>
+                            (!string.IsNullOrEmpty(u.Posizione) &&
+                             u.Posizione.Contains(query, StringComparison.OrdinalIgnoreCase))
+                            ||
+                            (!string.IsNullOrEmpty(u.OperatoreCorrente) &&
+                             u.OperatoreCorrente.Contains(query, StringComparison.OrdinalIgnoreCase))
+                        )
+                        .ToList();
+                }
+            }
         }
 
         // Calcola la paginazione
