@@ -92,7 +92,7 @@
                             <span class="badge @GetStatoBadge(item.Stato)">@item.Stato</span>
                         </td>
                         <td class="text-center text-nowrap ">
-                            @if (item.Stato != StatoDiscrepanza.Aperta)
+                            @if (item.Stato != StatoDiscrepanza.Aperta || Model.IsSolaLettura)
                             {
                                 <div class="d-inline-flex gap-1">
                                     <button class="btn btn-sm btn-secondary disabled"><i
@@ -102,12 +102,6 @@
                                             class="fa-solid fa-lock me-2"></i>Annulla
                                     </button>
                                 </div>
-                            }
-                            else if (Model.IsSolaLettura)
-                            {
-                                <button class="btn btn-secondary disabled">
-                                    <i class="fa-solid fa-lock" title="Completa prima l'inventario"></i>
-                                </button>
                             }
                             else
                             {
@@ -181,7 +175,7 @@
 
                         @* Azioni Card *@
                         <div class="action-cell">
-                            @if (item.Stato != StatoDiscrepanza.Aperta)
+                            @if (item.Stato != StatoDiscrepanza.Aperta || Model.IsSolaLettura)
                             {
                                 <div class="d-flex gap-2">
                                     <button class="btn btn-secondary flex-grow-1 fw-bold py-2 disabled">
@@ -192,14 +186,7 @@
                                     </button>
                                 </div>
                             }
-                            else if (Model.IsSolaLettura)
-                            {
-                                <div class="d-grid">
-                                    <button class="btn btn-secondary disabled">
-                                        <i class="fa-solid fa-lock me-2"></i>Risoluzione Bloccata
-                                    </button>
-                                </div>
-                            }
+
                             else
                             {
                                 <div class="d-flex gap-2">

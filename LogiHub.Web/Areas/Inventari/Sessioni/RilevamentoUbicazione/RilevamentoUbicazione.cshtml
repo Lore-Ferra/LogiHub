@@ -26,8 +26,8 @@
 
     var urlConcludi = Url.Action("ConcludiUbicazione", "RilevamentoUbicazione",
         new { area = "Inventari", sessioneId = Model.SessioneId, ubicazioneId = Model.UbicazioneId });
-    var btnPresenteClass = Model.IsSolaLettura ? "btn btn-sm btn-secondary text-nowrap" : "btn btn-sm btn-success text-nowrap";
-    var btnMancanteClass = Model.IsSolaLettura ? "btn btn-sm btn-secondary text-nowrap" : "btn btn-sm btn-danger text-nowrap";
+    var btnPresenteClass = Model.IsSolaLettura ? "btn btn-sm btn-secondary text-nowrap" : "btn btn-sm btn-outline-success text-nowrap";
+    var btnMancanteClass = Model.IsSolaLettura ? "btn btn-sm btn-secondary text-nowrap" : "btn btn-sm btn-outline-danger text-nowrap";
 }
 @* --- STATISTICHE --- *@
 <div id="stats-container" class="d-flex mb-3 flex-wrap gap-2">
@@ -113,7 +113,7 @@
 
                                 <td class="text-center">
                                     <span id="badge-d-@pezzo.RigaId"
-                                          class="badge @(pezzo.Stato == StatoRigaInventario.InAttesa ? "badge bg-light text-dark border" : pezzo.Stato == StatoRigaInventario.Trovato ? "text-light bg-success" : "text-light bg-danger")">
+                                          class="badge @(pezzo.Stato == StatoRigaInventario.InAttesa ? "badge bg-light text-dark border" : pezzo.Stato == StatoRigaInventario.Trovato ? "text-light bg-success" : " text-light bg-danger")">
                                         @(pezzo.Stato == StatoRigaInventario.InAttesa ? "In Attesa" : pezzo.Stato == StatoRigaInventario.Trovato ? "Presente" : "Mancante")
                                     </span>
                                 </td>
