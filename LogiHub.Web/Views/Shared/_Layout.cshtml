@@ -217,6 +217,21 @@
 
 @section scripts{
     <script type="text/javascript">
+        // Intercetta la ricerca per sostituire la history invece di aggiungerla (Globale)
+        document.addEventListener('submit', function (e) {
+            const form = e.target;
+            if (form.tagName === 'FORM' && form.method.toLowerCase() === 'get') {
+                e.preventDefault();
+                const formData = new FormData(form);
+                const params = new URLSearchParams(formData);
+
+                let action = form.getAttribute('action') || window.location.pathname;
+                const newUrl = new URL(action, window.location.origin);
+                newUrl.search = params.toString();
+
+                window.location.replace(newUrl.toString());
+            }
+        });
         function notify(message, type = 'success') {
             const container = document.getElementById('mainToastContainer');
             if (!container) return;

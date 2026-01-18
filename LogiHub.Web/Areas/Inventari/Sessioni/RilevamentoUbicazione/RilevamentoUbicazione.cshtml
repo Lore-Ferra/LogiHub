@@ -297,7 +297,7 @@
                 <h5 class="modal-title"><i class="fa-solid fa-box-open me-2 text-primary"></i>Aggiungi Extra</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <form id="formAggiungiExtra" onsubmit="submitAggiungiExtra(event)">
+            <form id="formAggiungiExtra" method="post" onsubmit="submitAggiungiExtra(event)">
                 <div class="modal-body">
                     <input type="hidden" name="sessioneId" value="@Model.SessioneId"/>
                     <input type="hidden" name="ubicazioneId" value="@Model.UbicazioneId"/>
