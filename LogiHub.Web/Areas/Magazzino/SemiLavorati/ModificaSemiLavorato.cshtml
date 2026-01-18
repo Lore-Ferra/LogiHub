@@ -10,7 +10,7 @@
                    "ub.classList.remove('is-invalid'); ub.classList.remove('is-valid');";
 }
 
-<form id="formModificaSemilavorato" class="modifica-form needs-validation" asp-action="Modifica" asp-area="Magazzino"
+<form id="formModificaSemilavorato" class="needs-validation" asp-action="Modifica" asp-area="Magazzino"
       method="post" novalidate>
     @Html.AntiForgeryToken()
     <input type="hidden" asp-for="Id"/>

@@ -295,10 +295,11 @@ else
 
             fetch(form.action, {
                 method: 'POST',
-                body: formData
+                body: formData,
+                headers: { 'X-Requested-With': 'XMLHttpRequest' }
             })
                 .then(async response => {
-                    if (response.ok) {
+                    if (response.redirected) {
                         // 4. Notifica dinamica
                         const msg = offcanvasAggiungi ? "Semilavorato aggiunto!" : "Semilavorato modificato!";
                         sessionStorage.setItem("pendingToast", JSON.stringify({ msg, type: "success" }));
@@ -310,13 +311,24 @@ else
 
                         // 6. Ricarica la tabella
                         window.location.reload();
-                    } else {
+                    } else if (response.ok) {
                         // 7. Gestione Errore (Ricarica la partial con gli errori)
                         const html = await response.text();
                         const contentDiv = (offcanvasAggiungi || offcanvasDettagli).querySelector('[data-offcanvas-content]');
 
                         if (contentDiv) contentDiv.innerHTML = html;
-                        notify("Controlla i dati inseriti", "warning");
+
+                        if (btn) {
+                            btn.disabled = false;
+                            btn.innerHTML = originalText;
+                        }
+                    } else {
+                        // Gestione Errori HTTP (es. 400, 500)
+                        const html = await response.text();
+                        const contentDiv = (offcanvasAggiungi || offcanvasDettagli).querySelector('[data-offcanvas-content]');
+
+                        if (contentDiv) contentDiv.innerHTML = html;
+                        notify("Si è verificato un errore", "danger");
 
                         if (btn) {
                             btn.disabled = false;
