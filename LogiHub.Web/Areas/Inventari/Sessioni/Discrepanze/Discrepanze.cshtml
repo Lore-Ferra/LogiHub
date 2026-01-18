@@ -8,6 +8,7 @@
     var countMancanti = Model.DaRimuovere?.Count(x => x.Stato == StatoDiscrepanza.Aperta) ?? 0;
 
     var totalOpen = countSpostati + countExtra + countMancanti;
+    bool canRisolviTutto = !Model.IsSolaLettura && totalOpen > 0;
 }
 
 @{
@@ -18,13 +19,9 @@
 {
     @* CASO 1: TUTTO RISOLTO (Verde) *@
     <div class="alert alert-success border-0 shadow-sm mb-3 d-flex align-items-center">
-        <i class="fa-solid fa-circle-check me-3 fa-lg"></i>
-        <div>
-            <p class="h5 alert-heading fw-bold mb-1">Ottimo lavoro!</p>
-            <div>
-                Tutte le discrepanze sono state allineate.
-            </div>
-        </div>
+        <i class="fa-solid fa-circle-check me-2 fa-lg"></i>
+        <span class="fw-bold me-1">Ottimo lavoro!</span>
+        <span>Tutte le discrepanze sono state allineate.</span>
     </div>
 }
 else if (Model.IsSolaLettura && totalOpen > 0)
@@ -33,8 +30,8 @@ else if (Model.IsSolaLettura && totalOpen > 0)
     <div class="alert alert-warning border-0 shadow-sm mb-3 d-flex align-items-center">
         <i class="fa-solid fa-lock me-3 fa-lg"></i>
         <div>
-            <strong>Risoluzione Bloccata:</strong> Ci sono ancora ubicazioni aperte.
-            Devi terminare il conteggio fisico prima di allineare il magazzino.
+            <strong>Risoluzione Bloccata:</strong>
+            Terminare il controllo prima di allineare il magazzino.
         </div>
     </div>
 }
@@ -255,7 +252,7 @@ else if (Model.IsSolaLettura && totalOpen > 0)
             </h2>
             <div id="collapse-@id" class="accordion-collapse collapse @(isOpen ? "show" : "")"
                  aria-labelledby="heading-@id" data-bs-parent="#discrepanzeAccordion">
-                <div class="accordion-body p-0 p-md-3 bg-white">
+                <div class="accordion-body p-0 p-md-2 bg-white">
                     @{ await RenderTabella(items, colorClass, tipo); }
                 </div>
             </div>
@@ -359,6 +356,7 @@ else
                 } finally {
                     sessionStorage.removeItem("pendingToast");
                 }
+                aggiornaBottoneRisolviTutto();
             }
 
             // ---- ACCORDION: ricorda ultima tab aperta ----
@@ -435,6 +433,7 @@ else
                             // Fallback: capisco l'azione dall'URL se il backend non manda message
                             if (!toastMsg) {
                                 if (url.includes("AnnullaDiscrepanza")) toastMsg = "Discrepanza annullata con successo.";
+                                else if (url.includes("RisolviTutto")) toastMsg = "Tutte le discrepanze allineate con successo.";
                                 else if (url.includes("Risolvi")) toastMsg = "Discrepanza risolta con successo.";
                                 else toastMsg = "Operazione completata con successo.";
                             }
@@ -584,6 +583,48 @@ else
                             else badge.remove();
                         }
                     }
+                }
+            }
+            aggiornaBottoneRisolviTutto();
+        }
+        
+        function aggiornaBottoneRisolviTutto() {
+            const btn = document.getElementById('btnRisolviTutto');
+            if (!btn) return;
+
+            const icon = btn.querySelector('i');
+            const isReadonly = btn.getAttribute('data-is-readonly') === 'true';
+            const hasOpen = !!document.querySelector('#discrepanzeAccordion .badge-count');
+
+            if (isReadonly || !hasOpen) {
+                btn.className = 'btn btn-secondary disabled';
+                btn.setAttribute('disabled', 'disabled');
+                btn.setAttribute(
+                    'title',
+                    isReadonly
+                        ? 'Completa prima tutte le ubicazioni'
+                        : 'Nessuna discrepanza aperta'
+                );
+
+                if (icon) {
+                    icon.className = 'fa-solid fa-lock';
+                }
+
+                btn.removeAttribute('data-confirm-trigger');
+                btn.removeAttribute('data-url');
+                btn.removeAttribute('data-message');
+            } else {
+                btn.className = 'btn btn-primary';
+                btn.removeAttribute('disabled');
+                btn.removeAttribute('title');
+
+                if (icon) {
+                    icon.className = 'fa-solid fa-wand-magic-sparkles';
+                }
+
+                btn.setAttribute('data-confirm-trigger', 'true');
+                if (btn.dataset.urlOriginal) {
+                    btn.setAttribute('data-url', btn.dataset.urlOriginal);
                 }
             }
         }
