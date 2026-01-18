@@ -176,7 +176,7 @@ public partial class DiscrepanzeController : AuthenticatedBaseController
             success = true,
             stato = StatoDiscrepanza.Annullata.ToString(),
             gestitaDa = nomeOperatore,
-            dataGestione = DateTime.Now.ToString("dd/MM HH:mm")
+            dataGestione = DateTime.Now.ToString("dd/MM/yyyy HH:mm")
         });
     }
 }
