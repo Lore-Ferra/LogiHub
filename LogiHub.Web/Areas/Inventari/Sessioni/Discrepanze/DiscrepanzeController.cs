@@ -39,56 +39,42 @@ public partial class DiscrepanzeController : AuthenticatedBaseController
         bool isSolaLettura = sessione.Ubicazioni.Any(u => !u.Completata);
         bool haAperte = tutte.Any(x => x.Stato == StatoDiscrepanza.Aperta);
 
-
-        var btnRisolviAttivo = new SearchCardButton
-        {
-            Text = "Risolvi Tutto",
-            CssClass = "btn-primary",
-            IconClass = "fa-solid fa-wand-magic-sparkles",
-            Type = "button",
-            HtmlAttributes = new Dictionary<string, string>
-            {
-                { "data-confirm-trigger", "true" },
-                { "data-url", Url.Action("RisolviTutto", "Discrepanze", new { area = "Inventari", id = id }) },
-                { "data-method", "POST" },
-                { "data-type", "form" },
-                { "data-message", "Sei sicuro di voler allineare tutto il magazzino?" }
-            }
-        };
-
-        // 3. Bottone RISOLVI DISATTIVATO (Lucchetto)
-        var btnRisolviDisattivato = new SearchCardButton
-        {
-            Text = isSolaLettura ? "Risoluzione Bloccata" : "Tutto Risolto",
-            CssClass = "btn-secondary disabled ",
-            IconClass = isSolaLettura ? "fa-solid fa-lock" : "fa-solid fa-check-double",
-            Type = "button",
-            HtmlAttributes = new Dictionary<string, string>
-            {
-                { "title", isSolaLettura ? "Completa prima tutte le ubicazioni" : "Nessuna discrepanza aperta" }
-            }
-        };
-
-        // Filtro di ricerca (eseguito dopo il controllo haAperte per coerenza globale)
-        if (!string.IsNullOrWhiteSpace(query))
-        {
-            tutte = tutte.Where(d =>
-                (d.Barcode?.Contains(query, StringComparison.OrdinalIgnoreCase) ?? false) ||
-                (d.Descrizione?.Contains(query, StringComparison.OrdinalIgnoreCase) ?? false) ||
-                (d.UbicazioneSnapshot?.Contains(query, StringComparison.OrdinalIgnoreCase) ?? false) ||
-                (d.UbicazioneRilevata?.Contains(query, StringComparison.OrdinalIgnoreCase) ?? false)
-            ).ToList();
-        }
+        bool canRisolviTutto = !isSolaLettura && haAperte;
 
         var headerButtons = new List<SearchCardButton>();
-        if (isSolaLettura)
+
+        var btnRisolvi = new SearchCardButton
         {
-            headerButtons.Add(btnRisolviDisattivato);
-        }
-        else if (haAperte)
-        {
-            headerButtons.Add(btnRisolviAttivo);
-        }
+            Text = canRisolviTutto
+                ? "Risolvi Tutto"
+                : (isSolaLettura ? "Risoluzione Bloccata" : "Tutto Risolto"),
+            CssClass = canRisolviTutto ? "btn-primary" : "btn-secondary disabled",
+            IconClass = canRisolviTutto
+                ? "fa-solid fa-wand-magic-sparkles"
+                : (isSolaLettura ? "fa-solid fa-lock" : "fa-solid fa-check-double"),
+            Type = "button",
+            HtmlAttributes = canRisolviTutto
+                ? new Dictionary<string, string>
+                {
+                    { "id", "btnRisolviTutto" },
+                    { "data-confirm-trigger", "true" },
+                    { "data-url", Url.Action("RisolviTutto", "Discrepanze", new { area = "Inventari", id }) },
+                    { "data-method", "POST" },
+                    { "data-type", "form" },
+                    { "data-message", "Sei sicuro di voler allineare tutto il magazzino?" },
+                    { "data-is-readonly", isSolaLettura.ToString().ToLower() }
+                }
+                : new Dictionary<string, string>
+                {
+                    { "id", "btnRisolviTutto" },
+                    { "disabled", "disabled" },
+                    { "aria-disabled", "true" },
+                    { "title", isSolaLettura ? "Completa prima tutte le ubicazioni" : "Nessuna discrepanza aperta" },
+                    { "data-is-readonly", isSolaLettura.ToString().ToLower() }
+                }
+        };
+
+        headerButtons.Add(btnRisolvi);
 
         var searchCard = new SearchCardViewModel
         {
@@ -152,12 +138,22 @@ public partial class DiscrepanzeController : AuthenticatedBaseController
     public virtual async Task<IActionResult> RisolviTutto(Guid id)
     {
         var userId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
+
+        var tutte = await _service.OttieniDiscrepanzeAsync(id);
+        var sessione = await _service.OttieniDettaglioSessioneAsync(id);
+
+        bool isSolaLettura = sessione.Ubicazioni.Any(u => !u.Completata);
+        bool haAperte = tutte.Any(x => x.Stato == StatoDiscrepanza.Aperta);
+
+        if (isSolaLettura || !haAperte)
+            return Json(new { success = false, message = "Operazione non disponibile: inventario non completato o nessuna discrepanza aperta." });
+
         await _service.RisolviTuttoAsync(id, userId);
 
         return Json(new
         {
             success = true,
-            redirectUrl = Url.Action("Index", "Dettaglio", new { area = "Inventari", id = id })
+            redirectUrl = Url.Action("Index", "Dettaglio", new { area = "Inventari", id })
         });
     }
 

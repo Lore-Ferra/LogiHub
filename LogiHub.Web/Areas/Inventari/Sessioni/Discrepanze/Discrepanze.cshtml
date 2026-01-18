@@ -8,6 +8,7 @@
     var countMancanti = Model.DaRimuovere?.Count(x => x.Stato == StatoDiscrepanza.Aperta) ?? 0;
 
     var totalOpen = countSpostati + countExtra + countMancanti;
+    bool canRisolviTutto = !Model.IsSolaLettura && totalOpen > 0;
 }
 
 @{
@@ -355,6 +356,7 @@ else
                 } finally {
                     sessionStorage.removeItem("pendingToast");
                 }
+                aggiornaBottoneRisolviTutto();
             }
 
             // ---- ACCORDION: ricorda ultima tab aperta ----
@@ -431,6 +433,7 @@ else
                             // Fallback: capisco l'azione dall'URL se il backend non manda message
                             if (!toastMsg) {
                                 if (url.includes("AnnullaDiscrepanza")) toastMsg = "Discrepanza annullata con successo.";
+                                else if (url.includes("RisolviTutto")) toastMsg = "Tutte le discrepanze allineate con successo.";
                                 else if (url.includes("Risolvi")) toastMsg = "Discrepanza risolta con successo.";
                                 else toastMsg = "Operazione completata con successo.";
                             }
@@ -580,6 +583,48 @@ else
                             else badge.remove();
                         }
                     }
+                }
+            }
+            aggiornaBottoneRisolviTutto();
+        }
+        
+        function aggiornaBottoneRisolviTutto() {
+            const btn = document.getElementById('btnRisolviTutto');
+            if (!btn) return;
+
+            const icon = btn.querySelector('i');
+            const isReadonly = btn.getAttribute('data-is-readonly') === 'true';
+            const hasOpen = !!document.querySelector('#discrepanzeAccordion .badge-count');
+
+            if (isReadonly || !hasOpen) {
+                btn.className = 'btn btn-secondary disabled';
+                btn.setAttribute('disabled', 'disabled');
+                btn.setAttribute(
+                    'title',
+                    isReadonly
+                        ? 'Completa prima tutte le ubicazioni'
+                        : 'Nessuna discrepanza aperta'
+                );
+
+                if (icon) {
+                    icon.className = 'fa-solid fa-lock';
+                }
+
+                btn.removeAttribute('data-confirm-trigger');
+                btn.removeAttribute('data-url');
+                btn.removeAttribute('data-message');
+            } else {
+                btn.className = 'btn btn-primary';
+                btn.removeAttribute('disabled');
+                btn.removeAttribute('title');
+
+                if (icon) {
+                    icon.className = 'fa-solid fa-wand-magic-sparkles';
+                }
+
+                btn.setAttribute('data-confirm-trigger', 'true');
+                if (btn.dataset.urlOriginal) {
+                    btn.setAttribute('data-url', btn.dataset.urlOriginal);
                 }
             }
         }
