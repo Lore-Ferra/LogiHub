@@ -274,7 +274,14 @@
                             type: "success"
                         }));
                         
-                        window.location.href = data.redirectUrl;
+                        sessionStorage.setItem('refreshSessioni', 'true');
+
+                        if (window.history.length > 1) {
+                            window.history.back();
+                        } else {
+                            window.location.replace(data.redirectUrl);
+                        }
+                        
                     } else {
                         alert("Errore: " + (data.message || "Impossibile chiudere la sessione."));
                         location.reload();
