@@ -248,10 +248,32 @@ else
 @section Scripts {
     <script src="~/js/Features/Modals/ConfirmModal.js"></script>
     <script>
+        function mostraPendingToast() {
+            const pending = sessionStorage.getItem("pendingToast");
+            if (!pending) return;
+
+            try {
+                const { msg, type } = JSON.parse(pending);
+                if (typeof notify === "function") {
+                    notify(msg, type || "success");
+                } else {
+                    console.warn("Funzione notify() non trovata.");
+                }
+            } catch (e) {
+                console.error("Errore parsing toast:", e);
+            } finally {
+                sessionStorage.removeItem("pendingToast");
+            }
+        }
+
         window.addEventListener('pageshow', function (event) {
-            if (event.persisted || sessionStorage.getItem('refreshSessioni') === 'true') {
+            const deveRicaricare = event.persisted || sessionStorage.getItem('refreshSessioni') === 'true';
+
+            if (deveRicaricare) {
                 sessionStorage.removeItem('refreshSessioni');
                 window.location.reload();
+            } else {
+                mostraPendingToast();
             }
         });
 
@@ -263,7 +285,6 @@ else
 
             const modalEl = document.getElementById('actionConfirmModal');
             const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
-
             modalEl.querySelector('.modal-title').innerText = "Conferma Operazione";
             const msgEl = modalEl.querySelector('[data-confirm-message]');
             if(msgEl) msgEl.innerText = msg;
@@ -275,7 +296,6 @@ else
             newBtn.onclick = async () => {
                 newBtn.disabled = true;
                 newBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-2"></i>Attendere...';
-
                 try {
                     const tokenInput = document.querySelector('input[name="__RequestVerificationToken"]');
                     const formData = new FormData();
@@ -286,38 +306,18 @@ else
 
                     if (res.ok && data.success) {
                         sessionStorage.setItem("pendingToast", JSON.stringify({
-                            msg: data.message || "Sessione di inventario avviata!",
+                            msg: data.message || "Sessione avviata!",
                             type: "success"
                         }));
-                        modal.hide();
                         location.reload();
                     } else {
-                        sessionStorage.setItem("pendingToast", JSON.stringify({
-                            msg: data.message || "Impossibile creare la sessione.",
-                            type: "danger"
-                        }));
+                        alert(data.message || "Errore");
                         location.reload();
                     }
-                } catch (err) {
-                    console.error(err);
-                    alert("Errore di connessione");
-                }
+                } catch (err) { console.error(err); }
             };
             modal.show();
         }
-    </script>
-    <script>
-    document.addEventListener("DOMContentLoaded", () => {
-        const pending = sessionStorage.getItem("pendingToast");
-        if (!pending) return;
-    
-        try {
-            const { msg, type } = JSON.parse(pending);
-            notify(msg, type || "success");
-        } finally {
-            sessionStorage.removeItem("pendingToast");
-        }
-            });
     </script>
 }
 

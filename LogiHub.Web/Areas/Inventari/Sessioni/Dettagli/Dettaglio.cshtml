@@ -250,7 +250,7 @@
 
             modalEl.querySelector('.modal-title').innerText = "Conferma";
             const msgEl = modalEl.querySelector('[data-confirm-message]');
-            if(msgEl) msgEl.innerHTML = msg; // innerHTML per supportare il grassetto nel nome sessione
+            if(msgEl) msgEl.innerHTML = msg;
 
             const confirmBtn = modalEl.querySelector('[data-confirm-btn]');
             const newBtn = confirmBtn.cloneNode(true);
@@ -268,14 +268,13 @@
                     const res = await fetch(url, { method: 'POST', body: formData });
                     const data = await res.json();
 
-                    if (res.ok && data.success && data.redirectUrl) {
-                        sessionStorage.setItem('refreshSessioni', 'true');
-
-                        if (window.history.length > 1) {
-                            window.history.back();
-                        } else {
-                            window.location.replace(data.redirectUrl);
-                        }
+                    if (res.ok && data.success) {
+                        sessionStorage.setItem("pendingToast", JSON.stringify({
+                            msg: data.message || "Inventario terminato con successo!",
+                            type: "success"
+                        }));
+                        
+                        window.location.href = data.redirectUrl;
                     } else {
                         alert("Errore: " + (data.message || "Impossibile chiudere la sessione."));
                         location.reload();
@@ -284,7 +283,7 @@
                     console.error(err);
                     alert("Errore di connessione");
                 }
-            };
+};
             modal.show();
         }
 
