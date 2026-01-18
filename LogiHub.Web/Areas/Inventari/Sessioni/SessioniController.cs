@@ -129,6 +129,18 @@ public partial class SessioniController : AuthenticatedBaseController
                 q.Length == 2 &&
                 int.TryParse(q, out day) &&
                 day >= 1 && day <= 31;
+            
+            bool isNumeric = int.TryParse(q, out int numericValue);
+
+            bool hasYear =
+                isNumeric &&
+                (
+                    numericValue >= 1900 && numericValue <= 2100
+                    || (numericValue >= 0 && numericValue <= 99) // per 25 → 2025
+                );
+
+            int resolvedYear =
+                numericValue < 100 ? 2000 + numericValue : numericValue;
 
             queryBase = queryBase.Where(x =>
                 (cols.Contains("NomeSessione") &&
@@ -151,8 +163,11 @@ public partial class SessioniController : AuthenticatedBaseController
 
                      ||
 
-                     (hasDayOnly &&
-                      (x.DataCreazione.Day == day || x.DataCreazione.Month == day))
+                     (hasDayOnly && x.DataCreazione.Day == numericValue)
+
+                     ||
+
+                     (hasYear && x.DataCreazione.Year == resolvedYear)
                  ))
                 ||
 
@@ -171,8 +186,11 @@ public partial class SessioniController : AuthenticatedBaseController
 
                      ||
 
-                     (hasDayOnly &&
-                      (x.DataCompletamento.Value.Day == day || x.DataCompletamento.Value.Month == day))
+                     (hasDayOnly && x.DataCompletamento.Value.Day == numericValue)
+
+                     ||
+
+                     (hasYear && x.DataCompletamento.Value.Year == resolvedYear)
                  ))
             );
         }
