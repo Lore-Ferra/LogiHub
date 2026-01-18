@@ -6,10 +6,27 @@
     var countSpostati = Model.DaSpostare?.Count(x => x.Stato == StatoDiscrepanza.Aperta) ?? 0;
     var countExtra = Model.DaAggiungere?.Count(x => x.Stato == StatoDiscrepanza.Aperta) ?? 0;
     var countMancanti = Model.DaRimuovere?.Count(x => x.Stato == StatoDiscrepanza.Aperta) ?? 0;
+
+    var totalOpen = countSpostati + countExtra + countMancanti;
 }
 
-@if (Model.IsSolaLettura)
+@* --- GESTIONE BANNER STATO --- *@
+@if (totalOpen == 0)
 {
+    @* CASO 1: TUTTO RISOLTO (Verde) *@
+    <div class="alert alert-success border-0 shadow-sm mb-3 d-flex align-items-center">
+        <i class="fa-solid fa-circle-check me-3 fa-lg"></i>
+        <div>
+            <h5 class="alert-heading fw-bold mb-1">Ottimo lavoro!</h5>
+            <div>
+                Tutte le discrepanze sono state risolte.
+            </div>
+        </div>
+    </div>
+}
+else if (Model.IsSolaLettura)
+{
+    @* CASO 2: BLOCCATO (Giallo) - Appare solo se ci sono ancora cose aperte *@
     <div class="alert alert-warning border-0 shadow-sm mb-3 d-flex align-items-center">
         <i class="fa-solid fa-lock me-3 fa-lg"></i>
         <div>
@@ -31,9 +48,9 @@
 
     string GetStatoBadge(StatoDiscrepanza stato) => stato switch
     {
-        StatoDiscrepanza.Risolta => "bg-success",
-        StatoDiscrepanza.Annullata => "bg-secondary",
-        _ => "bg-warning text-dark"
+        StatoDiscrepanza.Risolta => "border border-success text-success bg-white",
+        StatoDiscrepanza.Annullata => "border border-danger text-danger bg-white",
+        _ => "bg-warning text-dark shadow-sm fw-bold"
     };
 
     // Renderizza la tabella (o le card su mobile)
@@ -54,44 +71,41 @@
                 <tbody>
                 @foreach (var item in items)
                 {
-                    <tr data-barcode="@item.Barcode" class="@(item.Stato != StatoDiscrepanza.Aperta ? "bg-light" : "")">
+                    <tr data-barcode="@item.Barcode" class="@(item.Stato != StatoDiscrepanza.Aperta ? "bg-light text-muted" : "")">
                         <td>
-                            <div class="fw-bold text-primary">@item.Barcode</div>
-                            <div class="small text-muted">@item.Descrizione</div>
+                            <div class="fw-bold @(item.Stato != StatoDiscrepanza.Aperta ? "text-muted" : "text-primary")">@item.Barcode</div>
+                            <div class="small @(item.Stato != StatoDiscrepanza.Aperta ? "text-muted" : "text-muted")">@item.Descrizione</div>
                         </td>
-                        <td class="text-nowrap">
+                        <td class="info-cell text-nowrap @(item.Stato != StatoDiscrepanza.Aperta ? "text-muted" : "")">
                             @if (item.Tipo == TipoDiscrepanzaOperativa.Spostato)
                             {
-                                <p>Da <b>@item.UbicazioneSnapshot</b> Trovato in <b>@item.UbicazioneRilevata</b></p>
+                                <p class="m-0">Da <b>@item.UbicazioneSnapshot</b> &rarr; Trovato in
+                                    <b>@item.UbicazioneRilevata</b></p>
                             }
                             else if (item.Tipo == TipoDiscrepanzaOperativa.Extra)
                             {
-                                <p>Trovato in <b>@item.UbicazioneRilevata</b></p>
+                                <p class="m-0">Trovato in <b>@item.UbicazioneRilevata</b></p>
                             }
                             else
                             {
-                                <p>Mancante da <b>@item.UbicazioneSnapshot</b></p>
+                                <p class="m-0">Mancante da <span class="fw-semibold">@item.UbicazioneSnapshot</span></p>
                             }
                         </td>
                         <td class="gestione-cell">
                             @if (item.Stato != StatoDiscrepanza.Aperta)
                             {
                                 <div class="text-muted">
-                                    <div><b>@item.GestitaDa</b></div>
-                                    <div
-                                        class="small text-nowrap">@item.DataGestione?.ToString("dd/MM/yyyy HH:mm")</div>
+                                    <div class="fw-semibold">@item.GestitaDa</div>
+                                    <div class="small text-nowrap">@item.DataGestione?.ToString("dd/MM/yyyy HH:mm")</div>
                                 </div>
                             }
-                            else
-                            {
-                                <span class="text-muted">---</span>
-                            }
+                            else { <span class="text-dark">---</span> }
                         </td>
 
                         <td class="stato-cell text-center text-nowrap">
                             <span class="badge @GetStatoBadge(item.Stato)">@item.Stato</span>
                         </td>
-                        <td class="text-center text-nowrap ">
+                        <td class="text-center text-nowrap">
                             @if (item.Stato != StatoDiscrepanza.Aperta || Model.IsSolaLettura)
                             {
                                 <div class="d-inline-flex gap-1">
@@ -123,87 +137,84 @@
             </table>
         </div>
 
-        @* --- VERSIONE MOBILE (CARDS) --- *@
-        <div class="d-md-none">
+        @* --- VERSIONE MOBILE (CARDS - STILE SEMILAVORATI) --- *@
+        <div class="d-md-none bg-light border-0">
             @foreach (var item in items)
             {
                 <div data-barcode="@item.Barcode"
-                     class="card shadow mt-1 border-0 border-start border-3 @(item.Stato == StatoDiscrepanza.Risolta ? "border-success" : item.Stato == StatoDiscrepanza.Annullata ? "border-danger" : "border-" + colorClass) mb-1 mobile-item-card @(item.Stato != StatoDiscrepanza.Aperta ? "bg-light" : "")">
+                     class="card shadow-sm mt-2 border-0 border-start border-5 @(item.Stato == StatoDiscrepanza.Risolta ? "border-success" : item.Stato == StatoDiscrepanza.Annullata ? "border-danger" : "border-warning") mobile-item-card">            
                     <div class="card-body p-2">
-                        <div class="d-flex justify-content-between align-items-start">
-                            <div>
-                                <div class="fw-bold fs-5">@item.Barcode</div>
-                                <div class="small text-muted">@item.Descrizione</div>
+                        @* HEADER: Barcode a sx, Badge Stato a dx *@
+                        <div class="d-flex align-items-center justify-content-between">
+                            <p class="fw-bold fs-5 m-0 @(item.Stato != StatoDiscrepanza.Aperta ? "text-muted" : "text-primary")">@item.Barcode</p>                            <div class="stato-cell">
+                                <span class="badge @GetStatoBadge(item.Stato)">@item.Stato</span>
                             </div>
-                            <div class="text-end">
+                        </div>
+
+                        <hr class="my-1"/>
+
+                        <div class="d-flex justify-content-between align-items-start">
+                            @* COLONNA SX: Dati *@
+                            <div class="flex-grow-1 pe-2">
+                                <div class="small text-muted mb-1">
+                                    <strong>Descrizione:</strong> @item.Descrizione
+                                </div>
+
+                                <div class="info-cell small mb-1 @(item.Stato != StatoDiscrepanza.Aperta ? "text-muted" : "")">                                    <b>Info:</b>
+                                    @if (item.Tipo == TipoDiscrepanzaOperativa.Spostato)
+                                    {
+                                        <span>Da <b>@item.UbicazioneSnapshot</b> &rarr; <b>@item.UbicazioneRilevata</b></span>
+                                    }
+                                    else if (item.Tipo == TipoDiscrepanzaOperativa.Extra)
+                                    {
+                                        <span>Trovato in <b>@item.UbicazioneRilevata</b></span>
+                                    }
+                                    else
+                                    {
+                                        <span>Mancante da <b>@item.UbicazioneSnapshot</b></span>
+                                    }
+                                </div>
+
                                 <div class="gestione-cell">
                                     @if (item.Stato != StatoDiscrepanza.Aperta)
                                     {
-                                        <div class="x-small text-muted">
-                                            <div><b>@item.GestitaDa</b></div>
-                                            <div>@item.DataGestione?.ToString("dd/MM HH:mm")</div>
+                                        <div class="small text-muted">
+                                            <strong>Gestita da:</strong> @item.GestitaDa il @item.DataGestione?.ToString("dd/MM/yyyy HH:mm")
                                         </div>
                                     }
                                     else
                                     {
-                                        <div class="x-small text-muted">---</div>
+                                        <div class="small text-muted">
+                                            <strong>Gestione:</strong> <span class="fst-italic">In attesa di risoluzione...</span>
+                                        </div>
                                     }
                                 </div>
-
-                                <div class="stato-cell">
-                                    <span class="badge @GetStatoBadge(item.Stato)">@item.Stato</span>
-                                </div>
                             </div>
-                        </div>
 
-                        <div class="py-1">
-                            @if (item.Tipo == TipoDiscrepanzaOperativa.Spostato)
-                            {
-                                <span><i
-                                        class="fa-solid fa-arrow-right-arrow-left me-1"></i> Da <b>@item.UbicazioneSnapshot</b> &rarr; <b>@item.UbicazioneRilevata</b></span>
-                            }
-                            else if (item.Tipo == TipoDiscrepanzaOperativa.Extra)
-                            {
-                                <span><i
-                                        class="fa-solid fa-plus me-1"></i> Trovato in <b>@item.UbicazioneRilevata</b></span>
-                            }
-                            else
-                            {
-                                <span><i class="fa-solid fa-minus me-1"></i> Mancante da <b>@item.UbicazioneSnapshot</b></span>
-                            }
-                        </div>
-
-                        @* Azioni Card *@
-                        <div class="action-cell">
-                            @if (item.Stato != StatoDiscrepanza.Aperta || Model.IsSolaLettura)
-                            {
-                                <div class="d-flex gap-2">
-                                    <button class="btn btn-secondary flex-grow-1 fw-bold py-2 disabled">
-                                        <i class="fa-solid fa-lock me-2"></i>Risolvi
-                                    </button>
-                                    <button class="btn btn-secondary py-2 px-3 disabled">
-                                        <i class="fa-solid fa-lock"></i>
-                                    </button>
-                                </div>
-                            }
-
-                            else
-                            {
-                                <div class="d-flex gap-2">
-                                    <button class="btn btn-outline-success flex-grow-1 fw-bold py-2"
-                                            type="button"
-                                            onclick="avviaRisoluzione(this, '@Url.Action("Risolvi", "Discrepanze", new { area = "Inventari", id = Model.SessioneId, barcode = item.Barcode, tipo = tipoDefault })', 'Confermi la risoluzione (aggiornamento magazzino)?')">
-                                        <i class="fa-solid fa-check-double me-2"></i>Risolvi
-                                    </button>
-
-                                    <button class="btn btn-outline-danger py-2 px-3"
-                                            type="button"
-                                            title="Annulla"
-                                            onclick="avviaRisoluzione(this, '@Url.Action("AnnullaDiscrepanza", "Discrepanze", new { area = "Inventari", id = Model.SessioneId, barcode = item.Barcode })', 'Vuoi annullare la segnalazione? Non verrà fatta alcuna modifica fisica.')">
-                                        <i class="fa-solid fa-ban"></i>
-                                    </button>
-                                </div>
-                            }
+                            @* COLONNA DX: Azioni *@
+                            <div class="action-cell ps-1">
+                                @if (item.Stato != StatoDiscrepanza.Aperta || Model.IsSolaLettura)
+                                {
+                                    <div class="d-flex flex-nowrap gap-1 mt-2">
+                                        <button class="btn btn-sm btn-secondary disabled" title="Bloccato">
+                                            <i class="fa-solid fa-lock"></i>
+                                        </button>
+                                    </div>
+                                }
+                                else
+                                {
+                                    <div class="d-flex flex-nowrap gap-1 mt-2">
+                                        <button class="btn btn-sm btn-outline-success" type="button" title="Risolvi"
+                                                onclick="avviaRisoluzione(this, '@Url.Action("Risolvi", "Discrepanze", new { area = "Inventari", id = Model.SessioneId, barcode = item.Barcode, tipo = tipoDefault })', 'Confermi la risoluzione?')">
+                                            <i class="fa-solid fa-check-double"></i>
+                                        </button>
+                                        <button class="btn btn-sm btn-outline-danger" type="button" title="Annulla"
+                                                onclick="avviaRisoluzione(this, '@Url.Action("AnnullaDiscrepanza", "Discrepanze", new { area = "Inventari", id = Model.SessioneId, barcode = item.Barcode })', 'Vuoi annullare la segnalazione?')">
+                                            <i class="fa-solid fa-ban"></i>
+                                        </button>
+                                    </div>
+                                }
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -211,9 +222,10 @@
         </div>
     }
 
+
     async Task RenderAccordionItem(string id, string title, string icon, int count, IEnumerable<DiscrepanzaDTO> items, string colorClass, TipoRisoluzione tipo, bool isOpen = false)
     {
-        <div class="accordion-item border-0 shadow-sm mb-2">
+        <div class="accordion-item bg-light border-0 mb-2">
             <h2 class="accordion-header" id="heading-@id">
                 <button class="accordion-button fw-bold @(!isOpen ? "collapsed" : "")" type="button"
                         data-bs-toggle="collapse" data-bs-target="#collapse-@id" aria-expanded="@isOpen"
@@ -295,7 +307,7 @@
             const lastOpen = sessionStorage.getItem(storageKey);
             if (lastOpen) {
                 const target = document.getElementById(lastOpen);
-                if (target) new bootstrap.Collapse(target, { show: true });
+                if (target) new bootstrap.Collapse(target, {show: true});
             }
 
             accordion.addEventListener('shown.bs.collapse', function (e) {
@@ -399,62 +411,78 @@
             const tr = document.querySelector(`tr[data-barcode="${barcode}"]`);
             const card = document.querySelector(`.mobile-item-card[data-barcode="${barcode}"]`);
 
-            const badgeClass =
-                data.stato === 'Risolta' ? 'bg-success' :
-                    data.stato === 'Annullata' ? 'bg-secondary' :
-                        'bg-warning text-dark';
+            // Cerca la parte "if (tr) {" e aggiungi:
+            const infoTd = tr.querySelector('.info-cell');
+            if (infoTd) infoTd.classList.add('text-muted');
 
-            const gestioneHtml = (data.stato !== 'Aperta')
-                ? `
-            <div class="x-small text-muted" style="font-size: 0.7rem;">
-                <div><b>${data.gestitaDa}</b></div>
-                <div>${data.dataGestione}</div>
-            </div>
-          `
-                : `<span class="text-muted small">---</span>`;
+// Cerca la parte "if (card) {" e aggiungi:
+            const infoDiv = card.querySelector('.info-cell');
+            if (infoDiv) infoDiv.classList.add('text-muted');
+
+            const isAperta = data.stato === 'Aperta';
+            const badgeClass = data.stato === 'Risolta' ? 'border border-success text-success bg-white' :
+                data.stato === 'Annullata' ? 'border border-danger text-danger bg-white' :
+                    'bg-warning text-dark shadow-sm fw-bold';
+
+            // --- 1. COSTRUZIONE HTML SEPARATA ---
+            // Struttura Desktop: Nome sopra, Data (con anno) sotto
+            const gestioneDesktopHtml = !isAperta
+                ? `<div class="text-muted">
+               <div class="fw-semibold">${data.gestitaDa}</div>
+               <div class="small text-nowrap">${data.dataGestione}</div> 
+           </div>`
+                : `<span class="text-dark">---</span>`;
+
+            // Struttura Mobile: Linea singola "Gestita da: Nome il Data"
+            const gestioneMobileHtml = !isAperta
+                ? `<div class="small text-muted"><strong>Gestita da:</strong> ${data.gestitaDa} il ${data.dataGestione}</div>`
+                : `<div class="small text-muted"><strong>Gestione:</strong> <span class="fst-italic opacity-50">In attesa...</span></div>`;
 
             const statoHtml = `<span class="badge ${badgeClass}">${data.stato}</span>`;
 
+            // --- 2. UPDATE DESKTOP ---
             if (tr) {
-                const gestioneCell = tr.querySelector('.gestione-cell');
-                const statoCell = tr.querySelector('.stato-cell');
+                tr.querySelector('.gestione-cell').innerHTML = gestioneDesktopHtml;
+                tr.querySelector('.stato-cell').innerHTML = statoHtml;
 
-                if (gestioneCell) gestioneCell.innerHTML = gestioneHtml;
-                if (statoCell) statoCell.innerHTML = statoHtml;
+                // Mute testo barcode e riga
+                const barcodeDiv = tr.querySelector('.text-primary');
+                if (barcodeDiv) barcodeDiv.className = 'fw-bold text-muted';
+                tr.classList.add('bg-light', 'text-muted');
 
                 tr.cells[4].innerHTML = `
-                <div class="d-inline-flex gap-1">
-                    <button class="btn btn-sm btn-secondary disabled"><i class="fa-solid fa-lock me-2"></i>Risolvi</button>
-                    <button class="btn btn-sm btn-secondary disabled"><i class="fa-solid fa-lock me-2"></i>Annulla</button>
-                </div>`;
-                tr.classList.add('bg-light');
+            <div class="d-inline-flex gap-1">
+                <button class="btn btn-sm btn-secondary disabled"><i class="fa-solid fa-lock me-2"></i>Risolvi</button>
+                <button class="btn btn-sm btn-secondary disabled"><i class="fa-solid fa-lock me-2"></i>Annulla</button>
+            </div>`;
             }
 
+            // --- 3. UPDATE MOBILE ---
             if (card) {
-                const gestioneEl = card.querySelector('.gestione-cell');
-                const statoEl = card.querySelector('.stato-cell');
+                card.querySelector('.gestione-cell').innerHTML = gestioneMobileHtml;
+                card.querySelector('.stato-cell').innerHTML = statoHtml;
 
-                if (gestioneEl) gestioneEl.innerHTML = gestioneHtml;
-                if (statoEl) statoEl.innerHTML = statoHtml;
+                // Mute testo barcode card
+                const cardBarcode = card.querySelector('.text-primary');
+                if (cardBarcode) cardBarcode.className = 'fw-bold fs-5 m-0 text-muted';
+                @* card.classList.add('bg-light'); *@
 
                 const actionEl = card.querySelector('.action-cell');
-                if (actionEl) actionEl.innerHTML = `
-                <div class="d-flex gap-2">
-                    <button class="btn btn-secondary flex-grow-1 fw-bold py-2 disabled">
-                        <i class="fa-solid fa-lock me-2"></i>Risolvi
-                    </button>
-                    <button class="btn btn-secondary py-2 px-3 disabled">
+                if (actionEl) {
+                    actionEl.innerHTML = `
+                <div class="d-flex flex-nowrap mt-2">
+                    <button class="btn btn-sm btn-secondary disabled w-100">
                         <i class="fa-solid fa-lock"></i>
                     </button>
                 </div>`;
+                }
 
-                card.classList.remove('border-primary', 'border-warning', 'border-danger', 'border-success', 'border-secondary');
+                card.classList.remove('border-primary', 'border-warning', 'border-danger', 'border-success');
                 if (data.stato === 'Risolta') card.classList.add('border-success');
-                else if (data.stato === 'Annullata') card.classList.add('border-secondary');
-
-                card.classList.add('bg-light');
+                else if (data.stato === 'Annullata') card.classList.add('border-danger');
             }
 
+            // --- 4. COUNTER ACCORDION (Invariato) ---
             const accordionCollapse = owner.closest('.accordion-collapse');
             if (accordionCollapse) {
                 const headerId = accordionCollapse.getAttribute('aria-labelledby');
@@ -471,5 +499,5 @@
                     }
                 }
             }
-        }
+}
     </script>}
