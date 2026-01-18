@@ -587,16 +587,21 @@
                 if (res.ok) {
                     const data = await res.json();
                     if (data.success && data.redirectUrl) {
-                        // Segnala a Dettaglio di ricaricarsi
+                        sessionStorage.setItem("pendingToast", JSON.stringify({
+                            msg: "Ubicazione conclusa con successo",
+                            type: "success"
+                        }));
+
                         sessionStorage.setItem('refreshDettaglio', 'true');
 
-                        // Torna indietro per evitare duplicati nella history
-                        if (window.history.length > 1) {
-                            window.history.back();
-                        } else {
-                            window.location.replace(data.redirectUrl);
-                        }
-                    } else {
+                        setTimeout(() => {
+                            if (window.history.length > 1) {
+                                window.history.back();
+                            } else {
+                                window.location.replace(data.redirectUrl);
+                            }
+                        }, 150);
+                } else {
                         location.reload();
                     }
                 } else {

@@ -296,11 +296,33 @@
             }
         });
 
-        window.addEventListener('pageshow', function (event) {
-            if (event.persisted || sessionStorage.getItem('refreshDettaglio') === 'true') {
-                sessionStorage.removeItem('refreshDettaglio');
-                window.location.reload();
+        function mostraPendingToast() {
+            const pending = sessionStorage.getItem("pendingToast");
+            if (!pending) return;
+
+            try {
+                const { msg, type } = JSON.parse(pending);
+
+                if (typeof notify === "function") {
+                    notify(msg, type || "success");
+                } else {
+                    console.warn("notify() non disponibile in Dettaglio");
+                    alert(msg);
+                }
+            } finally {
+                sessionStorage.removeItem("pendingToast");
             }
+        }
+
+        window.addEventListener('pageshow', function (event) {
+            const mustReload = event.persisted || sessionStorage.getItem('refreshDettaglio') === 'true';
+
+            if (mustReload) {
+                sessionStorage.removeItem('refreshDettaglio');
+                setTimeout(() => window.location.reload(), 150);
+                return;
+            }
+            mostraPendingToast();
         });
 
         (function () {
