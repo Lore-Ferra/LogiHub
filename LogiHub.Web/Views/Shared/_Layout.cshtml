@@ -25,6 +25,7 @@
 }
 
 <div id="pageId" class="bg-light">
+    <div class="toast-container position-fixed top-0 start-50 translate-middle-x p-3" id="mainToastContainer" style="z-index: 2050;"></div>
     <div class="onit-page-sticky-top" id="onit-page-sticky-top">
         <nav class="navbar navbar-expand-md bg-dark" data-bs-theme="dark">
             <div class="container-fluid">
@@ -216,8 +217,42 @@
 
 @section scripts{
     <script type="text/javascript">
-        @this.RenderAlertsWithToastify()
-    </script>
+        function notify(message, type = 'success') {
+            const container = document.getElementById('mainToastContainer');
+            if (!container) return;
 
+            const toastId = 'toast-' + Date.now();
+            // Mappiamo 'error' su 'danger' per Bootstrap
+            const bgClass = (type === 'error' || type === 'danger') ? 'bg-danger' : `bg-${type}`;
+            const icon = (type === 'success') ? 'fa-circle-check' : 'fa-circle-exclamation';
+
+            const html = `
+                <div id="${toastId}" class="toast align-items-center text-white ${bgClass} border-0 shadow-lg mt-2" role="alert" aria-live="assertive" aria-atomic="true">
+                    <div class="d-flex">
+                        <div class="toast-body">
+                            <i class="fa-solid ${icon} me-2"></i>
+                            ${message}
+                        </div>
+                        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                    </div>
+                </div>`;
+
+            container.insertAdjacentHTML('afterbegin', html);
+            const toastEl = document.getElementById(toastId);
+            const bsToast = new bootstrap.Toast(toastEl, { delay: 3000 });
+            bsToast.show();
+
+            toastEl.addEventListener('hidden.bs.toast', () => toastEl.remove());
+        }
+        
+        @if (ViewData["AlertsModel"] is LogiHub.Web.Infrastructure.AlertsDto alerts && alerts.HasAlerts)
+        {
+            foreach (var a in alerts.List)
+            {
+                var level = a.Level.ToString().ToLower();
+                <text>notify('@Html.Raw(a.Value.Replace("'", "\\'"))', '@level');</text>
+            }
+        }
+    </script>
     @RenderSection("scripts", false)
 }

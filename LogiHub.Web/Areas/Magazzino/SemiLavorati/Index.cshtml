@@ -241,19 +241,23 @@ else
                     const formData = new FormData();
                     if (tokenInput) formData.append('__RequestVerificationToken', tokenInput.value);
 
-                    const res = await fetch(url, { method: 'POST', body: formData });
+                    const res = await fetch(url, {method: 'POST', body: formData});
                     const data = await res.json();
 
                     if (res.ok && data.success) {
-                        window.location.replace(window.location.href);
+                        notify(data.message || "Semilavorato eliminato con successo!", "success");
+
+                        setTimeout(() => {
+                            window.location.replace(window.location.href);
+                        }, 2000);
                     } else {
-                        alert("Errore: " + (data.message || "Impossibile eliminare."));
-                        window.location.reload();
+                        notify(data.message || "Impossibile eliminare il semilavorato.", "danger");
                     }
+
+
                 } catch (err) {
                     console.error(err);
-                    alert("Errore di connessione");
-                    window.location.reload();
+                    notify("Errore di connessione o del server", "danger");
                 }
             };
 
@@ -261,16 +265,30 @@ else
         }
 
         document.addEventListener('submit', function (e) {
-
             const form = e.target;
-            if (form.id !== 'formAggiungiSemilavorato') return;
 
+            // 1. Capisce se siamo in "Aggiungi" o "Dettagli/Modifica"
+            const offcanvasAggiungi = form.closest('#offcanvasAggiungi');
+            const offcanvasDettagli = form.closest('#offcanvasDettagli');
+
+            if (!offcanvasAggiungi && !offcanvasDettagli) return;
+
+            // 2. Blocca l'invio standard
             e.preventDefault();
             e.stopPropagation();
+
+            // 3. Gestione Bottone (feedback visivo)
+            const btn = form.querySelector('button[type="submit"]');
+            const originalText = btn ? btn.innerHTML : '';
 
             if (!form.checkValidity()) {
                 form.classList.add('was-validated');
                 return;
+            }
+
+            if (btn) {
+                btn.disabled = true;
+                btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-2"></i>Salvataggio...';
             }
 
             const formData = new FormData(form);
@@ -279,23 +297,43 @@ else
                 method: 'POST',
                 body: formData
             })
-                .then(response => {
+                .then(async response => {
                     if (response.ok) {
-                        window.location.reload();
+                        // 4. Notifica dinamica
+                        const msg = offcanvasAggiungi ? "Semilavorato aggiunto!" : "Semilavorato modificato!";
+                        notify(msg, "success");
+
+                        // 5. Chiudi l'offcanvas attivo (Aggiungi o Dettagli)
+                        const activeOffcanvas = offcanvasAggiungi || offcanvasDettagli;
+                        const instance = bootstrap.Offcanvas.getInstance(activeOffcanvas);
+                        if (instance) instance.hide();
+
+                        // 6. Ricarica la tabella
+                        setTimeout(() => {
+                            window.location.reload();
+                        }, 1200);
                     } else {
-                        return response.text().then(html => {
-                            const contentDiv = document.querySelector('#offcanvasAggiungi [data-offcanvas-content]');
-                            if (contentDiv) contentDiv.innerHTML = html;
-                        });
+                        // 7. Gestione Errore (Ricarica la partial con gli errori)
+                        const html = await response.text();
+                        const contentDiv = (offcanvasAggiungi || offcanvasDettagli).querySelector('[data-offcanvas-content]');
+
+                        if (contentDiv) contentDiv.innerHTML = html;
+                        notify("Controlla i dati inseriti", "warning");
+
+                        if (btn) {
+                            btn.disabled = false;
+                            btn.innerHTML = originalText;
+                        }
                     }
                 })
                 .catch(error => {
                     console.error('Errore:', error);
-                    alert("Si è verificato un errore imprevisto.");
-                    btn.disabled = false;
-                    btn.innerHTML = originalText;
+                    notify("Errore di rete o del server", "danger");
+                    if (btn) {
+                        btn.disabled = false;
+                        btn.innerHTML = originalText;
+                    }
                 });
-
         }, true);
     </script>
 
@@ -323,7 +361,7 @@ else
                 barcodeInput.value = barcode;
                 barcodeInput.focus();
             } catch {
-                alert('Errore durante la generazione del barcode');
+                notify("Errore durante la generazione del barcode univoco.", "danger");
             } finally {
                 btn.disabled = false;
                 btn.innerHTML = '<i class="bi bi-upc-scan me-1"></i>Scansiona Barcode';
