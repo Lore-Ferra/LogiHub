@@ -25,11 +25,13 @@
 }
 
 <div id="pageId" class="bg-light">
-    <div class="toast-container position-fixed top-0 start-50 translate-middle-x p-3" id="mainToastContainer" style="z-index: 2050;"></div>
+    <div class="toast-container position-fixed top-0 start-50 translate-middle-x p-3" id="mainToastContainer"
+         style="z-index: 2050;"></div>
     <div class="onit-page-sticky-top" id="onit-page-sticky-top">
         <nav class="navbar navbar-expand-md bg-dark" data-bs-theme="dark">
             <div class="container-fluid">
-                <a class="h1 text-light text-decoration-none" asp-area="Magazzino" asp-controller="SemiLavorati" asp-action="Index">LogiHub</a>
+                <a class="h1 text-light text-decoration-none" asp-area="Magazzino" asp-controller="SemiLavorati"
+                   asp-action="Index">LogiHub</a>
                 <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
                         data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent"
                         aria-expanded="false" aria-label="Toggle navigation">
@@ -56,10 +58,12 @@
                         @if (identitaCorrente != null)
                         {
                             <li class="nav-item dropdown">
-                                <a href="#" class="nav-link dropdown-toggle  d-flex align-items-center text-white" type="button"
+                                <a href="#" class="nav-link dropdown-toggle  d-flex align-items-center text-white"
+                                   type="button"
                                    data-bs-toggle="dropdown" aria-expanded="false">
                                     <img class="rounded-circle profile-pic" style="width: 50px"
-                                         src="@identitaCorrente.GravatarUrl" alt="Immagine Profilo"/>&nbsp;@identitaCorrente.EmailUtenteCorrente
+                                         src="@identitaCorrente.GravatarUrl"
+                                         alt="Immagine Profilo"/>&nbsp;@identitaCorrente.EmailUtenteCorrente
                                 </a>
                                 <div class="dropdown-menu dropdown-menu-end dropdown-menu-dark bg-dark" role="menu">
                                     <a class="dropdown-item" href="javascript:void(0)"
@@ -115,6 +119,7 @@
             <div class="d-flex d-md-none align-items-center gap-2 ps-2 mt-3">
                 <span class="small text-muted text-nowrap">Mostra:</span>
                 <select class="form-select form-select-sm w-auto"
+                        style="cursor: pointer;"
                         onchange="location.href=this.value">
                     @foreach (var size in paging.PageSizes)
                     {
@@ -158,6 +163,7 @@
                 <div class="d-flex align-items-center gap-2">
                     <span class="small text-muted text-nowrap">Mostra:</span>
                     <select class="form-select form-select-sm"
+                            style="cursor: pointer;"
                             onchange="location.href=this.value">
                         @foreach (var size in paging.PageSizes)
                         {
@@ -232,6 +238,7 @@
                 window.location.replace(newUrl.toString());
             }
         });
+
         function notify(message, type = 'success') {
             const container = document.getElementById('mainToastContainer');
             if (!container) return;
@@ -254,12 +261,12 @@
 
             container.insertAdjacentHTML('afterbegin', html);
             const toastEl = document.getElementById(toastId);
-            const bsToast = new bootstrap.Toast(toastEl, { delay: 3000 });
+            const bsToast = new bootstrap.Toast(toastEl, {delay: 3000});
             bsToast.show();
 
             toastEl.addEventListener('hidden.bs.toast', () => toastEl.remove());
         }
-        
+
         @if (ViewData["AlertsModel"] is LogiHub.Web.Infrastructure.AlertsDto alerts && alerts.HasAlerts)
         {
             foreach (var a in alerts.List)

@@ -35,6 +35,7 @@
                     {
                         btn.HtmlAttributes["data-message"] = legacyConfirm;
                     }
+
                     <button type="button"
                             class="btn @btn.CssClass"
                             data-confirm-trigger="true"
@@ -86,7 +87,7 @@
     <div class="card-body p-2 p-md-3">
         <form method="get">
             <div class="row g-2 align-items-end @(Model.ShowSearchInColumns || Model.ShowUscitoFilter ? "mb-3" : "")">
-                
+
                 @* Sezione Ricerca *@
                 <div class="col">
                     <label for="searchQuery" class="form-label small fw-semibold text-muted">Ricerca</label>
@@ -95,7 +96,7 @@
                             <span class="input-group-text bg-transparent text-muted">
                                 <i class="fas fa-search"></i>
                             </span>
-                            <input name="Query" id="searchQuery" type="search" 
+                            <input name="Query" id="searchQuery" type="search"
                                    value="@Model.Query" class="form-control" placeholder="Cerca...">
                         </div>
                         <button type="submit" class="btn btn-primary flex-shrink-0">
@@ -109,8 +110,9 @@
                 {
                     <div class="col-auto">
                         <label for="filterUscito" class="form-label small fw-semibold text-muted">Uscito</label>
-                        <select class="form-select" id="filterUscito" name="Filters.Uscito" 
-                                style="min-width: 100px;" onchange="this.form.submit()">
+                        <select class="form-select" id="filterUscito" name="Filters.Uscito"
+                                style="min-width: 100px; cursor: pointer;"
+                                onchange="this.form.submit()">
                             <option value="0" selected="@(Model.Filters.Uscito == TriState.All)">Tutti</option>
                             <option value="1" selected="@(Model.Filters.Uscito == TriState.True)">Sì</option>
                             <option value="2" selected="@(Model.Filters.Uscito == TriState.False)">No</option>
@@ -128,7 +130,7 @@
                     {
                         var isChecked = Model.Filters.SearchInColumns?.Contains(opt.Key) ?? false;
                         var id = $"col_{opt.Key}";
-                        <input type="checkbox" class="btn-check" id="@id" name="Filters.SearchInColumns" 
+                        <input type="checkbox" class="btn-check" id="@id" name="Filters.SearchInColumns"
                                value="@opt.Key" @(isChecked ? "checked" : "")>
                         <label class="btn btn-outline-primary btn-sm rounded-pill" for="@id">@opt.Label</label>
                     }
