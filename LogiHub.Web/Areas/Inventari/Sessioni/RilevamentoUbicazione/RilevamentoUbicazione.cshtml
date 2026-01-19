@@ -484,7 +484,7 @@
 
                     sessionStorage.setItem("pendingToast", JSON.stringify({
                         msg: data.message || "Pezzo extra aggiunto!",
-                        type: "success"
+                        type: data.toastType || "success"
                     }));
                     location.reload();
                 } else {

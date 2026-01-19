@@ -10,6 +10,13 @@ using Microsoft.EntityFrameworkCore;
 
 namespace LogiHub.Services.Inventari.Sessioni;
 
+public enum EsitoAggiuntaExtra
+{
+    NuovoExtraAggiunto,
+    GiaPresenteComeExtraAltrove,
+    TrovatoInSede
+}
+
 public class SessioniService : ISessioniService
 {
     private readonly TemplateDbContext _context;
@@ -290,7 +297,7 @@ public class SessioniService : ISessioniService
         await _context.SaveChangesAsync();
     }
 
-public async Task AggiungiExtraAsync(Guid sessioneId, Guid ubicazioneId, string barcode, string descrizione, Guid userId)
+    public async Task<EsitoAggiuntaExtra> AggiungiExtraAsync(Guid sessioneId, Guid ubicazioneId, string barcode, string descrizione, Guid userId)
 {
     // 1. Recuperiamo tutte le righe associate a questo barcode nella sessione
     var righeSessione = await _context.RigheInventario
@@ -305,7 +312,7 @@ public async Task AggiungiExtraAsync(Guid sessioneId, Guid ubicazioneId, string 
     if (rigaPrevistaQui != null)
     {
         // Se è già segnato come Trovato, non facciamo nulla (Idempotenza)
-        if (rigaPrevistaQui.Stato == StatoRigaInventario.Trovato) return;
+            if (rigaPrevistaQui.Stato == StatoRigaInventario.Trovato) return EsitoAggiuntaExtra.TrovatoInSede;
 
         // Se era "In Attesa" o "Mancante", lo trasformiamo in "Trovato" nella sua sede corretta.
         // In questo modo evitiamo di creare un duplicato "Extra" inutile.
@@ -315,7 +322,7 @@ public async Task AggiungiExtraAsync(Guid sessioneId, Guid ubicazioneId, string 
         rigaPrevistaQui.DataRilevamento = DateTime.Now;
 
         await _context.SaveChangesAsync();
-        return; // Successo silenzioso: l'utente vede il pezzo spuntato in lista
+            return EsitoAggiuntaExtra.TrovatoInSede;
     }
 
     // --- LOGICA PER EXTRA EFFETTIVI ---
@@ -330,7 +337,7 @@ public async Task AggiungiExtraAsync(Guid sessioneId, Guid ubicazioneId, string 
         // Caso: Già inserito come EXTRA (in questa o altre ubicazioni) -> SILENT RETURN
         if (righeSessione.Any(r => r.Stato == StatoRigaInventario.Extra))
         {
-            return;
+                return EsitoAggiuntaExtra.GiaPresenteComeExtraAltrove;
         }
     }
 
@@ -379,6 +386,7 @@ public async Task AggiungiExtraAsync(Guid sessioneId, Guid ubicazioneId, string 
 
     _context.RigheInventario.Add(extra);
     await _context.SaveChangesAsync();
+        return EsitoAggiuntaExtra.NuovoExtraAggiunto;
 }
 
     public async Task<Guid?> OttieniConflittoExtraAsync(Guid rigaId)

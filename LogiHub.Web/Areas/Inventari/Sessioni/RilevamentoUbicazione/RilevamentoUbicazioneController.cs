@@ -214,8 +214,18 @@ public partial class RilevamentoUbicazioneController : AuthenticatedBaseControll
         try
         {
             var userId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
-            await _service.AggiungiExtraAsync(sessioneId, ubicazioneId, barcode, descrizione, userId);
-            return Json(new { success = true });
+            var esito = await _service.AggiungiExtraAsync(sessioneId, ubicazioneId, barcode, descrizione, userId);
+            
+            switch (esito)
+            {
+                case EsitoAggiuntaExtra.GiaPresenteComeExtraAltrove:
+                    return Json(new { success = true, message = "Pezzo extra già registrato in precedenza", toastType = "warning" });
+                case EsitoAggiuntaExtra.TrovatoInSede:
+                    return Json(new { success = true, message = "Articolo trovato in questa ubicazione: segnato come presente", toastType = "warning" });
+                case EsitoAggiuntaExtra.NuovoExtraAggiunto:
+                default:
+                    return Json(new { success = true, message = "Pezzo extra aggiunto!", toastType = "success" });
+            }
         }
         catch (InvalidOperationException ex)
         {

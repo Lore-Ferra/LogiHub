@@ -24,7 +24,7 @@ public interface ISessioniService
     Task<List<PezzoInventarioDTO>> OttieniPezziUbicazioneAsync(PezziUbicazioneQuery query);   
     Task SegnaPresenteAsync(Guid rigaId, Guid userId);
     Task SegnaMancanteAsync(Guid rigaId, Guid userId);
-    Task AggiungiExtraAsync(Guid sessioneId, Guid ubicazioneId, string barcode, string descrizione, Guid userId);
+    Task<EsitoAggiuntaExtra> AggiungiExtraAsync(Guid sessioneId, Guid ubicazioneId, string barcode, string descrizione, Guid userId);
     Task<Guid?> OttieniConflittoExtraAsync(Guid rigaId);
     Task RimuoviExtraAsync(Guid extraId);
     Task<List<DiscrepanzaDTO>> OttieniDiscrepanzeAsync(Guid sessioneId);
