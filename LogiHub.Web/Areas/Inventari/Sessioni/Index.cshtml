@@ -53,11 +53,11 @@
                     <div class="small text-muted border-top pt-2">
                         <div class="d-flex align-items-center mb-1">
                             <i class="fa-solid fa-calendar-plus me-2 text-secondary"></i>
-                            <span>Apertura: <strong>@item.DataCreazione.ToString("dd/MM/yyyy HH:mm")</strong></span>
+                            <span>Creazione: <strong>@item.DataCreazione.ToString("dd/MM/yyyy HH:mm")</strong></span>
                         </div>
                         <div class="d-flex align-items-center text-secondary opacity-50">
                             <i class="fa-solid fa-hourglass-half me-2"></i>
-                            <span>Chiusura: <em>In attesa...</em></span>
+                            <span>Completamento: ---</span>
                         </div>
                     </div>
 
@@ -86,15 +86,15 @@
                         </span>
                     </div>
 
-                    @* Date: Apertura e Chiusura *@
+                    @* Date:  *@
                     <div class="small text-muted border-top pt-2 text-center">
                         <div class="d-flex align-items-center mb-1">
                             <i class="text-secondary fa-solid fa-calendar-plus me-2"></i>
-                            <span>Apertura: @item.DataCreazione.ToString("dd/MM/yyyy HH:mm")</span>
+                            <span>Creazione: @item.DataCreazione.ToString("dd/MM/yyyy HH:mm")</span>
                         </div>
                         <div class="d-flex align-items-center">
                             <i class="text-secondary fa-solid fa-calendar-check me-2"></i>
-                            <span>Chiusura: @(item.DataCompletamento?.ToString("dd/MM/yyyy HH:mm") ?? "---")</span>
+                            <span>Completamento: @(item.DataCompletamento?.ToString("dd/MM/yyyy HH:mm") ?? "---")</span>
                         </div>
                     </div>
 

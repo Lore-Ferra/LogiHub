@@ -42,7 +42,7 @@
                 <thead class="bg-light">
                 <tr>
                     <th>Ubicazione</th>
-                    <th>Dettagli Gestione</th>
+                    <th>Operatore</th>
                     <th class="text-center">Stato</th>
                 </tr>
                 </thead>
@@ -66,8 +66,15 @@
                             <td>
                                 @if (ubi.InLavorazione)
                                 {
-                                    <div><i class="fa-solid fa-user-gear me-1"></i> In lavorazione da:
-                                        <strong>@ubi.OperatoreCorrente</strong></div>
+                                    <div class="fw-semibold">
+                                        <i class="fa-solid fa-user-gear me-1"></i>@ubi.OperatoreCorrente
+                                    </div>
+                                }
+                                else
+                                {
+                                    <div class="text-muted fw-normal">
+                                        <i class="fa-solid fa-user me-1"></i> Nessun operatore
+                                    </div>
                                 }
                             </td>
 
@@ -139,9 +146,16 @@
                 }>
                 <div class="card-body p-2">
                     <div class="d-flex justify-content-between align-items-center">
-                        <div class="fw-bold">
-                            <div class="text-primary mb-1">@ubi.Posizione</div>
-                            <i class="fa-solid fa-user me-1"></i> @(ubi.InLavorazione ? ubi.OperatoreCorrente : "Nessun operatore")
+                        <div class="fw-semibold">
+                            <div class="fw-bold text-primary mb-1">@ubi.Posizione</div>
+                            @if (ubi.InLavorazione)
+                            {
+                                <i class="fa-solid fa-user-gear me-2"></i>@ubi.OperatoreCorrente
+                            }
+                            else
+                            {
+                                <i class="fa-solid fa-user me-2 text-muted"></i><span class="text-muted fw-normal">Nessun operatore</span>
+                            }
                         </div>
                         <div>
                             @if (ubi.InLavorazione)
@@ -204,7 +218,7 @@
                     data-url="@Url.Action("ChiudiSessione", "Dettaglio", new { area = "Inventari", id = Model.SessioneId })"
                     data-message="Vuoi davvero chiudere l’inventario <b>@Model.NomeSessione</b>?">
                 <i class="fa-solid fa-check me-2"></i>
-                Termina Inventario
+                Completa Inventario
             </button>
         }
         else
@@ -214,7 +228,7 @@
                     title="Completa prima l'inventario"
                     style="cursor:not-allowed; pointer-events:auto !important;">
                 <i class="fa-solid fa-lock me-2"></i>
-                Termina Inventario
+                Completa Inventario
             </button>
         }
     </div>
@@ -270,7 +284,7 @@
 
                     if (res.ok && data.success) {
                         sessionStorage.setItem("pendingToast", JSON.stringify({
-                            msg: data.message || "Inventario terminato con successo!",
+                            msg: data.message || "Inventario completato con successo!",
                             type: "success"
                         }));
                         

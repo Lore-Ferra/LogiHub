@@ -101,14 +101,14 @@ public partial class DettaglioController : AuthenticatedBaseController
                 // BOTTONE DISABILITATO
                 searchCardModel.HeaderButtons.Add(new SearchCardButton
                 {
-                    Text = "Termina",
+                    Text = "Completa",
                     CssClass = "btn-secondary disabled d-none d-md-inline-flex align-items-center",
                     IconClass = "fa-solid fa-lock",
                     Type = "button",
                     HtmlAttributes = new Dictionary<string, string>
                     {
                         { "disabled", "disabled" },
-                        { "title", "Completa tutte le ubicazioni e risolvi le discrepanze prima di terminare." },
+                        { "title", "Completa tutte le ubicazioni e risolvi le discrepanze prima di completare." },
                         { "style", "cursor: not-allowed;" }
                     }
                 });
@@ -118,7 +118,7 @@ public partial class DettaglioController : AuthenticatedBaseController
                 // BOTTONE ABILITATO
                 searchCardModel.HeaderButtons.Add(new SearchCardButton
                 {
-                    Text = "Termina",
+                    Text = "Completa",
                     CssClass = "btn-primary d-none d-md-inline-flex align-items-center",
                     IconClass = "fa-solid fa-check",
                     Type = "button",
