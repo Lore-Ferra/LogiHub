@@ -301,7 +301,7 @@ else
                 .then(async response => {
                     if (response.redirected) {
                         // 4. Notifica dinamica
-                        const msg = offcanvasAggiungi ? "Semilavorato aggiunto!" : "Semilavorato modificato!";
+                        const msg = offcanvasAggiungi ? "Semilavorato aggiunto con successo!" : "Semilavorato modificato con successo!";
                         sessionStorage.setItem("pendingToast", JSON.stringify({ msg, type: "success" }));
 
                         // 5. Chiudi l'offcanvas attivo (Aggiungi o Dettagli)

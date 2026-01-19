@@ -219,12 +219,12 @@ public partial class RilevamentoUbicazioneController : AuthenticatedBaseControll
             switch (esito)
             {
                 case EsitoAggiuntaExtra.GiaPresenteComeExtraAltrove:
-                    return Json(new { success = true, message = "Pezzo extra già registrato in precedenza", toastType = "warning" });
+                    return Json(new { success = true, message = "Semilavorato extra già registrato in precedenza", toastType = "warning" });
                 case EsitoAggiuntaExtra.TrovatoInSede:
-                    return Json(new { success = true, message = "Articolo trovato in questa ubicazione: segnato come presente", toastType = "warning" });
+                    return Json(new { success = true, message = "Semilavorato trovato in questa ubicazione: segnato come presente", toastType = "warning" });
                 case EsitoAggiuntaExtra.NuovoExtraAggiunto:
                 default:
-                    return Json(new { success = true, message = "Pezzo extra aggiunto!", toastType = "success" });
+                    return Json(new { success = true, message = "Semilavorato extra aggiunto con successo!", toastType = "success" });
             }
         }
         catch (InvalidOperationException ex)
