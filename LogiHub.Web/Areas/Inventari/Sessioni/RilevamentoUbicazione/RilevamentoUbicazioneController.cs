@@ -126,7 +126,7 @@ public partial class RilevamentoUbicazioneController : AuthenticatedBaseControll
             {
                 { "disabled", "disabled" },
                 { "title", "Ubicazione già completata" },
-                { "style", "cursor: not-allowed;" }
+                { "style", "cursor: not-allowed; pointer-events: auto !important;" }
             }
         };
 

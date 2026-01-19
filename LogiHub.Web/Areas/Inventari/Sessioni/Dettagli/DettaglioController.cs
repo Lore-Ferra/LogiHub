@@ -109,7 +109,7 @@ public partial class DettaglioController : AuthenticatedBaseController
                     {
                         { "disabled", "disabled" },
                         { "title", "Completa tutte le ubicazioni e risolvi le discrepanze prima di completare." },
-                        { "style", "cursor: not-allowed;" }
+                        { "style", "cursor: not-allowed; pointer-events: auto !important;" }
                     }
                 });
             }

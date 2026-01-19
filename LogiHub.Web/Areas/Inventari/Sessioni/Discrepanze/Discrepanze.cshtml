@@ -123,10 +123,10 @@ else if (Model.IsSolaLettura && totalOpen > 0)
                                     @if (item.Stato != StatoDiscrepanza.Aperta || Model.IsSolaLettura)
                                     {
                                         <div class="d-inline-flex gap-1">
-                                            <button class="btn btn-sm btn-secondary disabled"><i
+                                            <button class="btn btn-sm btn-secondary disabled" style="cursor: not-allowed; pointer-events: auto !important;"><i
                                                     class="fa-solid fa-lock me-2"></i>Risolvi
                                             </button>
-                                            <button class="btn btn-sm btn-secondary disabled"><i
+                                            <button class="btn btn-sm btn-secondary disabled" style="cursor: not-allowed; pointer-events: auto !important;"><i
                                                     class="fa-solid fa-lock me-2"></i>Annulla
                                             </button>
                                         </div>
@@ -209,7 +209,7 @@ else if (Model.IsSolaLettura && totalOpen > 0)
                                     @if (item.Stato != StatoDiscrepanza.Aperta || Model.IsSolaLettura)
                                     {
                                         <div class="d-flex flex-nowrap gap-1 mt-2">
-                                            <button class="btn btn-sm btn-secondary disabled" title="Bloccato">
+                                            <button class="btn btn-sm btn-secondary disabled" title="Bloccato" style="cursor: not-allowed; pointer-events: auto !important;">
                                                 <i class="fa-solid fa-lock"></i>
                                             </button>
                                         </div>
@@ -560,8 +560,8 @@ else
 
                 tr.cells[4].innerHTML = `
             <div class="d-inline-flex gap-1">
-                <button class="btn btn-sm btn-secondary disabled"><i class="fa-solid fa-lock me-2"></i>Risolvi</button>
-                <button class="btn btn-sm btn-secondary disabled"><i class="fa-solid fa-lock me-2"></i>Annulla</button>
+                <button class="btn btn-sm btn-secondary disabled" style="cursor: not-allowed; pointer-events: auto !important;"><i class="fa-solid fa-lock me-2"></i>Risolvi</button>
+                <button class="btn btn-sm btn-secondary disabled" style="cursor: not-allowed; pointer-events: auto !important;"><i class="fa-solid fa-lock me-2"></i>Annulla</button>
             </div>`;
             }
 
@@ -579,7 +579,7 @@ else
                 if (actionEl) {
                     actionEl.innerHTML = `
                         <div class="d-flex flex-nowrap mt-2">
-                            <button class="btn btn-sm btn-secondary disabled w-100">
+                            <button class="btn btn-sm btn-secondary disabled w-100" style="cursor: not-allowed; pointer-events: auto !important;">
                                 <i class="fa-solid fa-lock"></i>
                             </button>
                         </div>`;
