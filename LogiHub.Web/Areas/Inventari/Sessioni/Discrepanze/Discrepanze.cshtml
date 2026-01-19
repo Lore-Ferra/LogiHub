@@ -169,7 +169,7 @@ else if (Model.IsSolaLettura && totalOpen > 0)
 
                             <div class="d-flex justify-content-between align-items-start">
                                 <div class="flex-grow-1 pe-2">
-                                    <div class="small text-muted mb-1">
+                                    <div class="small mb-1 @(item.Stato != StatoDiscrepanza.Aperta ? "text-muted" : "")">
                                         <strong>Descrizione:</strong> @item.Descrizione
                                     </div>
 
@@ -198,8 +198,8 @@ else if (Model.IsSolaLettura && totalOpen > 0)
                                         }
                                         else
                                         {
-                                            <div class="small text-muted">
-                                                <strong>Gestione:</strong> <span class="fst-italic">In attesa di risoluzione...</span>
+                                            <div class="small">
+                                                <strong>Gestione:</strong> <span class="fst-italic text-muted">In attesa di risoluzione...</span>
                                             </div>
                                         }
                                     </div>
