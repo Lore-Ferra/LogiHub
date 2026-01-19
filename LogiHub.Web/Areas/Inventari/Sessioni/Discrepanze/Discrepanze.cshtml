@@ -314,6 +314,21 @@ else
     </div>    
 }
 
+<div class="d-md-none mt-4 mb-3">
+    <button type="button" 
+            id="btnRisolviTuttoMobile"
+            class="btn @(Model.IsSolaLettura ? "btn-secondary disabled" : "btn-primary") w-100 py-2 fw-bold shadow-sm @(totalOpen == 0 ? "d-none" : "")"
+            @(Model.IsSolaLettura ? "disabled" : "")
+            data-confirm-trigger="@((!Model.IsSolaLettura && totalOpen > 0).ToString().ToLower())"
+            data-url="@Url.Action("RisolviTutto", "Discrepanze", new { area = "Inventari", id = Model.SessioneId })"
+            data-url-original="@Url.Action("RisolviTutto", "Discrepanze", new { area = "Inventari", id = Model.SessioneId })"
+            data-message="Sei sicuro di voler allineare tutto il magazzino?"
+            data-is-readonly="@Model.IsSolaLettura.ToString().ToLower()">
+        <i class="fa-solid @(Model.IsSolaLettura ? "fa-lock" : "fa-wand-magic-sparkles") me-2"></i>
+        @(Model.IsSolaLettura ? "Risoluzione Bloccata" : "Risolvi Tutto")
+    </button>
+</div>
+
 @Html.AntiForgeryToken()
 
 @* --- MODALE CONFERMA AJAX (Stile: Annulla Grigio, Conferma Blu) --- *@
