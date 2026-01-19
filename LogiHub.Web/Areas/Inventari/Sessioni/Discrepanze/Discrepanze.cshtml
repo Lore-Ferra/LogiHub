@@ -608,46 +608,46 @@ else
             }
             aggiornaBottoneRisolviTutto();
         }
-        
+
         function aggiornaBottoneRisolviTutto() {
-            const btn = document.getElementById('btnRisolviTutto');
-            if (!btn) return;
+            const btnDesktop = document.getElementById('btnRisolviTutto');
+            const btnMobile = document.getElementById('btnRisolviTuttoMobile');
+            const buttons = [btnDesktop, btnMobile].filter(b => b !== null);
 
-            const icon = btn.querySelector('i');
-            const isReadonly = btn.getAttribute('data-is-readonly') === 'true';
             const hasOpen = !!document.querySelector('#discrepanzeAccordion .badge-count');
+            const isReadonly = btnDesktop?.getAttribute('data-is-readonly') === 'true';
 
-            if (isReadonly || !hasOpen) {
-                btn.className = 'btn btn-secondary disabled';
-                btn.setAttribute('disabled', 'disabled');
-                btn.setAttribute(
-                    'title',
-                    isReadonly
-                        ? 'Completa prima tutte le ubicazioni'
-                        : 'Nessuna discrepanza aperta'
-                );
+            buttons.forEach(btn => {
+                const isMobile = btn.id === 'btnRisolviTuttoMobile';
 
-                if (icon) {
-                    icon.className = 'fa-solid fa-lock';
+                if (!hasOpen) {
+                    btn.classList.add('d-none');
+                    return;
                 }
 
-                btn.removeAttribute('data-confirm-trigger');
-                btn.removeAttribute('data-url');
-                btn.removeAttribute('data-message');
-            } else {
-                btn.className = 'btn btn-primary';
-                btn.removeAttribute('disabled');
-                btn.removeAttribute('title');
+                btn.classList.remove('d-none');
 
-                if (icon) {
-                    icon.className = 'fa-solid fa-wand-magic-sparkles';
-                }
+                if (isReadonly) {
+                    btn.className = isMobile
+                        ? 'btn btn-secondary disabled w-100 py-2 fw-bold shadow-sm'
+                        : 'btn btn-secondary disabled d-none d-md-inline-block';
 
-                btn.setAttribute('data-confirm-trigger', 'true');
-                if (btn.dataset.urlOriginal) {
-                    btn.setAttribute('data-url', btn.dataset.urlOriginal);
+                    btn.setAttribute('disabled', 'disabled');
+                    const icon = btn.querySelector('i');
+                    if (icon) icon.className = 'fa-solid fa-lock me-2';
+                    if (isMobile) btn.childNodes[2].textContent = " Risoluzione Bloccata";
+
+                } else {
+                    btn.className = isMobile
+                        ? 'btn btn-primary w-100 py-2 fw-bold shadow-sm'
+                        : 'btn btn-primary d-none d-md-inline-block';
+
+                    btn.removeAttribute('disabled');
+                    const icon = btn.querySelector('i');
+                    if (icon) icon.className = 'fa-solid fa-wand-magic-sparkles me-2';
+                    if (isMobile) btn.childNodes[2].textContent = " Risolvi Tutto";
                 }
-            }
+            });
         }
     </script>
 }
