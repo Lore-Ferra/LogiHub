@@ -496,14 +496,20 @@ else
             const tr = document.querySelector(`tr[data-barcode="${barcode}"]`);
             const card = document.querySelector(`.mobile-item-card[data-barcode="${barcode}"]`);
 
+            const muted = !!data.muted;
+
             if (tr) {
                 const infoTd = tr.querySelector('.info-cell');
                 if (infoTd) infoTd.classList.add('text-muted');
+                const descTr = tr.querySelector('td:first-child .small');
+                if (descTr) descTr.classList.toggle('text-muted', muted);
             }
 
             if (card) {
                 const infoDiv = card.querySelector('.info-cell');
                 if (infoDiv) infoDiv.classList.add('text-muted');
+                const descCard = card.querySelector('.flex-grow-1 .small');
+                if (descCard) descCard.classList.toggle('text-muted', muted);
             }
 
             const isAperta = data.stato === 'Aperta';
