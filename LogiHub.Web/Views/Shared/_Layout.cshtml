@@ -1,0 +1,284 @@
+﻿@inject IHtmlLocalizer<SharedResource> SharedLocalizer
+@inject Microsoft.Extensions.Options.IOptions<AppSettings> appSettings
+@using LogiHub.Web.Features.Breadcrumb
+
+
+@{
+    var currentArea = ViewContext.RouteData.Values["area"]?.ToString();
+}
+@{
+    Layout = "_LayoutHtml";
+    var version = System.Reflection.Assembly.GetAssembly(typeof(Startup)).GetName().Version;
+
+    var identitaCorrente = (LogiHub.Web.Areas.IdentitaViewModel)ViewData[LogiHub.Web.Areas.IdentitaViewModel.VIEWDATA_IDENTITACORRENTE_KEY];
+
+    var paging = Model as PagingViewModel;
+    var breadcrumbs = ViewData["Breadcrumbs"] as List<BreadcrumbItem>;
+}
+
+@section metas{
+    @RenderSection("metas", false)
+}
+
+@section styles{
+    @RenderSection("styles", false)
+}
+
+<div id="pageId" class="bg-light">
+    <div class="toast-container position-fixed top-0 start-50 translate-middle-x p-3" id="mainToastContainer"
+         style="z-index: 2050;"></div>
+    <div class="onit-page-sticky-top" id="onit-page-sticky-top">
+        <nav class="navbar navbar-expand-md bg-dark" data-bs-theme="dark">
+            <div class="container-fluid">
+                <a class="h1 text-light text-decoration-none" asp-area="Magazzino" asp-controller="SemiLavorati"
+                   asp-action="Index">LogiHub</a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
+                        data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent"
+                        aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse" id="navbarSupportedContent">
+
+                    <ul class="navbar-nav ms-auto">
+                        <li class="nav-item">
+                            <a class="nav-link @(currentArea == "Magazzino" ? "active" : "")"
+                               asp-area="Magazzino" asp-controller="SemiLavorati" asp-action="Index">
+                                Magazzino
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link @(currentArea == "Inventari" ? "active" : "")"
+                               asp-area="Inventari" asp-controller="Sessioni" asp-action="Index">
+                                Inventari
+                            </a>
+                        </li>
+                    </ul>
+
+                    <ul class="navbar-nav">
+                        @if (identitaCorrente != null)
+                        {
+                            <li class="nav-item dropdown">
+                                <a href="#" class="nav-link dropdown-toggle  d-flex align-items-center text-white"
+                                   type="button"
+                                   data-bs-toggle="dropdown" aria-expanded="false">
+                                    <img class="rounded-circle profile-pic" style="width: 50px"
+                                         src="@identitaCorrente.GravatarUrl"
+                                         alt="Immagine Profilo"/>&nbsp;@identitaCorrente.EmailUtenteCorrente
+                                </a>
+                                <div class="dropdown-menu dropdown-menu-end dropdown-menu-dark bg-dark" role="menu">
+                                    <a class="dropdown-item" href="javascript:void(0)"
+                                       onclick="javascript: document.getElementById('POST_LogOut').submit()"
+                                       title="@SharedLocalizer["Chiudi sessione di lavoro"]">
+                                        <i class="fa-solid fa-right-from-bracket"></i>&nbsp;@SharedLocalizer["Esci"]
+                                    </a>
+                                    <form autocomplete="off" method="post" action="@Url.Action(MVC.Login.Logout())"
+                                          id="POST_LogOut" display="none"></form>
+                                </div>
+                            </li>
+                        }
+                    </ul>
+
+                </div>
+            </div>
+        </nav>
+        @RenderSection("pageTitle", false)
+    </div>
+    @* --- INIZIO BREADCRUMB --- *@
+    @if (breadcrumbs != null && breadcrumbs.Any())
+    {
+        <div class="container-xl px-3 py-2">
+            <partial name="~/Features/Breadcrumb/_Breadcrumb.cshtml" model="breadcrumbs"/>
+        </div>
+    }
+    @* --- FINE BREADCRUMB --- *@
+    @RenderSection("pageSubtitle", false)
+    <div class="container-xl p-2 p-md-3">
+        @RenderBody()
+        @{
+            int maxPagesToShow = 5;
+            int startPage = 1;
+            int endPage = 1;
+
+            if (paging != null)
+            {
+                startPage = Math.Max(1, paging.Page - 2);
+                endPage = Math.Min(paging.TotalPages(), paging.Page + 2);
+
+                if (endPage - startPage < maxPagesToShow - 1)
+                {
+                    if (startPage == 1)
+                        endPage = Math.Min(paging.TotalPages(), startPage + maxPagesToShow - 1);
+                    else if (endPage == paging.TotalPages())
+                        startPage = Math.Max(1, endPage - maxPagesToShow + 1);
+                }
+            }
+        }
+
+        @if (paging != null)
+        {
+            <div class="d-flex d-md-none align-items-center gap-2 ps-2 mt-3">
+                <span class="small text-muted text-nowrap">Mostra:</span>
+                <select class="form-select form-select-sm w-auto"
+                        style="cursor: pointer;"
+                        onchange="location.href=this.value">
+                    @foreach (var size in paging.PageSizes)
+                    {
+                        <option value="@paging.ChangePageSizePageUrl(Url, size)" selected="@(paging.PageSize == size)">
+                            @size
+                        </option>
+                    }
+                </select>
+            </div>
+
+            <div class="d-flex d-md-none justify-content-center py-3">
+                <nav aria-label="Navigazione pagine">
+                    <ul class="pagination mb-0">
+                        <li class="page-item @(paging.Page <= 1 ? "disabled" : "")">
+                            <a class="page-link" href="@paging.PrevPageUrl(Url)">‹</a>
+                        </li>
+
+                        @for (int i = startPage; i <= endPage; i++)
+                        {
+                            if (i == paging.Page)
+                            {
+                                <li class="page-item active"><span class="page-link">@i</span></li>
+                            }
+                            else
+                            {
+                                <li class="page-item">
+                                    <a class="page-link" href="@paging.ChangePageUrl(Url, i)">@i</a>
+                                </li>
+                            }
+                        }
+
+                        <li class="page-item @(paging.Page >= paging.TotalPages() ? "disabled" : "")">
+                            <a class="page-link" href="@paging.NextPageUrl(Url)">›</a>
+                        </li>
+                    </ul>
+                </nav>
+            </div>
+
+            <div class="d-none d-md-flex justify-content-between align-items-center gap-3 pt-3 pb-4">
+
+                <div class="d-flex align-items-center gap-2">
+                    <span class="small text-muted text-nowrap">Mostra:</span>
+                    <select class="form-select form-select-sm"
+                            style="cursor: pointer;"
+                            onchange="location.href=this.value">
+                        @foreach (var size in paging.PageSizes)
+                        {
+                            <option value="@paging.ChangePageSizePageUrl(Url, size)"
+                                    selected="@(paging.PageSize == size)">
+                                @size
+                            </option>
+                        }
+                    </select>
+                </div>
+
+                <nav aria-label="Navigazione pagine">
+                    <ul class="pagination mb-0 justify-content-center">
+
+                        <li class="page-item @(paging.Page <= 1 ? "disabled" : "")">
+                            <a class="page-link" href="@paging.PrevPageUrl(Url)">‹</a>
+                        </li>
+
+                        @for (int i = startPage; i <= endPage; i++)
+                        {
+                            if (i == paging.Page)
+                            {
+                                <li class="page-item active"><span class="page-link">@i</span></li>
+                            }
+                            else
+                            {
+                                <li class="page-item">
+                                    <a class="page-link" href="@paging.ChangePageUrl(Url, i)">@i</a>
+                                </li>
+                            }
+                        }
+
+                        <li class="page-item @(paging.Page >= paging.TotalPages() ? "disabled" : "")">
+                            <a class="page-link" href="@paging.NextPageUrl(Url)">›</a>
+                        </li>
+
+                    </ul>
+                </nav>
+
+                <div style="width:100px" class="d-none d-md-block"></div>
+            </div>
+        }
+
+    </div>
+
+</div>
+
+@section googlehead{
+    @*<script async src="https://www.googletagmanager.com/gtag/js?id=UA-"></script>
+    <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag() { dataLayer.push(arguments); }
+    gtag('js', new Date());
+    gtag('config', 'UA-', { 'anonymize_ip': true });    // Ricordarsi di anonimizzare per fare ricadere il cookie tra quelli tecnici ed evitare l'obbligo del banner
+    </script>*@
+}
+
+@section scripts{
+    <script type="text/javascript">
+        // Intercetta la ricerca per sostituire la history invece di aggiungerla (Globale)
+        document.addEventListener('submit', function (e) {
+            const form = e.target;
+            if (form.tagName === 'FORM' && form.method.toLowerCase() === 'get') {
+                e.preventDefault();
+                const formData = new FormData(form);
+                const params = new URLSearchParams(formData);
+
+                let action = form.getAttribute('action') || window.location.pathname;
+                const newUrl = new URL(action, window.location.origin);
+                newUrl.search = params.toString();
+
+                window.location.replace(newUrl.toString());
+            }
+        });
+
+        function notify(message, type = 'success') {
+            const container = document.getElementById('mainToastContainer');
+            if (!container) return;
+
+            const toastId = 'toast-' + Date.now();
+            // Mappiamo 'error' su 'danger' per Bootstrap
+            const bgClass = (type === 'error' || type === 'danger') ? 'bg-danger' : `bg-${type}`;
+            const icon = (type === 'success') ? 'fa-circle-check' : 'fa-circle-exclamation';
+
+            const isDarkText = (type === 'warning' || type === 'info');
+            const textClass = isDarkText ? 'text-dark' : 'text-white';
+            const btnCloseClass = isDarkText ? '' : 'btn-close-white';
+
+            const html = `
+                <div id="${toastId}" class="toast align-items-center ${textClass} ${bgClass} border-0 shadow-lg mt-2" role="alert" aria-live="assertive" aria-atomic="true">
+                    <div class="d-flex">
+                        <div class="toast-body">
+                            <i class="fa-solid ${icon} me-2"></i>
+                            ${message}
+                        </div>
+                        <button type="button" class="btn-close ${btnCloseClass} me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                    </div>
+                </div>`;
+
+            container.insertAdjacentHTML('afterbegin', html);
+            const toastEl = document.getElementById(toastId);
+            const bsToast = new bootstrap.Toast(toastEl, {delay: 3000});
+            bsToast.show();
+
+            toastEl.addEventListener('hidden.bs.toast', () => toastEl.remove());
+        }
+
+        @if (ViewData["AlertsModel"] is LogiHub.Web.Infrastructure.AlertsDto alerts && alerts.HasAlerts)
+        {
+            foreach (var a in alerts.List)
+            {
+                var level = a.Level.ToString().ToLower();
+                <text>notify('@Html.Raw(a.Value.Replace("'", "\\'"))', '@level');</text>
+            }
+        }
+    </script>
+    @RenderSection("scripts", false)
+}

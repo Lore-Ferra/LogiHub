@@ -1,0 +1,29 @@
+﻿@model LogiHub.Web.Features.Offcanvas.OffcanvasViewModel
+
+<div class="offcanvas offcanvas-end shadow offcanvas-adaptive"
+     data-bs-scroll="true"
+     tabindex="-1"
+     id="@Model.Id"
+     aria-labelledby="@Model.Id_Label"
+     style="width:@Model.Width;">
+
+    <div class="offcanvas-header bg-primary">
+        <h1 class="h5 offcanvas-title fw-semibold text-white" id="@Model.Id_Label">
+            @Model.Title
+        </h1>
+
+        <button type="button"
+                class="btn-close btn-close-white"
+                data-bs-dismiss="offcanvas"
+                aria-label="Close">
+        </button>
+    </div>
+
+    <div class="offcanvas-body" data-offcanvas-content>
+        <div class="d-flex justify-content-center align-items-center h-100">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Caricamento...</span>
+            </div>
+        </div>
+    </div>
+</div>

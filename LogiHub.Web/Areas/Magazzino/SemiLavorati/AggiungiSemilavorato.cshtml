@@ -1,0 +1,64 @@
+﻿@model LogiHub.Web.Areas.Magazzino.SemiLavorati.AggiungiSemiLavoratoViewModel
+@{
+    Layout = null;
+}
+
+<form id="formAggiungiSemilavorato"
+      asp-area="Magazzino"
+      asp-controller="SemiLavorati"
+      asp-action="AggiungiSemilavorato"
+      method="post"
+      class="needs-validation"
+      novalidate>
+
+    @Html.AntiForgeryToken()
+    
+    <div class="mb-3">
+        <label asp-for="Barcode" class="small text-muted d-block mb-1">Barcode:</label>
+
+        <div class="input-group d-md-none mb-2">
+            <button type="button"
+                    class="btn btn-outline-primary"
+                    id="btnScanBarcode">
+                <i class="bi bi-upc-scan me-1"></i>
+                Scansiona Barcode
+            </button>
+        </div>
+
+        <input asp-for="Barcode"
+               id="barcodeInput"
+               class="form-control"
+               required />
+                    
+        <span asp-validation-for="Barcode" class="text-danger"></span>
+        <div class="invalid-feedback">Codice Barcode obbligatorio</div>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="UbicazioneId" class="small text-muted d-block mb-1">Ubicazione:</label>
+
+        <select asp-for="UbicazioneId"
+                asp-items="Model.UbicazioniList"
+                class="form-select js-select-search"
+                required>
+            <option value=""></option>
+        </select>
+        <div class="invalid-feedback">Ubicazione obbligatoria</div>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="Descrizione" class="small text-muted d-block mb-1">Descrizione:</label>
+
+        <textarea asp-for="Descrizione"
+                  class="form-control"
+                  rows="3"
+                  required></textarea>
+        <div class="invalid-feedback">Descrizione obbligatoria</div>
+    </div>
+
+    <div class="d-flex justify-content-end mt-4">
+        <button type="submit" class="btn btn-primary">
+            Aggiungi
+        </button>
+    </div>
+</form>

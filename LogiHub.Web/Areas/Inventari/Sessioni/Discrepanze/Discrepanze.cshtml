@@ -1,0 +1,663 @@
+@model LogiHub.Web.Areas.Inventari.Sessioni.Discrepanze.DiscrepanzeViewModel
+
+@{
+    ViewData["Title"] = "Analisi Discrepanze";
+
+    var countSpostati = Model.DaSpostare?.Count(x => x.Stato == StatoDiscrepanza.Aperta) ?? 0;
+    var countExtra = Model.DaAggiungere?.Count(x => x.Stato == StatoDiscrepanza.Aperta) ?? 0;
+    var countMancanti = Model.DaRimuovere?.Count(x => x.Stato == StatoDiscrepanza.Aperta) ?? 0;
+
+    var totalOpen = countSpostati + countExtra + countMancanti;
+    bool canRisolviTutto = !Model.IsSolaLettura && totalOpen > 0;
+}
+
+@{
+    bool hasQuery = !string.IsNullOrWhiteSpace(Model.SearchCard?.Query);
+}
+
+@if (totalOpen == 0 && (!hasQuery || Model.IsSolaLettura))
+{
+    @* CASO 1: TUTTO RISOLTO (Verde) *@
+    <div class="alert alert-success border-0 shadow-sm mb-3 d-flex align-items-center">
+        <i class="fa-solid fa-circle-check me-2 fa-lg"></i>
+        <span class="fw-bold me-1">Ottimo lavoro!</span>
+        <span>Tutte le discrepanze sono state allineate.</span>
+    </div>
+}
+else if (Model.IsSolaLettura && totalOpen > 0)
+{
+    @* CASO 2: BLOCCATO (Giallo) - Appare solo se ci sono ancora cose aperte *@
+    <div class="alert alert-warning border-0 shadow-sm mb-3 d-flex align-items-center">
+        <i class="fa-solid fa-lock me-3 fa-lg"></i>
+        <div>
+            <strong>Risoluzione Bloccata:</strong>
+            Terminare il controllo prima di allineare il magazzino.
+        </div>
+    </div>
+}
+
+@section Styles {
+    <style>
+        .accordion-button:focus {
+            box-shadow: none;
+        }
+    </style>
+}
+
+@functions {
+
+    string GetStatoBadge(StatoDiscrepanza stato) => stato switch
+    {
+        StatoDiscrepanza.Risolta => "border border-success text-success bg-white",
+        StatoDiscrepanza.Annullata => "border border-danger text-danger bg-white",
+        _ => "bg-warning text-dark shadow-sm fw-bold"
+    };
+
+    // Renderizza la tabella (o le card su mobile)
+    // Renderizza la tabella (o le card su mobile) con gestione stato vuoto
+    async Task RenderTabella(IEnumerable<DiscrepanzaDTO> items, string colorClass, TipoRisoluzione tipoDefault)
+    {
+        @if (items == null || !items.Any())
+        {
+            @* --- STATO VUOTO (Se non ci sono discrepanze) --- *@
+            <div class="text-center py-2">
+                <div class="mb-3">
+                    <i class="fa-solid fa-circle-check fa-3x text-success opacity-25"></i>
+                </div>
+                <h6 class="fw-bold text-muted">Nessuna discrepanza</h6>
+                <p class="small text-muted mb-0">Tutti i pezzi in questa categoria risultano allineati.</p>
+            </div>
+        }
+        else
+        {
+            @* --- VERSIONE DESKTOP (TABELLA) --- *@
+            <div class="d-none d-md-block">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="bg-light">
+                        <tr>
+                            <th class="text-break">Pezzo</th>
+                            <th class="">Info</th>
+                            <th class="">Dettagli Gestione</th>
+                            <th class="text-center">Stato</th>
+                            <th class="text-center">Azioni</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in items)
+                        {
+                            <tr data-barcode="@item.Barcode" class="@(item.Stato != StatoDiscrepanza.Aperta ? "bg-light text-muted" : "")">
+                                <td>
+                                    <div class="fw-bold @(item.Stato != StatoDiscrepanza.Aperta ? "text-muted" : "text-primary")">@item.Barcode</div>
+                                    <div class="small @(item.Stato != StatoDiscrepanza.Aperta ? "text-muted" : "text-muted")">@item.Descrizione</div>
+                                </td>
+                                <td class="info-cell text-nowrap @(item.Stato != StatoDiscrepanza.Aperta ? "text-muted" : "")">
+                                    @if (item.Tipo == TipoDiscrepanzaOperativa.Spostato)
+                                    {
+                                        <p class="m-0">Da <b>@item.UbicazioneSnapshot</b> &rarr; Trovato in
+                                            <b>@item.UbicazioneRilevata</b></p>
+                                    }
+                                    else if (item.Tipo == TipoDiscrepanzaOperativa.Extra)
+                                    {
+                                        <p class="m-0">Trovato in <b>@item.UbicazioneRilevata</b></p>
+                                    }
+                                    else
+                                    {
+                                        <p class="m-0">Mancante da <span class="fw-semibold">@item.UbicazioneSnapshot</span></p>
+                                    }
+                                </td>
+                                <td class="gestione-cell">
+                                    @if (item.Stato != StatoDiscrepanza.Aperta)
+                                    {
+                                        <div class="text-muted">
+                                            <div class="fw-semibold">@item.GestitaDa</div>
+                                            <div class="small text-nowrap">@item.DataGestione?.ToString("dd/MM/yyyy HH:mm")</div>
+                                        </div>
+                                    }
+                                    else { <span class="text-dark">---</span> }
+                                </td>
+
+                                <td class="stato-cell text-center text-nowrap">
+                                    <span class="badge @GetStatoBadge(item.Stato)">@item.Stato</span>
+                                </td>
+                                <td class="text-center text-nowrap">
+                                    @if (item.Stato != StatoDiscrepanza.Aperta || Model.IsSolaLettura)
+                                    {
+                                        <div class="d-inline-flex gap-1">
+                                            <button class="btn btn-sm btn-secondary disabled" style="cursor: not-allowed; pointer-events: auto !important;"><i
+                                                    class="fa-solid fa-lock me-2"></i>Risolvi
+                                            </button>
+                                            <button class="btn btn-sm btn-secondary disabled" style="cursor: not-allowed; pointer-events: auto !important;"><i
+                                                    class="fa-solid fa-lock me-2"></i>Annulla
+                                            </button>
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        <div class="d-inline-flex gap-1">
+                                            <button class="btn btn-sm btn-outline-success" type="button"
+                                                    onclick="avviaRisoluzione(this, '@Url.Action("Risolvi", "Discrepanze", new { area = "Inventari", id = Model.SessioneId, barcode = item.Barcode, tipo = tipoDefault })', 'Confermi la risoluzione (aggiornamento magazzino)?')">
+                                                <i class="fa-solid fa-check-double me-2"></i>Risolvi
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-danger" type="button"
+                                                    onclick="avviaRisoluzione(this, '@Url.Action("AnnullaDiscrepanza", "Discrepanze", new { area = "Inventari", id = Model.SessioneId, barcode = item.Barcode })', 'Vuoi annullare la segnalazione? Non verrà fatta alcuna modifica fisica.')">
+                                                <i class="fa-solid fa-ban me-2"></i>Annulla
+                                            </button>
+                                        </div>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+
+            @* --- VERSIONE MOBILE (CARDS) --- *@
+            <div class="d-md-none bg-light border-0">
+                @foreach (var item in items)
+                {
+                    <div data-barcode="@item.Barcode"
+                         class="card shadow-sm mt-2 border-0 border-start border-5 @(item.Stato == StatoDiscrepanza.Risolta ? "border-success" : item.Stato == StatoDiscrepanza.Annullata ? "border-danger" : "border-warning") mobile-item-card">            
+                        <div class="card-body p-2">
+                            <div class="d-flex align-items-center justify-content-between">
+                                <p class="fw-bold fs-5 m-0 @(item.Stato != StatoDiscrepanza.Aperta ? "text-muted" : "text-primary")">@item.Barcode</p>                            
+                                <div class="stato-cell">
+                                    <span class="badge @GetStatoBadge(item.Stato)">@item.Stato</span>
+                                </div>
+                            </div>
+
+                            <hr class="my-1"/>
+
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div class="flex-grow-1 pe-2">
+                                    <div class="small mb-1 @(item.Stato != StatoDiscrepanza.Aperta ? "text-muted" : "")">
+                                        <strong>Descrizione:</strong> @item.Descrizione
+                                    </div>
+
+                                    <div class="info-cell small mb-1 @(item.Stato != StatoDiscrepanza.Aperta ? "text-muted" : "")">                                    
+                                        <b>Info:</b>
+                                        @if (item.Tipo == TipoDiscrepanzaOperativa.Spostato)
+                                        {
+                                            <span>Da <b>@item.UbicazioneSnapshot</b> &rarr; <b>@item.UbicazioneRilevata</b></span>
+                                        }
+                                        else if (item.Tipo == TipoDiscrepanzaOperativa.Extra)
+                                        {
+                                            <span>Trovato in <b>@item.UbicazioneRilevata</b></span>
+                                        }
+                                        else
+                                        {
+                                            <span>Mancante da <b>@item.UbicazioneSnapshot</b></span>
+                                        }
+                                    </div>
+
+                                    <div class="gestione-cell">
+                                        @if (item.Stato != StatoDiscrepanza.Aperta)
+                                        {
+                                            <div class="small text-muted">
+                                                <strong>Gestita da:</strong> @item.GestitaDa il @item.DataGestione?.ToString("dd/MM/yyyy HH:mm")
+                                            </div>
+                                        }
+                                        else
+                                        {
+                                            <div class="small">
+                                                <strong>Gestione:</strong> <span class="fst-italic text-muted">In attesa di risoluzione...</span>
+                                            </div>
+                                        }
+                                    </div>
+                                </div>
+
+                                <div class="action-cell ps-1">
+                                    @if (item.Stato != StatoDiscrepanza.Aperta || Model.IsSolaLettura)
+                                    {
+                                        <div class="d-flex flex-nowrap gap-1 mt-2">
+                                            <button class="btn btn-sm btn-secondary disabled" title="Bloccato" style="cursor: not-allowed; pointer-events: auto !important;">
+                                                <i class="fa-solid fa-lock"></i>
+                                            </button>
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        <div class="d-flex flex-nowrap gap-1 mt-2">
+                                            <button class="btn btn-sm btn-outline-success" type="button" title="Risolvi"
+                                                    onclick="avviaRisoluzione(this, '@Url.Action("Risolvi", "Discrepanze", new { area = "Inventari", id = Model.SessioneId, barcode = item.Barcode, tipo = tipoDefault })', 'Confermi la risoluzione?')">
+                                                <i class="fa-solid fa-check-double"></i>
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-danger" type="button" title="Annulla"
+                                                    onclick="avviaRisoluzione(this, '@Url.Action("AnnullaDiscrepanza", "Discrepanze", new { area = "Inventari", id = Model.SessioneId, barcode = item.Barcode })', 'Vuoi annullare la segnalazione?')">
+                                                <i class="fa-solid fa-ban"></i>
+                                            </button>
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+    }
+
+    async Task RenderAccordionItem(string id, string title, string icon, int count, IEnumerable<DiscrepanzaDTO> items, string colorClass, TipoRisoluzione tipo, bool isOpen = false)
+    {
+        <div class="accordion-item bg-light border-0 mb-2">
+            <h2 class="accordion-header" id="heading-@id">
+                <button class="bg-white accordion-button fw-bold @(!isOpen ? "collapsed" : "")" type="button"
+                        data-bs-toggle="collapse" data-bs-target="#collapse-@id" aria-expanded="@isOpen"
+                        aria-controls="collapse-@id">
+                    <i class="@icon me-2 text-@colorClass"></i> @title
+                    @if (count > 0)
+                    {
+                        <span class="badge bg-danger text-light ms-2 badge-count">@count</span>
+                    }
+                </button>
+            </h2>
+            <div id="collapse-@id" class="accordion-collapse collapse @(isOpen ? "show" : "")"
+                 aria-labelledby="heading-@id" data-bs-parent="#discrepanzeAccordion">
+                <div class="accordion-body p-0 p-md-2 bg-white">
+                    @{ await RenderTabella(items, colorClass, tipo); }
+                </div>
+            </div>
+        </div>
+    }
+
+}
+
+<div>
+    @await Html.PartialAsync("~/Features/SearchCard/_SearchCard.cshtml", Model.SearchCard)
+</div>
+
+@{
+    var noResults =
+        (Model.DaSpostare == null || !Model.DaSpostare.Any()) &&
+        (Model.DaAggiungere == null || !Model.DaAggiungere.Any()) &&
+        (Model.DaRimuovere == null || !Model.DaRimuovere.Any());
+}
+
+@if (noResults)
+{
+    <div class="text-center py-5 text-muted">
+        <i class="fas fa-box-open fa-3x mb-3"></i>
+        <p>
+            @(string.IsNullOrWhiteSpace(Model.SearchCard?.Query)
+                ? "Nessuna discrepanza trovata."
+                : "Nessun risultato per la ricerca.")
+        </p>
+    </div>
+}
+else
+{
+    <div class="container-fluid p-0 mt-3">
+        @* --- ACCORDION CONTAINER --- *@
+        <div class="accordion" id="discrepanzeAccordion">
+            @{
+                bool hasSpostati = Model.DaSpostare != null && Model.DaSpostare.Any();
+                bool hasExtra = Model.DaAggiungere != null && Model.DaAggiungere.Any();
+                bool hasMancanti = Model.DaRimuovere != null && Model.DaRimuovere.Any();
+
+                bool openSpostati = false;
+                bool openExtra = false;
+                bool openMancanti = false;
+
+                if (hasQuery)
+                {
+                    if (hasSpostati) openSpostati = true;
+                    else if (hasExtra) openExtra = true;
+                    else if (hasMancanti) openMancanti = true;
+                }
+            }
+
+            @{ await RenderAccordionItem("spostati", "Spostamenti", "fa-solid fa-right-left", countSpostati, Model.DaSpostare, "primary", TipoRisoluzione.Sposta, openSpostati); }
+
+            @{ await RenderAccordionItem("extra", "Extra", "fa-solid fa-plus", countExtra, Model.DaAggiungere, "warning", TipoRisoluzione.Aggiungi, openExtra); }
+
+            @{ await RenderAccordionItem("mancanti", "Mancanti", "fa-solid fa-minus", countMancanti, Model.DaRimuovere, "danger", TipoRisoluzione.Rimuovi, openMancanti); }
+        </div>
+    </div>    
+}
+
+<div class="d-md-none mt-4 mb-3">
+    <button type="button" 
+            id="btnRisolviTuttoMobile"
+            class="btn @(Model.IsSolaLettura ? "btn-secondary disabled" : "btn-primary") w-100 py-2 fw-bold shadow-sm @(totalOpen == 0 ? "d-none" : "")"
+            @(Model.IsSolaLettura ? "disabled" : "")
+            data-confirm-trigger="@((!Model.IsSolaLettura && totalOpen > 0).ToString().ToLower())"
+            data-url="@Url.Action("RisolviTutto", "Discrepanze", new { area = "Inventari", id = Model.SessioneId })"
+            data-url-original="@Url.Action("RisolviTutto", "Discrepanze", new { area = "Inventari", id = Model.SessioneId })"
+            data-message="Sei sicuro di voler allineare tutto il magazzino?"
+            data-is-readonly="@Model.IsSolaLettura.ToString().ToLower()">
+        <i class="fa-solid @(Model.IsSolaLettura ? "fa-lock" : "fa-wand-magic-sparkles") me-2"></i>
+        @(Model.IsSolaLettura ? "Risoluzione Bloccata" : "Risolvi Tutto")
+    </button>
+</div>
+
+@Html.AntiForgeryToken()
+
+@* --- MODALE CONFERMA AJAX (Stile: Annulla Grigio, Conferma Blu) --- *@
+@await Html.PartialAsync(
+    "~/Features/Modals/_ConfirmModal.cshtml",
+    new LogiHub.Web.Features.Modals.ConfirmModalViewModel
+    {
+        ModalId = "ajaxConfirmModal",
+        Title = "Conferma operazione",
+        Message = "",
+        ConfirmButtonText = "Conferma",
+        ConfirmButtonClass = "btn-primary", // BLU
+        IconClass = "fa-solid fa-circle-question text-primary"
+    })
+
+@* --- MODALE STANDARD (Fallback) --- *@
+@await Html.PartialAsync(
+    "~/Features/Modals/_ConfirmModal.cshtml",
+    new LogiHub.Web.Features.Modals.ConfirmModalViewModel
+    {
+        ModalId = "actionConfirmModal",
+        Title = "Conferma",
+        Message = "",
+        ConfirmButtonText = "Conferma",
+        ConfirmButtonClass = "btn-primary",
+        IconClass = "fa-solid fa-check-circle text-primary"
+    })
+
+@section Scripts {
+    <script src="~/js/Features/Modals/ConfirmModal.js"></script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+
+            const pending = sessionStorage.getItem("pendingToast");
+            if (pending) {
+                try {
+                    const { msg, type } = JSON.parse(pending);
+                    notify(msg, type || "success");
+                } finally {
+                    sessionStorage.removeItem("pendingToast");
+                }
+                aggiornaBottoneRisolviTutto();
+            }
+
+            // ---- ACCORDION: ricorda ultima tab aperta ----
+            const storageKey = 'discrepanze_active_tab';
+            const accordion = document.getElementById('discrepanzeAccordion');
+
+            const lastOpen = sessionStorage.getItem(storageKey);
+            if (lastOpen) {
+                const target = document.getElementById(lastOpen);
+                if (target) new bootstrap.Collapse(target, { show: true });
+            }
+
+            if (accordion) {
+                accordion.addEventListener('shown.bs.collapse', function (e) {
+                    sessionStorage.setItem(storageKey, e.target.id);
+                });
+
+                accordion.addEventListener('hidden.bs.collapse', function (e) {
+                    if (sessionStorage.getItem(storageKey) === e.target.id) {
+                        sessionStorage.removeItem(storageKey);
+                    }
+                });
+            }
+
+            document.querySelectorAll('[data-confirm-trigger="true"][data-url]').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    e.preventDefault();
+
+                    const url = btn.getAttribute('data-url');
+                    const msg = btn.getAttribute('data-message') || 'Confermi?';
+
+                    avviaRisoluzione(btn, url, msg, { reloadOnSuccess: true });
+                });
+            });
+        });
+
+        function avviaRisoluzione(btn, url, msg, options = {}) {
+            const modalEl = document.getElementById('ajaxConfirmModal');
+            const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+
+            const msgEl = modalEl.querySelector('[data-confirm-message]');
+            if (msgEl) msgEl.innerText = msg;
+
+            const confirmBtn = modalEl.querySelector('[data-confirm-btn]');
+
+            const newBtn = confirmBtn.cloneNode(true);
+            confirmBtn.parentNode.replaceChild(newBtn, confirmBtn);
+
+            newBtn.onclick = async () => {
+                newBtn.disabled = true;
+                newBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-2"></i>Attendere...';
+
+                try {
+                    const tokenEl = document.querySelector('input[name="__RequestVerificationToken"]');
+                    if (!tokenEl) {
+                        alert("Token antiforgery mancante");
+                        return;
+                    }
+
+                    const formData = new FormData();
+                    formData.append('__RequestVerificationToken', tokenEl.value);
+
+                    const res = await fetch(url, { method: 'POST', body: formData });
+
+                    if (res.ok) {
+                        const ct = res.headers.get("content-type") || "";
+                        const data = ct.includes("application/json") ? await res.json() : null;
+
+                        if (!data || data.success) {
+
+                            // 1) Messaggio specifico: dal backend se possibile
+                            let toastMsg = (data && data.message) ? data.message : null;
+
+                            // Fallback: capisco l'azione dall'URL se il backend non manda message
+                            if (!toastMsg) {
+                                if (url.includes("AnnullaDiscrepanza")) toastMsg = "Discrepanza annullata con successo.";
+                                else if (url.includes("RisolviTutto")) toastMsg = "Tutte le discrepanze allineate con successo.";
+                                else if (url.includes("Risolvi")) toastMsg = "Discrepanza allineata con successo.";
+                                else toastMsg = "Operazione completata con successo.";
+                            }
+
+                            const toastType = (data && data.toastType) ? data.toastType : "success";
+                            modal.hide();
+                            notify(toastMsg, toastType);
+
+                            const willNavigate =
+                                (data && data.redirectUrl) ||
+                                options.reloadOnSuccess ||
+                                (data && data.goBack);
+
+                            if (willNavigate) {
+                                sessionStorage.setItem("pendingToast", JSON.stringify({ msg: toastMsg, type: toastType }));
+                            }
+
+                            if (data && data.redirectUrl) {
+                                sessionStorage.setItem('refreshDettaglio', 'true');
+
+                                if (window.history.length > 1) window.history.back();
+                                else window.location.replace(data.redirectUrl);
+
+                                return;
+                            }
+
+                            if (options.reloadOnSuccess) {
+                                location.reload();
+                                return;
+                            }
+
+                            if (data) {
+                                aggiornaRigaUI(btn, data);
+                            }
+                    } else {
+                            alert("Errore: " + (data.message || "Operazione fallita"));
+                        }
+                    } else {
+                        alert("Errore server: " + res.statusText);
+                    }
+                } catch (err) {
+                    console.error(err);
+                    alert("Errore di connessione");
+                } finally {
+                    newBtn.disabled = false;
+                    newBtn.innerText = "Conferma";
+                }
+            };
+
+            modal.show();
+        }
+
+        function aggiornaRigaUI(btn, data) {
+            const owner = btn.closest('[data-barcode]');
+            if (!owner) return;
+
+            const barcode = owner.getAttribute('data-barcode');
+            if (!barcode) return;
+
+            const tr = document.querySelector(`tr[data-barcode="${barcode}"]`);
+            const card = document.querySelector(`.mobile-item-card[data-barcode="${barcode}"]`);
+
+            const muted = !!data.muted;
+
+            if (tr) {
+                const infoTd = tr.querySelector('.info-cell');
+                if (infoTd) infoTd.classList.add('text-muted');
+                const descTr = tr.querySelector('td:first-child .small');
+                if (descTr) descTr.classList.toggle('text-muted', muted);
+            }
+
+            if (card) {
+                const infoDiv = card.querySelector('.info-cell');
+                if (infoDiv) infoDiv.classList.add('text-muted');
+                const descCard = card.querySelector('.flex-grow-1 .small');
+                if (descCard) descCard.classList.toggle('text-muted', muted);
+            }
+
+            const isAperta = data.stato === 'Aperta';
+            const badgeClass = data.stato === 'Risolta' ? 'border border-success text-success bg-white' :
+                data.stato === 'Annullata' ? 'border border-danger text-danger bg-white' :
+                    'bg-warning text-dark shadow-sm fw-bold';
+
+            // --- 1. COSTRUZIONE HTML SEPARATA ---
+            // Struttura Desktop: Nome sopra, Data (con anno) sotto
+            const gestioneDesktopHtml = !isAperta
+                ? `<div class="text-muted">
+               <div class="fw-semibold">${data.gestitaDa}</div>
+               <div class="small text-nowrap">${data.dataGestione}</div> 
+           </div>`
+                : `<span class="text-dark">---</span>`;
+
+            // Struttura Mobile: Linea singola "Gestita da: Nome il Data"
+            const gestioneMobileHtml = !isAperta
+                ? `<div class="small text-muted"><strong>Gestita da:</strong> ${data.gestitaDa} il ${data.dataGestione}</div>`
+                : `<div class="small text-muted"><strong>Gestione:</strong> <span class="fst-italic opacity-50">In attesa...</span></div>`;
+
+            const statoHtml = `<span class="badge ${badgeClass}">${data.stato}</span>`;
+
+            // --- 2. UPDATE DESKTOP ---
+            if (tr) {
+                tr.querySelector('.gestione-cell').innerHTML = gestioneDesktopHtml;
+                tr.querySelector('.stato-cell').innerHTML = statoHtml;
+
+                // Mute testo barcode e riga
+                const barcodeDiv = tr.querySelector('.text-primary');
+                if (barcodeDiv) barcodeDiv.className = 'fw-bold text-muted';
+                tr.classList.add('bg-light', 'text-muted');
+
+                tr.cells[4].innerHTML = `
+            <div class="d-inline-flex gap-1">
+                <button class="btn btn-sm btn-secondary disabled" style="cursor: not-allowed; pointer-events: auto !important;"><i class="fa-solid fa-lock me-2"></i>Risolvi</button>
+                <button class="btn btn-sm btn-secondary disabled" style="cursor: not-allowed; pointer-events: auto !important;"><i class="fa-solid fa-lock me-2"></i>Annulla</button>
+            </div>`;
+            }
+
+            // --- 3. UPDATE MOBILE ---
+            if (card) {
+                card.querySelector('.gestione-cell').innerHTML = gestioneMobileHtml;
+                card.querySelector('.stato-cell').innerHTML = statoHtml;
+
+                // Mute testo barcode card
+                const cardBarcode = card.querySelector('.text-primary');
+                if (cardBarcode) cardBarcode.className = 'fw-bold fs-5 m-0 text-muted';
+                @* card.classList.add('bg-light'); *@
+
+                const actionEl = card.querySelector('.action-cell');
+                if (actionEl) {
+                    actionEl.innerHTML = `
+                        <div class="d-flex flex-nowrap mt-2">
+                            <button class="btn btn-sm btn-secondary disabled w-100" style="cursor: not-allowed; pointer-events: auto !important;">
+                                <i class="fa-solid fa-lock"></i>
+                            </button>
+                        </div>`;
+                }
+
+                card.classList.remove('border-primary', 'border-warning', 'border-danger', 'border-success');
+                if (data.stato === 'Risolta') card.classList.add('border-success');
+                else if (data.stato === 'Annullata') card.classList.add('border-danger');
+            }
+
+            const accordionCollapse = owner.closest('.accordion-collapse');
+            if (accordionCollapse) {
+                const headerId = accordionCollapse.getAttribute('aria-labelledby');
+                const headerBtn = document.querySelector(`#${headerId} button`);
+                if (headerBtn) {
+                    const badge = headerBtn.querySelector('.badge-count');
+                    if (badge) {
+                        let count = parseInt(badge.innerText.trim(), 10);
+                        if (!isNaN(count)) {
+                            count--;
+                            if (count > 0) badge.innerText = count;
+                            else badge.remove();
+                        }
+                    }
+                }
+            }
+            aggiornaBottoneRisolviTutto();
+        }
+
+        function aggiornaBottoneRisolviTutto() {
+            const btnDesktop = document.getElementById('btnRisolviTutto');
+            const btnMobile = document.getElementById('btnRisolviTuttoMobile');
+            const buttons = [btnDesktop, btnMobile].filter(b => b !== null);
+
+            const hasOpen = !!document.querySelector('#discrepanzeAccordion .badge-count');
+            const isReadonly = btnDesktop?.getAttribute('data-is-readonly') === 'true';
+
+            buttons.forEach(btn => {
+                const isMobile = btn.id === 'btnRisolviTuttoMobile';
+
+                if (!hasOpen) {
+                    btn.className = isMobile
+                        ? 'btn btn-secondary disabled w-100 py-2 fw-bold shadow-sm'
+                        : 'btn btn-secondary disabled d-none d-md-inline-block';
+
+                    btn.setAttribute('disabled', 'disabled');
+                    btn.style.cssText = "cursor: not-allowed; pointer-events: auto !important;";
+
+                    const icon = btn.querySelector('i');
+                    if (icon) icon.className = 'fa-solid fa-lock me-2';
+                    return;
+                }
+
+                btn.classList.remove('d-none');
+
+                if (isReadonly) {
+                    btn.className = isMobile
+                        ? 'btn btn-secondary disabled w-100 py-2 fw-bold shadow-sm'
+                        : 'btn btn-secondary disabled d-none d-md-inline-block';
+
+                    btn.setAttribute('disabled', 'disabled');
+                    btn.style.cssText = "cursor: not-allowed; pointer-events: auto !important;";
+                    const icon = btn.querySelector('i');
+                    if (icon) icon.className = 'fa-solid fa-lock me-2';
+                    if (isMobile) btn.childNodes[2].textContent = " Risoluzione Bloccata";
+
+                } else {
+                    btn.className = isMobile
+                        ? 'btn btn-primary w-100 py-2 fw-bold shadow-sm'
+                        : 'btn btn-primary d-none d-md-inline-block';
+
+                    btn.removeAttribute('disabled');
+                    btn.style.cssText = "";
+                    const icon = btn.querySelector('i');
+                    if (icon) icon.className = 'fa-solid fa-wand-magic-sparkles me-2';
+                    if (isMobile) btn.childNodes[2].textContent = " Risolvi Tutto";
+                }
+            });
+        }
+    </script>
+}

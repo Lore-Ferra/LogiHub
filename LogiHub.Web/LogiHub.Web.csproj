@@ -1,0 +1,101 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+
+	<PropertyGroup>
+		<TargetFramework>net8.0</TargetFramework>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" Version="8.0.11" />
+		<PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+		<PackageReference Include="SG4MVC" Version="0.9.4-beta" />
+	</ItemGroup>
+
+	<ItemGroup Condition="'$(Configuration)' == 'Debug'">
+		<PackageReference Include="Microsoft.AspNetCore.Mvc.Razor.RuntimeCompilation" Version="8.0.11" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<AssemblyAttribute Include="Sg4Mvc.GenerateSg4Mvc" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\LogiHub\LogiHub.csproj" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<Compile Update="Areas\Example\Users\EditViewModel.cs">
+			<Generator>DtsGenerator</Generator>
+			<LastGenOutput>EditViewModel.cs.d.ts</LastGenOutput>
+		</Compile>
+		<Compile Update="Areas\Example\Users\IndexViewModel.cs">
+			<Generator></Generator>
+		</Compile>
+	</ItemGroup>
+
+	<ItemGroup>
+		<None Update="Areas\Example\Users\EditViewModel.cs.d.ts">
+			<DesignTime>True</DesignTime>
+			<AutoGen>True</AutoGen>
+			<DependentUpon>EditViewModel.cs</DependentUpon>
+		</None>
+		<None Remove="Features\Offcanvas\offcanvas.js" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <_ContentIncludedByDefault Remove="wwwroot\js\Features\Offcanvas\offcanvas.js" />
+	  <_ContentIncludedByDefault Remove="wwwroot\js\Features\Offcanvas\offcanvas.js.map" />
+	  <_ContentIncludedByDefault Remove="wwwroot\js\bundle-global.js" />
+	  <_ContentIncludedByDefault Remove="wwwroot\js\bundle-global.min.js" />
+	  <_ContentIncludedByDefault Remove="wwwroot\js\bundle-global.min.js.map" />
+	  <_ContentIncludedByDefault Remove="wwwroot\js\bundle-signalr.js" />
+	  <_ContentIncludedByDefault Remove="wwwroot\js\bundle-vue-multiselect.js" />
+	  <_ContentIncludedByDefault Remove="wwwroot\js\bundle-vue-multiselect.min.js" />
+	  <_ContentIncludedByDefault Remove="wwwroot\js\bundle-vue-multiselect.min.js.map" />
+	  <_ContentIncludedByDefault Remove="wwwroot\js\bundle-vue.js" />
+	  <_ContentIncludedByDefault Remove="wwwroot\js\bundle-vue.min.js" />
+	  <_ContentIncludedByDefault Remove="wwwroot\js\bundle-vue.min.js.map" />
+	  <_ContentIncludedByDefault Remove="wwwroot\js\signalRConnectionManager.d.ts" />
+	  <_ContentIncludedByDefault Remove="wwwroot\js\signalRConnectionManager.js" />
+	  <_ContentIncludedByDefault Remove="wwwroot\js\signalRConnectionManager.js.map" />
+	  <_ContentIncludedByDefault Remove="wwwroot\js\signalRConnectionManager.ts" />
+	  <_ContentIncludedByDefault Remove="wwwroot\js\site.d.ts" />
+	  <_ContentIncludedByDefault Remove="wwwroot\js\site.js" />
+	  <_ContentIncludedByDefault Remove="wwwroot\js\site.js.map" />
+	  <_ContentIncludedByDefault Remove="wwwroot\js\site.ts" />
+	  <_ContentIncludedByDefault Remove="wwwroot\images\app-logo.png" />
+	  <_ContentIncludedByDefault Remove="wwwroot\images\company-logo.png" />
+	  <_ContentIncludedByDefault Remove="wwwroot\css\bundle-global.css" />
+	  <_ContentIncludedByDefault Remove="wwwroot\css\bundle-global.min.css" />
+	  <_ContentIncludedByDefault Remove="wwwroot\css\bundle-vue-multiselect.css" />
+	  <_ContentIncludedByDefault Remove="wwwroot\css\bundle-vue-multiselect.min.css" />
+	  <_ContentIncludedByDefault Remove="wwwroot\css\login.css" />
+	  <_ContentIncludedByDefault Remove="wwwroot\css\magazzinosemilavorati.css" />
+	  <_ContentIncludedByDefault Remove="wwwroot\css\main.css" />
+	  <_ContentIncludedByDefault Remove="wwwroot\css\offcanvas.css" />
+	  <_ContentIncludedByDefault Remove="wwwroot\css\site.css" />
+	  <_ContentIncludedByDefault Remove="wwwroot\css\site.layout.scss" />
+	  <_ContentIncludedByDefault Remove="wwwroot\css\site.min.css" />
+	  <_ContentIncludedByDefault Remove="wwwroot\css\site.scss" />
+	  <_ContentIncludedByDefault Remove="wwwroot\css\site.variables.scss" />
+	  <_ContentIncludedByDefault Remove="wwwroot\js2\Areas\Example\Users\Edit.js" />
+	  <_ContentIncludedByDefault Remove="wwwroot\js2\Areas\Example\Users\Edit.js.map" />
+	  <_ContentIncludedByDefault Remove="wwwroot\js2\Features\Offcanvas\offcanvas.js" />
+	  <_ContentIncludedByDefault Remove="wwwroot\js2\Features\Offcanvas\offcanvas.js.map" />
+	  <_ContentIncludedByDefault Remove="wwwroot\js\wwwroot\js\signalRConnectionManager.js" />
+	  <_ContentIncludedByDefault Remove="wwwroot\js\wwwroot\js\signalRConnectionManager.js.map" />
+	  <_ContentIncludedByDefault Remove="wwwroot\js\wwwroot\js\site.js" />
+	  <_ContentIncludedByDefault Remove="wwwroot\js\wwwroot\js\site.js.map" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <Content Remove="wwwroot\wwwroot\js\site.js.map" />
+	  <Content Remove="wwwroot\wwwroot\js\signalRConnectionManager.js.map" />
+	  <Content Remove="wwwroot\js\Areas\Example\Users\Edit.js.map" />
+	  <Content Remove="wwwroot\Features\Offcanvas\offcanvas.js.map" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <Folder Include="wwwroot\js\Features\" />
+	</ItemGroup>
+
+</Project>

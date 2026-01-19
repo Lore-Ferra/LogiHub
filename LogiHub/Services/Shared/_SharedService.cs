@@ -2,7 +2,7 @@
 {
     public partial class SharedService
     {
-        TemplateDbContext _dbContext;
+        private readonly TemplateDbContext _dbContext;
 
         public SharedService(TemplateDbContext dbContext)
         {

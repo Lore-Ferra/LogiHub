@@ -1,0 +1,88 @@
+@model LogiHub.Services.Magazzino.SemiLavorati.DTO.SemiLavoratiDetailsDTO
+
+@inject LogiHub.Services.Shared.IBloccoMagazzinoService BloccoService
+
+@{
+    bool isBloccato = await BloccoService.IsBloccatoAsync();
+}
+
+
+<div class="d-flex flex-column h-100">
+    <div class="flex-grow-1 overflow-auto pe-2">
+
+        <div class="mb-4">
+            <small class="text-uppercase text-muted fw-bold fs-6">Descrizione</small>
+            <h3 class="fw-bold">@Model.Descrizione</h3>
+            <small class="text-muted d-block">Ubicazione:</small>
+            <span class="badge @(Model.Uscito ? "bg-info text-dark" : "bg-secondary")">
+                @(Model.Uscito ? "Uscito" : Model.CodiceUbicazione)
+            </span>
+
+        </div>
+
+        <div class="d-flex justify-content-between mb-4">
+            <div>
+                <small class="text-muted d-block">Barcode:</small>
+                <strong class="fs-5">@Model.Barcode</strong>
+            </div>
+            <div>
+                <small class="text-muted d-block">In Carico a:</small>
+                <strong class="fs-5">@Model.AziendaEsterna</strong>
+            </div>
+        </div>
+
+
+        <hr/>
+
+        <h6 class="fw-bold mb-3"><i class="fas fa-history me-2"></i>Storico Movimenti</h6>
+
+        <div class="timeline">
+            @foreach (var azione in Model.StoricoAzioni)
+            {
+                <div class="d-flex mb-3 border-bottom pb-2">
+                    <div class="me-3 text-center" style="width: 50px;">
+                        <small class="d-block text-muted fw-bold">@azione.DataOperazione.ToString("dd/MM")</small>
+                        <small class="text-muted">@azione.DataOperazione.ToString("HH:mm")</small>
+                    </div>
+                    <div>
+                        <div class="fw-bold text-dark">@azione.TipoOperazione</div>
+                        <div class="small text-muted">@azione.Dettagli</div>
+                        <div class="small text-secondary fst-italic">Operatore: @azione.Utente</div>
+                    </div>
+                </div>
+            }
+        </div>
+
+    </div>
+
+    <div class="mt-3 pt-3 border-top">
+        <div class="d-flex justify-content-end">
+
+            @if (!isBloccato)
+            {
+                @* BOTTONE ATTIVO (Il tuo originale) *@
+                <button type="button"
+                        class="btn btn-primary"
+                        data-offcanvas
+                        data-id="offcanvasDettagli"
+                        data-title="Modifica Semilavorato"
+                        data-url="/Magazzino/SemiLavorati/Modifica?id=@Model.Id">
+                    <i class="fas fa-edit"></i> Modifica Semilavorato
+                </button>
+            }
+            else
+            {
+                @* BOTTONE BLOCCATO *@
+                <button type="button"
+                        class="btn btn-primary disabled"
+                        disabled
+                        title="Modifica disabilitata per inventario in corso"
+                        style="cursor: not-allowed; pointer-events: auto !important;">
+                    <i class="fas fa-lock me-2"></i> Modifica
+                </button>
+            }
+
+        </div>
+    </div>
+
+</div>

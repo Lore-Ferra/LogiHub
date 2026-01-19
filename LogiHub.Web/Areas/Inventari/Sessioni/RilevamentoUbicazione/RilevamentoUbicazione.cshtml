@@ -1,0 +1,639 @@
+﻿@using System.Linq
+@using LogiHub.Models.Shared
+@model LogiHub.Web.Areas.Inventari.Sessioni.RilevamentoUbicazioneViewModel
+
+
+@{
+    ViewData["Title"] = "Rilevamento " + Model.NomeUbicazione;
+}
+
+@if (Model.IsSolaLettura)
+{
+    <div class="alert alert-warning opacity-100 border-0 shadow-sm mb-3 d-flex align-items-center">
+        <i class="fa-solid fa-lock me-3 fa-lg"></i>
+        <div>
+            <strong>Ubicazione Completata.</strong> Modalità sola lettura attiva.
+        </div>
+    </div>
+}
+
+<div>
+    @await Html.PartialAsync("~/Features/SearchCard/_SearchCard.cshtml", Model.SearchCard)
+</div>
+
+@{
+    var inAttesa = Model.TotaliPezzi - Model.PezziRilevati;
+
+    var urlConcludi = Url.Action("ConcludiUbicazione", "RilevamentoUbicazione",
+        new { area = "Inventari", sessioneId = Model.SessioneId, ubicazioneId = Model.UbicazioneId });
+    var btnPresenteClass = Model.IsSolaLettura ? "btn btn-sm btn-secondary text-nowrap" : "btn btn-sm btn-outline-success text-nowrap";
+    var btnMancanteClass = Model.IsSolaLettura ? "btn btn-sm btn-secondary text-nowrap" : "btn btn-sm btn-outline-danger text-nowrap";
+}
+@* --- STATISTICHE --- *@
+<div id="stats-container" class="d-flex mb-3 flex-wrap gap-2">
+
+    @* Card Avanzamento *@
+    <div class="card border-0 shadow-sm flex-grow-1 @(Model.IsSolaLettura ? "bg-light" : "")">
+        <div class="card-body p-2 p-md-3">
+            <div class="d-flex flex-column">
+                
+                <div class="d-flex justify-content-between align-items-center mb-1">
+                    <span class="fw-bold text-muted small">AVANZAMENTO</span>
+                    <div class="d-flex align-items-center">
+                        @* Missione Originale *@
+                        <span class="badge bg-primary" id="stats-text" title="Pezzi previsti lavorati">
+                            @Model.PezziRilevati / @Model.TotaliPezzi
+                        </span>
+
+                        @* Badge Extra (Nuovo) *@
+                        @if (Model.ConteggioExtra > 0)
+                        {
+                            <span class="badge bg-info text-dark ms-2" title="Pezzi extra trovati in questa zona">
+                                <i class="fa-solid fa-plus me-1"></i>@Model.ConteggioExtra Extra
+                            </span>
+                        }
+                    </div>
+                </div>
+
+                @* Progress bar *@
+                <div class="progress" style="height: 8px;">
+                    <div id="stats-bar"
+                         class="progress-bar bg-success progress-bar-striped @(Model.IsSolaLettura ? "" : "progress-bar-animated")"
+                         role="progressbar"
+                         style="width: @Model.PercentualeCompletamento%">
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    @* Card Bottone Extra mobile *@
+    @if (!Model.IsSolaLettura)
+    {
+        <div class="card border-0 shadow-sm flex-shrink-0 d-md-none">
+            <div class="card-body p-2 p-md-3">
+                <button type="button"
+                        class="btn btn-sm btn-primary w-100 fw-bold shadow-sm"
+                        data-bs-toggle="modal"
+                        data-bs-target="#modalAggiungiExtra">
+                    <i class="fa-solid fa-plus me-1"></i>Extra
+                </button>
+            </div>
+        </div>
+    }
+</div>
+
+
+
+
+<div class="container-fluid px-0">
+
+    @* --- VERSIONE DESKTOP (TABLE) --- *@
+    <div class="card border-0  shadow-sm d-none d-md-block">
+        <div class="card-body p-3">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="bg-light">
+                    <tr>
+                        <th>Barcode</th>
+                        <th>Descrizione</th>
+                        <th class="text-center">Stato</th>
+                        <th class="text-center">Azioni</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    @if (Model.Pezzi != null && Model.Pezzi.Any())
+                    {
+                        @foreach (var pezzo in Model.Pezzi)
+                        {
+                            <tr id="row-@pezzo.RigaId">
+                                <td class="fw-bold text-primary">@pezzo.Barcode</td>
+                                <td class="text-muted">@pezzo.Descrizione</td>
+
+                                <td class="text-center">
+                                    <span id="badge-d-@pezzo.RigaId"
+                                          class="badge @(pezzo.Stato == StatoRigaInventario.InAttesa ? "badge bg-light text-dark border" : pezzo.Stato == StatoRigaInventario.Trovato ? "text-light bg-success" : " text-light bg-danger")">
+                                        @(pezzo.Stato == StatoRigaInventario.InAttesa ? "In Attesa" : pezzo.Stato == StatoRigaInventario.Trovato ? "Presente" : "Mancante")
+                                    </span>
+                                </td>
+
+                                <td class="text-center">
+                                    <div class="d-inline-flex gap-1 text-nowrap" role="group">
+
+                                        <button class="@btnPresenteClass flex-fill"
+                                                onclick="aggiornaStato(this, '@pezzo.RigaId', 'presente')"
+                                                data-url="@Url.Action("SegnaPresente", "RilevamentoUbicazione", new { rigaId = pezzo.RigaId })"
+                                                @(Model.IsSolaLettura ? "disabled" : "")
+                                                style="@(Model.IsSolaLettura ? "cursor: not-allowed; pointer-events: auto !important;" : "")">
+                                            @if (Model.IsSolaLettura && pezzo.Stato == StatoRigaInventario.Trovato)
+                                            {
+                                                <i class="fa-solid fa-lock"></i>
+                                            }
+                                            else
+                                            {
+                                                <i class="fa-solid fa-check"></i>
+                                            }
+                                            <span class="ms-1">Presente</span>
+                                        </button>
+
+                                        <button class="@btnMancanteClass flex-fill"
+                                                onclick="aggiornaStato(this, '@pezzo.RigaId', 'mancante')"
+                                                data-url="@Url.Action("SegnaMancante", "RilevamentoUbicazione", new { rigaId = pezzo.RigaId })"
+                                                @(Model.IsSolaLettura ? "disabled" : "")
+                                                style="@(Model.IsSolaLettura ? "cursor: not-allowed; pointer-events: auto !important;" : "")">
+                                            @if (Model.IsSolaLettura && pezzo.Stato == StatoRigaInventario.Mancante)
+                                            {
+                                                <i class="fa-solid fa-lock"></i>
+                                            }
+                                            else
+                                            {
+                                                <i class="fa-solid fa-xmark"></i>
+                                            }
+                                            <span class="ms-1">Mancante</span>
+                                        </button>
+
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    @* --- VERSIONE MOBILE (CARDS) --- *@
+    <div class="d-md-none">
+        @foreach (var pezzo in Model.Pezzi)
+        {
+            <div id="card-@pezzo.RigaId"
+                 class="card shadow-sm border-0 border-start border-5 mb-2 @(pezzo.Stato == StatoRigaInventario.Trovato ? "border-success" : pezzo.Stato == StatoRigaInventario.Mancante ? "border-danger" : "")">
+                <div class="card-body p-2">
+
+                    <div class="d-flex justify-content-between align-items-start">
+                        <p class="fw-bold fs-5 m-0 text-primary">@pezzo.Barcode</p>
+                        <span id="badge-m-@pezzo.RigaId"
+                              class="badge @(pezzo.Stato == StatoRigaInventario.InAttesa ? "badge bg-light text-dark border" : pezzo.Stato == StatoRigaInventario.Trovato ? "bg-success text-light" : "bg-danger text-light")">
+                            @(pezzo.Stato == StatoRigaInventario.InAttesa ? "In Attesa" : pezzo.Stato == StatoRigaInventario.Trovato ? "Presente" : "Mancante")
+                        </span>
+                    </div>
+                    <hr class="my-1">
+                    <p class="mb-0">@pezzo.Descrizione</p>
+                    <div class="row g-2 mt-1 ">
+
+                            <div class="d-flex gap-2" role="group">
+
+                                <button class="@btnPresenteClass flex-fill"
+                                        onclick="aggiornaStato(this, '@pezzo.RigaId', 'presente')"
+                                        data-url="@Url.Action("SegnaPresente", "RilevamentoUbicazione", new { rigaId = pezzo.RigaId })"
+                                        @(Model.IsSolaLettura ? "disabled" : "")
+                                        style="@(Model.IsSolaLettura ? "cursor: not-allowed; pointer-events: auto !important;" : "")">
+                                    @if (Model.IsSolaLettura && pezzo.Stato == StatoRigaInventario.Trovato)
+                                    {
+                                        <i class="fa-solid fa-lock"></i>
+                                    }
+                                    else
+                                    {
+                                        <i class="fa-solid fa-check"></i>
+                                    }
+                                    <span class="ms-1">Presente</span>
+                                </button>
+
+                                <button class="@btnMancanteClass flex-fill"
+                                        onclick="aggiornaStato(this, '@pezzo.RigaId', 'mancante')"
+                                        data-url="@Url.Action("SegnaMancante", "RilevamentoUbicazione", new { rigaId = pezzo.RigaId })"
+                                        @(Model.IsSolaLettura ? "disabled" : "")
+                                        style="@(Model.IsSolaLettura ? "cursor: not-allowed; pointer-events: auto !important;" : "")">
+                                    @if (Model.IsSolaLettura && pezzo.Stato == StatoRigaInventario.Mancante)
+                                    {
+                                        <i class="fa-solid fa-lock"></i>
+                                    }
+                                    else
+                                    {
+                                        <i class="fa-solid fa-xmark"></i>
+                                    }
+                                    <span class="ms-1">Mancante</span>
+                                </button>
+
+                            </div>
+                   
+                    </div>
+
+                </div>
+            </div>
+        }
+
+        <div class="mt-4 mb-3">
+            @if (Model.IsSolaLettura)
+            {
+                <button type="button"
+                        class="btn btn-secondary w-100 py-2 fw-bold shadow-sm disabled"
+                        title="Ubicazione già completata"
+                        style="cursor:not-allowed; pointer-events:auto !important;">
+                    <i class="fa-solid fa-lock me-2"></i>
+                    Concludi
+                </button>
+            }
+            else
+            {
+                <button type="button"
+                        id="btnConcludi"
+                        class="btn btn-primary w-100 py-2 fw-bold shadow-sm"
+                        onclick="gestisciClickConcludi(event)">
+                    <i id="iconConcludi" class="fa-solid @(inAttesa > 0 ? "fa-check" : "fa-check-double") me-2"></i>
+                    Concludi
+                </button>
+            }
+        </div>
+    </div>
+
+</div>
+
+@Html.AntiForgeryToken()
+
+@await Html.PartialAsync(
+    "~/Features/Modals/_ConfirmModal.cshtml",
+    new LogiHub.Web.Features.Modals.ConfirmModalViewModel
+    {
+        ModalId = "actionConfirmModal",
+        Title = "Conferma operazione",
+        Message = "",
+        ConfirmButtonText = "Conferma",
+        ConfirmButtonClass = "btn-primary",
+        IconClass = "fa-solid fa-triangle-exclamation text-warning"
+    })
+
+@* MODAL ERRORE EXTRA *@
+<div class="modal fade" id="modalErroreExtra" tabindex="-1" aria-hidden="true" data-bs-backdrop="static"
+     data-bs-keyboard="false">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg text-center p-4">
+
+            <div class="mb-3">
+                <div
+                    class="rounded-circle bg-danger bg-opacity-10 d-inline-flex align-items-center justify-content-center"
+                    style="width:64px;height:64px;">
+                    <i class="fa-solid fa-xmark text-danger fs-3"></i>
+                </div>
+            </div>
+
+            <h4 class="fw-bold mb-2">Errore</h4>
+
+            <p id="msgErroreExtraText" class="text-muted mb-4"></p>
+
+            <button type="button"
+                    class="btn btn-danger w-100 py-2"
+                    data-bs-dismiss="modal">
+                OK
+            </button>
+
+        </div>
+    </div>
+</div>
+
+@* MODAL AGGIUNGI EXTRA *@
+<div class="modal fade" id="modalAggiungiExtra" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header bg-light">
+                <h5 class="modal-title"><i class="fa-solid fa-box-open me-2 text-primary"></i>Aggiungi Extra</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="formAggiungiExtra" method="post" onsubmit="submitAggiungiExtra(event)">
+                <div class="modal-body">
+                    <input type="hidden" name="sessioneId" value="@Model.SessioneId"/>
+                    <input type="hidden" name="ubicazioneId" value="@Model.UbicazioneId"/>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Barcode</label>
+                        <div class="input-group">
+                            <input type="text" class="form-control" name="barcode" id="inputBarcodeExtra" required
+                                   placeholder="Scansiona o inserisci..."/>
+                            @* Bottone Scan QR *@
+                            <button type="button" class="btn btn-secondary" onclick="simulaScanQR()"
+                                    title="Simula Scansione">
+                                <i class="fa-solid fa-qrcode"></i>
+                            </button>
+                        </div>
+                        <div class="form-text">Se il barcode esiste già, verrà segnato come spostamento.</div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Descrizione (Opzionale)</label>
+                        <textarea class="form-control" name="descrizione" rows="2"
+                                  placeholder="Inserisci descrizione..."></textarea>
+                        <div class="form-text text-muted">
+                            <i class="fa-solid fa-circle-info me-1"></i>
+                            Se lasciata vuota, verrà mantenuta quella esistente (se presente). Se compilata,
+                            sovrascriverà quella vecchia alla risoluzione.
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer border-0 pt-0">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        Annulla
+                    </button>
+                    <button type="submit" class="btn btn-primary px-4">Aggiungi</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/js/Features/Modals/ConfirmModal.js"></script>
+
+    <script>
+        let rilevati = @Model.PezziRilevati;
+        const totali = @Model.TotaliPezzi;
+        const urlConcludi = '@Html.Raw(urlConcludi)';
+        const urlDettaglio = '@Url.Action("Index", "Dettaglio", new { area = "Inventari", id = Model.SessioneId })';
+
+        function eraInAttesaPrima(rigaId) {
+            const bD = document.getElementById('badge-d-' + rigaId);
+            const bM = document.getElementById('badge-m-' + rigaId);
+
+            return (bD && bD.classList.contains('bg-light')) ||
+                (bM && bM.classList.contains('bg-light'));
+        }
+
+        async function aggiornaStato(btn, rigaId, tipo) {
+            if (btn.disabled) return;
+
+            const eraInAttesa = eraInAttesaPrima(rigaId);
+
+            const originalText = btn.innerHTML;
+            const url = btn.getAttribute('data-url');
+
+            const tokenInput = document.querySelector('input[name="__RequestVerificationToken"]');
+            const formData = new FormData();
+            if (tokenInput) formData.append('__RequestVerificationToken', tokenInput.value);
+
+            try {
+                btn.disabled = true;
+                btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
+
+                const response = await fetch(url, {
+                    method: 'POST',
+                    body: formData
+                });
+
+                if (!response.ok) {
+                    console.error("Errore server:", response.statusText);
+                    alert("Impossibile aggiornare. Forse l'ubicazione è stata chiusa?");
+                    return;
+                }
+
+                const data = await response.json();
+
+                if (data.conflict) {
+                    mostraModaleConflitto(rigaId, data.extraId);
+                    return;
+                }
+
+                if (data.success) {
+                    if (eraInAttesa) {
+                        rilevati++;
+                        aggiornaInterfacciaStats();
+                    }
+                    aggiornaUIElementiRiga(rigaId, tipo);
+                }
+
+            } catch (error) {
+                console.error('Errore:', error);
+                alert("Errore di connessione.");
+            } finally {
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            }
+        }
+
+        function aggiornaInterfacciaStats() {
+            const inAttesa = totali - rilevati;
+            const percentuale = totali > 0 ? Math.round((rilevati / totali) * 100) : 0;
+
+            const statsText = document.getElementById('stats-text');
+            const statsBar = document.getElementById('stats-bar');
+
+            if (statsText) statsText.innerText = `${rilevati} / ${totali}`;
+            if (statsBar) {
+                statsBar.style.width = percentuale + '%';
+                if (percentuale === 100) {
+                    statsBar.classList.remove('bg-primary');
+                    statsBar.classList.add('bg-success');
+                }
+            }
+
+            // Aggiorna UI bottone Concludi
+            const btnConcludi = document.getElementById('btnConcludi');
+            const iconConcludi = document.getElementById('iconConcludi');
+            if (btnConcludi && iconConcludi) {
+                if (inAttesa > 0) {
+                    iconConcludi.className = "fa-solid fa-check me-2";
+                } else {
+                    iconConcludi.className = "fa-solid fa-check-double me-2";
+                }
+            }
+        }
+
+        function aggiornaUIElementiRiga(rigaId, tipo) {
+            // Aggiorna bordo Card (Mobile)
+            const card = document.getElementById('card-' + rigaId);
+            if (card) {
+                card.classList.remove('border-success', 'border-danger');
+                card.classList.add(tipo === 'presente' ? 'border-success' : 'border-danger');
+            }
+
+            // Aggiorna Badge (Desktop e Mobile)
+            const bD = document.getElementById('badge-d-' + rigaId);
+            const bM = document.getElementById('badge-m-' + rigaId);
+
+            [bD, bM].forEach(badge => {
+                if (!badge) return;
+                badge.classList.remove('bg-light', 'text-dark', 'text-secondary', 'border', 'bg-secondary', 'bg-success', 'bg-danger');
+                badge.classList.add('text-light');
+                if (tipo === 'presente') {
+                    badge.classList.add('bg-success');
+                    badge.textContent = 'Presente';
+                } else {
+                    badge.classList.add('bg-danger');
+                    badge.textContent = 'Mancante';
+                }
+            });
+        }
+
+        async function submitAggiungiExtra(event) {
+            event.preventDefault();
+            const form = event.target;
+            const formData = new FormData(form);
+            const btn = form.querySelector('button[type="submit"]');
+            const originalText = btn.innerHTML;
+
+            try {
+                btn.disabled = true;
+                btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
+
+                const response = await fetch('@Url.Action("AggiungiPezzo", "RilevamentoUbicazione")', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    const modalAggiungi = bootstrap.Modal.getInstance(document.getElementById('modalAggiungiExtra'));
+                    if (modalAggiungi) modalAggiungi.hide();
+
+                    sessionStorage.setItem("pendingToast", JSON.stringify({
+                        msg: data.message || "Pezzo extra aggiunto!",
+                        type: data.toastType || "success"
+                    }));
+                    location.reload();
+                } else {
+                    const modalAggiungi = bootstrap.Modal.getInstance(document.getElementById('modalAggiungiExtra'));
+                    if (modalAggiungi) modalAggiungi.hide();
+                    
+                    document.getElementById('msgErroreExtraText').innerText = data.message;
+                    new bootstrap.Modal(document.getElementById('modalErroreExtra')).show();
+                }
+            } catch (error) {
+                console.error(error);
+                alert("Errore di comunicazione con il server.");
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = originalText;
+            }
+        }
+
+        function mostraModaleConflitto(rigaId, extraId) {
+            const modalEl = document.getElementById('actionConfirmModal');
+            const modal = new bootstrap.Modal(modalEl);
+
+            modalEl.querySelector('.modal-title').innerHTML = '<i class="fa-solid fa-triangle-exclamation text-warning me-2"></i>Conflitto Rilevato';
+            modalEl.querySelector('[data-confirm-message]').innerText = "Esiste già un pezzo EXTRA con questo barcode. Vuoi eliminarlo e segnare questo come presente?";
+
+            const btn = modalEl.querySelector('[data-confirm-btn]');
+            const newBtn = btn.cloneNode(true);
+            btn.parentNode.replaceChild(newBtn, btn);
+
+            newBtn.onclick = async function () {
+                newBtn.disabled = true;
+                newBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
+
+                const formData = new FormData();
+                const tokenInput = document.querySelector('input[name="__RequestVerificationToken"]');
+                if (tokenInput) formData.append('__RequestVerificationToken', tokenInput.value);
+                formData.append('rigaId', rigaId);
+                formData.append('extraId', extraId);
+
+                await fetch('@Url.Action("RisolviConflittoPresente", "RilevamentoUbicazione")', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                location.reload();
+            };
+
+            modal.show();
+        }
+
+        function simulaScanQR() {
+            const randomCode = "#" + Math.floor(Math.random() * 10000).toString().padStart(4, '0');
+            document.getElementById('inputBarcodeExtra').value = randomCode;
+        }
+
+        function gestisciClickConcludi(e) {
+            if (e) e.preventDefault();
+            const inAttesa = totali - rilevati;
+            if (inAttesa > 0) {
+                const msg = `Attenzione: ci sono ${inAttesa} pezzi non rilevati. Verranno segnati come MANCANTI. Vuoi procedere?`;
+                mostraModaleConfermaChiusura(msg);
+            } else {
+                eseguiChiusura();
+            }
+        }
+
+        function mostraModaleConfermaChiusura(msg) {
+            const modalEl = document.getElementById('actionConfirmModal');
+            const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+
+            modalEl.querySelector('.modal-title').innerHTML = '<i class="fa-solid fa-triangle-exclamation text-warning me-2"></i>Conferma operazione';
+            const msgEl = modalEl.querySelector('[data-confirm-message]');
+            if(msgEl) msgEl.innerText = msg;
+
+            const confirmBtn = modalEl.querySelector('[data-confirm-btn]');
+            const newBtn = confirmBtn.cloneNode(true);
+            confirmBtn.parentNode.replaceChild(newBtn, confirmBtn);
+
+            newBtn.onclick = () => {
+                modal.hide();
+                eseguiChiusura();
+            };
+
+            modal.show();
+        }
+
+        async function eseguiChiusura() {
+            const btn = document.getElementById('btnConcludi');
+            if(btn) {
+                btn.disabled = true;
+                btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-2"></i>Attendere...';
+            }
+
+            const tokenInput = document.querySelector('input[name="__RequestVerificationToken"]');
+            const formData = new FormData();
+            if (tokenInput) formData.append('__RequestVerificationToken', tokenInput.value);
+
+            try {
+                const res = await fetch(urlConcludi, { method: 'POST', body: formData });
+                if (res.ok) {
+                    const data = await res.json();
+                    if (data.success && data.redirectUrl) {
+                        sessionStorage.setItem("pendingToast", JSON.stringify({
+                            msg: "Ubicazione conclusa con successo",
+                            type: "success"
+                        }));
+
+                        sessionStorage.setItem('refreshDettaglio', 'true');
+
+                        setTimeout(() => {
+                            if (window.history.length > 1) {
+                                window.history.back();
+                            } else {
+                                window.location.replace(data.redirectUrl);
+                            }
+                        }, 150);
+                } else {
+                        location.reload();
+                    }
+                } else {
+                    alert("Errore durante la chiusura.");
+                    location.reload();
+                }
+            } catch (e) {
+                console.error(e);
+                alert("Errore di connessione");
+                location.reload();
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            aggiornaInterfacciaStats();
+        });
+    </script>
+    <script>
+    document.addEventListener("DOMContentLoaded", () => {
+        const pending = sessionStorage.getItem("pendingToast");
+        if (!pending) return;
+    
+        try {
+            const { msg, type } = JSON.parse(pending);
+            notify(msg, type || "success");
+        } finally {
+            sessionStorage.removeItem("pendingToast");
+        }
+            });
+    </script>
+}

@@ -1,0 +1,38 @@
+﻿body::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: #2563EB;
+    clip-path: polygon( 0 0, 100% 0, 100% 60%, 0 75% );
+}
+
+
+body::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: #EDF0F2;
+    clip-path: polygon( -5% 70%, 105% 50%, 105% 105%, -5% 105% );
+}
+
+header,
+.login-container {
+    position: relative;
+    z-index: 1;
+}
+
+
+.login-card {
+    background: #fff;
+    border-radius: 6px;
+    box-shadow: 0 10px 30px rgba(0,0,0,.15);
+}
+
+.login-register {
+    font-size: 0.85rem;
+}
+
+    .login-register a {
+        text-decoration: none;
+        font-weight: 600;
+    }
