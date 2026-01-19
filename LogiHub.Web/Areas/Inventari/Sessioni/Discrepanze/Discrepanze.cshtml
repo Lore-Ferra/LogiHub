@@ -313,7 +313,20 @@ else
         </div>
     </div>    
 }
-
+<div class="d-md-none mt-4 mb-3">
+    <button type="button" 
+            id="btnRisolviTuttoMobile"
+            class="btn @(Model.IsSolaLettura ? "btn-secondary disabled" : "btn-primary") w-100 py-2 fw-bold shadow-sm @(totalOpen == 0 ? "d-none" : "")"
+            @(Model.IsSolaLettura ? "disabled" : "")
+            data-confirm-trigger="@((!Model.IsSolaLettura && totalOpen > 0).ToString().ToLower())"
+            data-url="@Url.Action("RisolviTutto", "Discrepanze", new { area = "Inventari", id = Model.SessioneId })"
+            data-url-original="@Url.Action("RisolviTutto", "Discrepanze", new { area = "Inventari", id = Model.SessioneId })"
+            data-message="Sei sicuro di voler allineare tutto il magazzino?"
+            data-is-readonly="@Model.IsSolaLettura.ToString().ToLower()">
+        <i class="fa-solid @(Model.IsSolaLettura ? "fa-lock" : "fa-wand-magic-sparkles") me-2"></i>
+        @(Model.IsSolaLettura ? "Risoluzione Bloccata" : "Risolvi Tutto")
+    </button>
+</div>
 @Html.AntiForgeryToken()
 
 @* --- MODALE CONFERMA AJAX (Stile: Annulla Grigio, Conferma Blu) --- *@
@@ -347,7 +360,6 @@ else
 
     <script>
         document.addEventListener('DOMContentLoaded', function () {
-
             const pending = sessionStorage.getItem("pendingToast");
             if (pending) {
                 try {
@@ -356,14 +368,14 @@ else
                 } finally {
                     sessionStorage.removeItem("pendingToast");
                 }
-                aggiornaBottoneRisolviTutto();
             }
 
-            // ---- ACCORDION: ricorda ultima tab aperta ----
+            aggiornaBottoneRisolviTutto();
+
             const storageKey = 'discrepanze_active_tab';
             const accordion = document.getElementById('discrepanzeAccordion');
-
             const lastOpen = sessionStorage.getItem(storageKey);
+            
             if (lastOpen) {
                 const target = document.getElementById(lastOpen);
                 if (target) new bootstrap.Collapse(target, { show: true });
@@ -373,7 +385,6 @@ else
                 accordion.addEventListener('shown.bs.collapse', function (e) {
                     sessionStorage.setItem(storageKey, e.target.id);
                 });
-
                 accordion.addEventListener('hidden.bs.collapse', function (e) {
                     if (sessionStorage.getItem(storageKey) === e.target.id) {
                         sessionStorage.removeItem(storageKey);
@@ -384,11 +395,9 @@ else
             document.querySelectorAll('[data-confirm-trigger="true"][data-url]').forEach(btn => {
                 btn.addEventListener('click', (e) => {
                     e.preventDefault();
-
                     const url = btn.getAttribute('data-url');
                     const msg = btn.getAttribute('data-message') || 'Confermi?';
-
-                    avviaRisoluzione(btn, url, msg, { reloadOnSuccess: true });
+                    avviaRisoluzione(btn, url, msg, { reloadOnSuccess: btn.id === 'btnRisolviTutto' || btn.id === 'btnRisolviTuttoMobile' });
                 });
             });
         });
@@ -396,12 +405,10 @@ else
         function avviaRisoluzione(btn, url, msg, options = {}) {
             const modalEl = document.getElementById('ajaxConfirmModal');
             const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
-
             const msgEl = modalEl.querySelector('[data-confirm-message]');
-            if (msgEl) msgEl.innerText = msg;
+            if (msgEl) msgEl.innerHTML = msg;
 
             const confirmBtn = modalEl.querySelector('[data-confirm-btn]');
-
             const newBtn = confirmBtn.cloneNode(true);
             confirmBtn.parentNode.replaceChild(newBtn, confirmBtn);
 
@@ -411,78 +418,44 @@ else
 
                 try {
                     const tokenEl = document.querySelector('input[name="__RequestVerificationToken"]');
-                    if (!tokenEl) {
-                        alert("Token antiforgery mancante");
-                        return;
-                    }
-
                     const formData = new FormData();
                     formData.append('__RequestVerificationToken', tokenEl.value);
 
                     const res = await fetch(url, { method: 'POST', body: formData });
-
                     if (res.ok) {
                         const ct = res.headers.get("content-type") || "";
                         const data = ct.includes("application/json") ? await res.json() : null;
 
                         if (!data || data.success) {
-
-                            // 1) Messaggio specifico: dal backend se possibile
-                            let toastMsg = (data && data.message) ? data.message : null;
-
-                            // Fallback: capisco l'azione dall'URL se il backend non manda message
-                            if (!toastMsg) {
-                                if (url.includes("AnnullaDiscrepanza")) toastMsg = "Discrepanza annullata con successo.";
-                                else if (url.includes("RisolviTutto")) toastMsg = "Tutte le discrepanze allineate con successo.";
-                                else if (url.includes("Risolvi")) toastMsg = "Discrepanza allineata con successo.";
-                                else toastMsg = "Operazione completata con successo.";
-                            }
-
+                            let toastMsg = (data && data.message) ? data.message : "Operazione completata.";
                             const toastType = (data && data.toastType) ? data.toastType : "success";
+                            
                             modal.hide();
-                            notify(toastMsg, toastType);
-
-                            const willNavigate =
-                                (data && data.redirectUrl) ||
-                                options.reloadOnSuccess ||
-                                (data && data.goBack);
-
-                            if (willNavigate) {
-                                sessionStorage.setItem("pendingToast", JSON.stringify({ msg: toastMsg, type: toastType }));
-                            }
 
                             if (data && data.redirectUrl) {
-                                sessionStorage.setItem('refreshDettaglio', 'true');
-
-                                if (window.history.length > 1) window.history.back();
-                                else window.location.replace(data.redirectUrl);
-
+                                sessionStorage.setItem("pendingToast", JSON.stringify({ msg: toastMsg, type: toastType }));
+                                location.href = data.redirectUrl;
                                 return;
                             }
 
                             if (options.reloadOnSuccess) {
+                                sessionStorage.setItem("pendingToast", JSON.stringify({ msg: toastMsg, type: toastType }));
                                 location.reload();
                                 return;
                             }
 
-                            if (data) {
-                                aggiornaRigaUI(btn, data);
-                            }
-                    } else {
-                            alert("Errore: " + (data.message || "Operazione fallita"));
+                            notify(toastMsg, toastType);
+                            if (data) aggiornaRigaUI(btn, data);
+                        } else {
+                            alert(data.message || "Operazione fallita");
                         }
-                    } else {
-                        alert("Errore server: " + res.statusText);
                     }
                 } catch (err) {
                     console.error(err);
-                    alert("Errore di connessione");
                 } finally {
                     newBtn.disabled = false;
-                    newBtn.innerText = "Conferma";
                 }
             };
-
             modal.show();
         }
 
@@ -491,142 +464,73 @@ else
             if (!owner) return;
 
             const barcode = owner.getAttribute('data-barcode');
-            if (!barcode) return;
-
             const tr = document.querySelector(`tr[data-barcode="${barcode}"]`);
             const card = document.querySelector(`.mobile-item-card[data-barcode="${barcode}"]`);
-
-            if (tr) {
-                const infoTd = tr.querySelector('.info-cell');
-                if (infoTd) infoTd.classList.add('text-muted');
-            }
-
-            if (card) {
-                const infoDiv = card.querySelector('.info-cell');
-                if (infoDiv) infoDiv.classList.add('text-muted');
-            }
-
             const isAperta = data.stato === 'Aperta';
+            
             const badgeClass = data.stato === 'Risolta' ? 'border border-success text-success bg-white' :
-                data.stato === 'Annullata' ? 'border border-danger text-danger bg-white' :
-                    'bg-warning text-dark shadow-sm fw-bold';
+                             data.stato === 'Annullata' ? 'border border-danger text-danger bg-white' :
+                             'bg-warning text-dark shadow-sm fw-bold';
 
-            // --- 1. COSTRUZIONE HTML SEPARATA ---
-            // Struttura Desktop: Nome sopra, Data (con anno) sotto
-            const gestioneDesktopHtml = !isAperta
-                ? `<div class="text-muted">
-               <div class="fw-semibold">${data.gestitaDa}</div>
-               <div class="small text-nowrap">${data.dataGestione}</div> 
-           </div>`
-                : `<span class="text-dark">---</span>`;
-
-            // Struttura Mobile: Linea singola "Gestita da: Nome il Data"
-            const gestioneMobileHtml = !isAperta
-                ? `<div class="small text-muted"><strong>Gestita da:</strong> ${data.gestitaDa} il ${data.dataGestione}</div>`
-                : `<div class="small text-muted"><strong>Gestione:</strong> <span class="fst-italic opacity-50">In attesa...</span></div>`;
-
+            const resDesktop = !isAperta ? `<div class="text-muted"><div class="fw-semibold">${data.gestitaDa}</div><div class="small">${data.dataGestione}</div></div>` : `<span>---</span>`;
+            const resMobile = !isAperta ? `<div class="small text-muted"><strong>Gestita da:</strong> ${data.gestitaDa} il ${data.dataGestione}</div>` : `<div class="small text-muted fst-italic">In attesa...</div>`;
             const statoHtml = `<span class="badge ${badgeClass}">${data.stato}</span>`;
 
-            // --- 2. UPDATE DESKTOP ---
             if (tr) {
-                tr.querySelector('.gestione-cell').innerHTML = gestioneDesktopHtml;
+                tr.querySelector('.gestione-cell').innerHTML = resDesktop;
                 tr.querySelector('.stato-cell').innerHTML = statoHtml;
-
-                // Mute testo barcode e riga
-                const barcodeDiv = tr.querySelector('.text-primary');
-                if (barcodeDiv) barcodeDiv.className = 'fw-bold text-muted';
+                tr.querySelector('.text-primary')?.classList.replace('text-primary', 'text-muted');
                 tr.classList.add('bg-light', 'text-muted');
-
-                tr.cells[4].innerHTML = `
-            <div class="d-inline-flex gap-1">
-                <button class="btn btn-sm btn-secondary disabled"><i class="fa-solid fa-lock me-2"></i>Risolvi</button>
-                <button class="btn btn-sm btn-secondary disabled"><i class="fa-solid fa-lock me-2"></i>Annulla</button>
-            </div>`;
+                tr.cells[4].innerHTML = `<button class="btn btn-sm btn-secondary disabled"><i class="fa-solid fa-lock"></i></button>`;
             }
 
-            // --- 3. UPDATE MOBILE ---
             if (card) {
-                card.querySelector('.gestione-cell').innerHTML = gestioneMobileHtml;
+                card.querySelector('.gestione-cell').innerHTML = resMobile;
                 card.querySelector('.stato-cell').innerHTML = statoHtml;
-
-                // Mute testo barcode card
-                const cardBarcode = card.querySelector('.text-primary');
-                if (cardBarcode) cardBarcode.className = 'fw-bold fs-5 m-0 text-muted';
-                @* card.classList.add('bg-light'); *@
-
-                const actionEl = card.querySelector('.action-cell');
-                if (actionEl) {
-                    actionEl.innerHTML = `
-                        <div class="d-flex flex-nowrap mt-2">
-                            <button class="btn btn-sm btn-secondary disabled w-100">
-                                <i class="fa-solid fa-lock"></i>
-                            </button>
-                        </div>`;
-                }
-
-                card.classList.remove('border-primary', 'border-warning', 'border-danger', 'border-success');
-                if (data.stato === 'Risolta') card.classList.add('border-success');
-                else if (data.stato === 'Annullata') card.classList.add('border-danger');
+                card.querySelector('.text-primary')?.classList.replace('text-primary', 'text-muted');
+                card.querySelector('.action-cell').innerHTML = `<button class="btn btn-sm btn-secondary disabled w-100"><i class="fa-solid fa-lock"></i></button>`;
+                card.classList.remove('border-warning');
+                card.classList.add(data.stato === 'Risolta' ? 'border-success' : 'border-danger');
             }
 
             const accordionCollapse = owner.closest('.accordion-collapse');
             if (accordionCollapse) {
                 const headerId = accordionCollapse.getAttribute('aria-labelledby');
-                const headerBtn = document.querySelector(`#${headerId} button`);
-                if (headerBtn) {
-                    const badge = headerBtn.querySelector('.badge-count');
-                    if (badge) {
-                        let count = parseInt(badge.innerText.trim(), 10);
-                        if (!isNaN(count)) {
-                            count--;
-                            if (count > 0) badge.innerText = count;
-                            else badge.remove();
-                        }
-                    }
+                const badge = document.querySelector(`#${headerId} .badge-count`);
+                if (badge) {
+                    let count = parseInt(badge.innerText.trim()) - 1;
+                    if (count > 0) badge.innerText = count; else badge.remove();
                 }
             }
             aggiornaBottoneRisolviTutto();
         }
-        
-        function aggiornaBottoneRisolviTutto() {
-            const btn = document.getElementById('btnRisolviTutto');
-            if (!btn) return;
 
-            const icon = btn.querySelector('i');
-            const isReadonly = btn.getAttribute('data-is-readonly') === 'true';
+        function aggiornaBottoneRisolviTutto() {
+            const btns = document.querySelectorAll('#btnRisolviTutto, #btnRisolviTuttoMobile');
             const hasOpen = !!document.querySelector('#discrepanzeAccordion .badge-count');
 
-            if (isReadonly || !hasOpen) {
-                btn.className = 'btn btn-secondary disabled';
-                btn.setAttribute('disabled', 'disabled');
-                btn.setAttribute(
-                    'title',
-                    isReadonly
-                        ? 'Completa prima tutte le ubicazioni'
-                        : 'Nessuna discrepanza aperta'
-                );
+            btns.forEach(btn => {
+                if (!hasOpen) {
+                    btn.classList.add('d-none');
+                } else {
+                    const isReadonly = btn.getAttribute('data-is-readonly') === 'true';
+                    const icon = btn.querySelector('i');
+                    btn.classList.remove('d-none');
+                    if (btn.id === 'btnRisolviTutto') btn.classList.add('d-md-inline-block');
 
-                if (icon) {
-                    icon.className = 'fa-solid fa-lock';
+                    if (isReadonly) {
+                        btn.className = btn.id === 'btnRisolviTuttoMobile' ? 'btn btn-secondary w-100 py-2 fw-bold disabled' : 'btn btn-secondary disabled d-none d-md-inline-block';
+                        if (icon) icon.className = 'fa-solid fa-lock me-2';
+                        btn.setAttribute('disabled', 'disabled');
+                    } else {
+                        btn.className = btn.id === 'btnRisolviTuttoMobile' ? 'btn btn-primary w-100 py-2 fw-bold shadow-sm' : 'btn btn-primary d-none d-md-inline-block';
+                        if (icon) icon.className = 'fa-solid fa-wand-magic-sparkles me-2';
+                        btn.removeAttribute('disabled');
+                        btn.setAttribute('data-confirm-trigger', 'true');
+                        if (btn.dataset.urlOriginal) btn.setAttribute('data-url', btn.dataset.urlOriginal);
+                    }
                 }
-
-                btn.removeAttribute('data-confirm-trigger');
-                btn.removeAttribute('data-url');
-                btn.removeAttribute('data-message');
-            } else {
-                btn.className = 'btn btn-primary';
-                btn.removeAttribute('disabled');
-                btn.removeAttribute('title');
-
-                if (icon) {
-                    icon.className = 'fa-solid fa-wand-magic-sparkles';
-                }
-
-                btn.setAttribute('data-confirm-trigger', 'true');
-                if (btn.dataset.urlOriginal) {
-                    btn.setAttribute('data-url', btn.dataset.urlOriginal);
-                }
-            }
+            });
         }
     </script>
 }

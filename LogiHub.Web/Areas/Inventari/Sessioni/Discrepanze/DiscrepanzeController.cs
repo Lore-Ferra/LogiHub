@@ -45,33 +45,20 @@ public partial class DiscrepanzeController : AuthenticatedBaseController
 
         var btnRisolvi = new SearchCardButton
         {
-            Text = canRisolviTutto
-                ? "Risolvi Tutto"
-                : (isSolaLettura ? "Risoluzione Bloccata" : "Tutto Risolto"),
-            CssClass = canRisolviTutto ? "btn-primary" : "btn-secondary disabled",
-            IconClass = canRisolviTutto
-                ? "fa-solid fa-wand-magic-sparkles"
-                : (isSolaLettura ? "fa-solid fa-lock" : "fa-solid fa-check-double"),
+            Text = isSolaLettura ? "Risoluzione Bloccata" : "Risolvi Tutto",
+            CssClass = (isSolaLettura ? "btn-secondary disabled" : "btn-primary") + 
+                       (haAperte ? " d-none d-md-inline-block" : " d-none"), 
+            IconClass = isSolaLettura ? "fa-solid fa-lock" : "fa-solid fa-wand-magic-sparkles",
             Type = "button",
-            HtmlAttributes = canRisolviTutto
-                ? new Dictionary<string, string>
-                {
-                    { "id", "btnRisolviTutto" },
-                    { "data-confirm-trigger", "true" },
-                    { "data-url", Url.Action("RisolviTutto", "Discrepanze", new { area = "Inventari", id }) },
-                    { "data-method", "POST" },
-                    { "data-type", "form" },
-                    { "data-message", "Sei sicuro di voler allineare tutto il magazzino?" },
-                    { "data-is-readonly", isSolaLettura.ToString().ToLower() }
-                }
-                : new Dictionary<string, string>
-                {
-                    { "id", "btnRisolviTutto" },
-                    { "disabled", "disabled" },
-                    { "aria-disabled", "true" },
-                    { "title", isSolaLettura ? "Completa prima tutte le ubicazioni" : "Nessuna discrepanza aperta" },
-                    { "data-is-readonly", isSolaLettura.ToString().ToLower() }
-                }
+            HtmlAttributes = new Dictionary<string, string>
+            {
+                { "id", "btnRisolviTutto" },
+                { "data-confirm-trigger", (!isSolaLettura && haAperte).ToString().ToLower() },
+                { "data-url", Url.Action("RisolviTutto", "Discrepanze", new { area = "Inventari", id }) },
+                { "data-url-original", Url.Action("RisolviTutto", "Discrepanze", new { area = "Inventari", id }) },
+                { "data-is-readonly", isSolaLettura.ToString().ToLower() },
+                { "data-message", "Sei sicuro di voler allineare tutto il magazzino?" }
+            }
         };
 
         headerButtons.Add(btnRisolvi);
