@@ -111,10 +111,13 @@ public partial class DiscrepanzeController : AuthenticatedBaseController
         var user = await _context.Users.FindAsync(userId);
         var nomeOperatore = user != null ? $"{user.FirstName} {user.LastName}" : User.Identity?.Name ?? "Operatore";
 
+        var stato = StatoDiscrepanza.Risolta;
+
         return Json(new
         {
             success = true,
             stato = StatoDiscrepanza.Risolta.ToString(),
+            muted = stato != StatoDiscrepanza.Aperta,
             gestitaDa = nomeOperatore,
             dataGestione = DateTime.Now.ToString("dd/MM/yyyy HH:mm")
         });
@@ -154,10 +157,13 @@ public partial class DiscrepanzeController : AuthenticatedBaseController
         var user = await _context.Users.FindAsync(userId);
         var nomeOperatore = user != null ? $"{user.FirstName} {user.LastName}" : User.Identity?.Name ?? "Operatore";
 
+        var stato = StatoDiscrepanza.Annullata;
+        
         return Json(new
         {
             success = true,
             stato = StatoDiscrepanza.Annullata.ToString(),
+            muted = stato != StatoDiscrepanza.Aperta,
             gestitaDa = nomeOperatore,
             dataGestione = DateTime.Now.ToString("dd/MM/yyyy HH:mm")
         });
