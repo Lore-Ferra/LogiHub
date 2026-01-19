@@ -67,7 +67,8 @@
                                 @if (ubi.InLavorazione)
                                 {
                                     <div class="fw-semibold">
-                                        <i class="fa-solid fa-user-gear me-1"></i>@ubi.OperatoreCorrente
+                                        <i class="fa-solid fa-user-gear me-2"></i>
+                                        @ubi.OperatoreCorrente
                                     </div>
                                 }
                                 else
@@ -103,8 +104,8 @@
 
 
                             <td>
-                                <div class="text-muted"><i class="fa-solid fa-check-double me-1"></i> Chiuso da:
-                                    <strong>@ubi.OperatoreCorrente</strong></div>
+                                <div class="text-muted"><i class="fa-solid fa-check-double me-1"></i>
+                                   @ubi.OperatoreCorrente</div>
                             </td>
 
                             <td class="text-center"><span class="badge bg-secondary opacity-75">Completato</span></td>
@@ -150,11 +151,12 @@
                             <div class="fw-bold text-primary mb-1">@ubi.Posizione</div>
                             @if (ubi.InLavorazione)
                             {
-                                <i class="fa-solid fa-user-gear me-2"></i>@ubi.OperatoreCorrente
+                                <i class="fa-solid fa-user-gear me-2"></i>                                @ubi.OperatoreCorrente
                             }
                             else
                             {
-                                <i class="fa-solid fa-user me-2 text-muted"></i><span class="text-muted fw-normal">Nessun operatore</span>
+                                <i class="fa-solid fa-user me-2 text-muted"></i>
+                                <span class="text-muted fw-normal">Nessun operatore</span>
                             }
                         </div>
                         <div>
@@ -185,10 +187,10 @@
                         <div>
                             @* Rimossa classe text-decoration-line-through *@
                             <div class="text-muted mb-1">@ubi.Posizione</div>
-                            <span class="fw-bold">
-                                <i class="fa-solid fa-check-double me-1"></i>
-                                Chiuso da: <span class="fw-normal">@ubi.OperatoreCorrente</span>
-                            </span>
+
+                            <i class="fa-solid fa-check-double me-2"></i>
+                            @ubi.OperatoreCorrente
+                         
                         </div>
                         <div>
                             <span class="badge bg-secondary opacity-75">Completato</span>
@@ -264,7 +266,7 @@
 
             modalEl.querySelector('.modal-title').innerText = "Conferma";
             const msgEl = modalEl.querySelector('[data-confirm-message]');
-            if(msgEl) msgEl.innerHTML = msg;
+            if (msgEl) msgEl.innerHTML = msg;
 
             const confirmBtn = modalEl.querySelector('[data-confirm-btn]');
             const newBtn = confirmBtn.cloneNode(true);
@@ -279,7 +281,7 @@
                     const formData = new FormData();
                     if (tokenInput) formData.append('__RequestVerificationToken', tokenInput.value);
 
-                    const res = await fetch(url, { method: 'POST', body: formData });
+                    const res = await fetch(url, {method: 'POST', body: formData});
                     const data = await res.json();
 
                     if (res.ok && data.success) {
@@ -287,7 +289,7 @@
                             msg: data.message || "Inventario completato con successo!",
                             type: "success"
                         }));
-                        
+
                         sessionStorage.setItem('refreshSessioni', 'true');
 
                         if (window.history.length > 1) {
@@ -295,7 +297,7 @@
                         } else {
                             window.location.replace(data.redirectUrl);
                         }
-                        
+
                     } else {
                         alert("Errore: " + (data.message || "Impossibile chiudere la sessione."));
                         location.reload();
@@ -304,7 +306,9 @@
                     console.error(err);
                     alert("Errore di connessione");
                 }
-};
+                
+
+            };
             modal.show();
         }
 
@@ -321,7 +325,7 @@
             if (!pending) return;
 
             try {
-                const { msg, type } = JSON.parse(pending);
+                const {msg, type} = JSON.parse(pending);
 
                 if (typeof notify === "function") {
                     notify(msg, type || "success");
