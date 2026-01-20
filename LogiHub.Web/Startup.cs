@@ -91,11 +91,11 @@ namespace LogiHub.Web
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
+            app.UseExceptionHandler("/Error/Error");
+            app.UseStatusCodePagesWithReExecute("/Error/NotFound");
             // Configure the HTTP request pipeline.
             if (!env.IsDevelopment())
             {
-                app.UseExceptionHandler("/Home/Error");
-
                 // Https redirection only in production
                 app.UseHsts();
                 app.UseHttpsRedirection();
@@ -119,7 +119,7 @@ namespace LogiHub.Web
 
             app.UseEndpoints(endpoints =>
             {
-                // ROUTING PER HUB
+
                 endpoints.MapHub<TemplateHub>("/templateHub");
 
                 endpoints.MapAreaControllerRoute("Inventari", "Inventari",
