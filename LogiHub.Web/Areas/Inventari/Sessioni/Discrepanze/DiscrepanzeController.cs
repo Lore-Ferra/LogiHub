@@ -79,6 +79,7 @@ public partial class DiscrepanzeController : AuthenticatedBaseController
         {
             SessioneId = id,
             IsSolaLettura = isSolaLettura,
+            NomeSessione = sessione.NomeSessione,
             SearchCard = searchCard,
             SearchQuery = query,
             DaSpostare = tutte.Where(x => x.Tipo == TipoDiscrepanzaOperativa.Spostato).ToList(),
