@@ -117,6 +117,10 @@
   width: 45% !important;
 }
 
+.ls-05 {
+  letter-spacing: 0.5px;
+}
+
 .table-fixed {
   table-layout: fixed;
 }
@@ -11996,6 +12000,10 @@ textarea.form-control-lg {
 
 .w-45 {
   width: 45% !important;
+}
+
+.ls-05 {
+  letter-spacing: 0.5px;
 }
 
 .table-fixed {
