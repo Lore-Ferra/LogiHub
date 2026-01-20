@@ -2,32 +2,35 @@
 @using System.Security.Claims
 
 @{
-    ViewData["Title"] = Model.NomeSessione;
-    var currentUserId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
-    var ubiDaFare = Model.UbicazioniFiltrate.Where(u => !u.Completata).ToList();
-    var ubiCompletate = Model.UbicazioniFiltrate.Where(u => u.Completata).ToList();
+ViewData["Title"] = Model.NomeSessione;
+var currentUserId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
+
+// Suddivisione per stato
+var ubiInAttesa = Model.UbicazioniFiltrate.Where(u => !u.Completata && !u.InLavorazione).ToList();
+var ubiInCorso = Model.UbicazioniFiltrate.Where(u => !u.Completata && u.InLavorazione).ToList();
+var ubiCompletate = Model.UbicazioniFiltrate.Where(u => u.Completata).ToList();
 }
 
 @if (!Model.Chiuso && (Model.CiSonoUbicazioniAperte || Model.CiSonoDiscrepanzeAperte))
 {
-    <div class="alert alert-warning border-0 shadow-sm mb-3 d-flex align-items-center">
-        <i class="fa-solid fa-lock me-3 fa-lg"></i>
-        <div>
-            <strong>Completamento Bloccato:</strong>
-            @if (Model.CiSonoUbicazioniAperte && Model.CiSonoDiscrepanzeAperte)
-            {
-                <span>Ci sono ancora ubicazioni da completare e discrepanze da risolvere.</span>
-            }
-            else if (Model.CiSonoUbicazioniAperte)
-            {
-                <span>Ci sono ancora ubicazioni da completare.</span>
-            }
-            else
-            {
-                <span>Ci sono ancora discrepanze da risolvere.</span>
-            }
-        </div>
+<div class="alert alert-warning border-0 shadow-sm mb-3 d-flex align-items-center">
+    <i class="fa-solid fa-lock me-3 fa-lg"></i>
+    <div>
+        <strong>Completamento Bloccato:</strong>
+        @if (Model.CiSonoUbicazioniAperte && Model.CiSonoDiscrepanzeAperte)
+        {
+        <span>Ci sono ancora ubicazioni da completare e discrepanze da risolvere.</span>
+        }
+        else if (Model.CiSonoUbicazioniAperte)
+        {
+        <span>Ci sono ancora ubicazioni da completare.</span>
+        }
+        else
+        {
+        <span>Ci sono ancora discrepanze da risolvere.</span>
+        }
     </div>
+</div>
 }
 
 <div>
@@ -47,72 +50,65 @@
                 </tr>
                 </thead>
                 <tbody>
-                @if (ubiDaFare.Any())
+
+                @* --- IN ATTESA --- *@
+                @if (ubiInAttesa.Any())
                 {
-                    @foreach (var ubi in ubiDaFare)
+                    <tr style="pointer-events: none; border-bottom: 2px solid #dee2e6;">
+                        <td colspan="3" class="py-2 ps-3 bg-light">
+                            <span class="small ls-05 text-muted fw-bold text-uppercase">In Attesa</span>
+                        </td>
+                    </tr>
+                    @foreach (var ubi in ubiInAttesa)
+                    {
+                        <tr style="cursor:pointer" onclick="window.location.href='@Url.Action("Index", "RilevamentoUbicazione", new { sessioneId = Model.SessioneId, ubicazioneId = ubi.UbicazioneId })'">
+                            <td class="fw-bold text-primary">@ubi.Posizione</td>
+                            <td class="text-muted fw-normal"><i class="fa-solid fa-user me-1"></i> Nessun operatore</td>
+                            <td class="text-center"><span class="badge bg-light text-dark border">In Attesa</span></td>
+                        </tr>
+                    }
+                }
+
+                @* --- IN CORSO --- *@
+                @if (ubiInCorso.Any())
+                {
+                    <tr style="pointer-events: none; border-bottom: 2px solid #dee2e6;">
+                        <td colspan="3" class="py-2 ps-3 bg-light">
+                            <span class="small ls-05 text-muted fw-bold text-uppercase">In Corso</span>
+                        </td>
+                    </tr>
+                    @foreach (var ubi in ubiInCorso)
                     {
                         var isMyUbi = ubi.OperatoreCorrenteId == currentUserId;
-                        var canEnter = !ubi.InLavorazione || isMyUbi;
-
-                        <tr style="@(canEnter ? "cursor:pointer" : "")"
-                            @if (canEnter)
-                            {
-                            <text>onclick="window.location.href='@Url.Action("Index", "RilevamentoUbicazione", new { sessioneId = Model.SessioneId, ubicazioneId = ubi.UbicazioneId })'"
-                            </text>
-                            }>
-
+                        <tr style="@(isMyUbi ? "cursor:pointer" : "")" @(isMyUbi ? $"onclick=window.location.href='{Url.Action("Index", "RilevamentoUbicazione", new { sessioneId = Model.SessioneId, ubicazioneId = ubi.UbicazioneId })}'" : "")>
                             <td class="fw-bold text-primary">@ubi.Posizione</td>
-
-                            <td>
-                                @if (ubi.InLavorazione)
-                                {
-                                    <div class="fw-semibold">
-                                        <i class="fa-solid fa-user-gear me-2"></i>
-                                        @ubi.OperatoreCorrente
-                                    </div>
-                                }
-                                else
-                                {
-                                    <div class="text-muted fw-normal">
-                                        <i class="fa-solid fa-user me-1"></i> Nessun operatore
-                                    </div>
-                                }
-                            </td>
-
+                            <td><div class="fw-semibold"><i class="fa-solid fa-user-gear me-2"></i>@ubi.OperatoreCorrente</div></td>
                             <td class="text-center">
-                                @if (ubi.InLavorazione)
-                                {
-                                    <span class="badge bg-warning text-dark">
-                                        <i class="fa-solid fa-circle fa-fade me-1"></i>In Corso
-                                    </span>
-                                }
-                                else
-                                {
-                                    <span class="badge bg-light text-dark border">In Attesa</span>
-                                }
+                                <span class="badge bg-warning text-dark"><i class="fa-solid fa-circle fa-fade me-1"></i>In Corso</span>
                             </td>
                         </tr>
                     }
                 }
+
+                @* --- COMPLETATE --- *@
                 @if (ubiCompletate.Any())
                 {
+                    <tr style="pointer-events: none; border-bottom: 2px solid #dee2e6;">
+                        <td colspan="3" class="py-2 ps-3 bg-light">
+                            <span class="small ls-05 text-muted fw-bold text-uppercase">Completate</span>
+                        </td>
+                    </tr>
                     @foreach (var ubi in ubiCompletate)
                     {
-                        <tr class="bg-light" style="cursor:pointer"
-                            onclick="window.location.href='@Url.Action("Index", "RilevamentoUbicazione", new { sessioneId = Model.SessioneId, ubicazioneId = ubi.UbicazioneId })'">
-                            <td class="text-start fw-bold text-muted">@ubi.Posizione</td>
-
-
-                            <td>
-                                <div class="text-muted"><i class="fa-solid fa-check-double me-1"></i>
-                                   @ubi.OperatoreCorrente</div>
-                            </td>
-
+                        <tr class="text-muted" style="cursor:pointer" onclick="window.location.href='@Url.Action("Index", "RilevamentoUbicazione", new { sessioneId = Model.SessioneId, ubicazioneId = ubi.UbicazioneId })'">
+                            <td class="fw-bold">@ubi.Posizione</td>
+                            <td><div><i class="fa-solid fa-check-double me-1"></i>@ubi.OperatoreCorrente</div></td>
                             <td class="text-center"><span class="badge bg-secondary opacity-75">Completato</span></td>
                         </tr>
                     }
                 }
-                @if (!ubiDaFare.Any() && !ubiCompletate.Any())
+
+                @if (!Model.UbicazioniFiltrate.Any())
                 {
                     <tr>
                         <td colspan="3" class="text-center py-5 text-muted">
@@ -128,285 +124,207 @@
 </div>
 
 @* --- VERSIONE MOBILE (CARDS) --- *@
-
 <div class="d-md-none">
 
-    @if (ubiDaFare.Any())
+    @* --- IN ATTESA --- *@
+    @if (ubiInAttesa.Any())
     {
-        foreach (var ubi in ubiDaFare)
-        {
-            var isMyUbi = ubi.OperatoreCorrenteId == currentUserId;
-            var canEnter = !ubi.InLavorazione || isMyUbi;
-            <div
-                class="card shadow-sm border-0 border-start border-5 mt-2 @(ubi.InLavorazione ? "border-warning" : "border-bg-light")"
-                style="@(canEnter ? "cursor:pointer" : "")"
-                @if (canEnter)
-                {
-                <text>onclick="window.location.href='@Url.Action("Index", "RilevamentoUbicazione", new { sessioneId = Model.SessioneId, ubicazioneId = ubi.UbicazioneId })'"
-                </text>
-                }>
-                <div class="card-body p-2">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div class="fw-semibold">
-                            <div class="fw-bold text-primary mb-1">@ubi.Posizione</div>
-                            @if (ubi.InLavorazione)
-                            {
-                                <i class="fa-solid fa-user-gear me-2"></i>                                @ubi.OperatoreCorrente
-                            }
-                            else
-                            {
-                                <i class="fa-solid fa-user me-2 text-muted"></i>
-                                <span class="text-muted fw-normal">Nessun operatore</span>
-                            }
-                        </div>
-                        <div>
-                            @if (ubi.InLavorazione)
-                            {
-                                <span class="badge text-bg-warning"><i class="fa-solid fa-circle fa-fade me-1"></i>In Corso</span>
-                            }
-                            else
-                            {
-                                <span class="badge border text-dark bg-light">In Attesa</span>
-                            }
-                        </div>
-                    </div>
+        <div class="d-flex align-items-center">
+            <hr class="flex-grow-1 m-0 opacity-25 ">
+            <span class="mx-3 small text-muted fw-bold text-uppercase ls-05">IN ATTESA</span>
+            <hr class="flex-grow-1 m-0 opacity-25">
+        </div>  
+        @foreach (var ubi in ubiInAttesa)
+    {
+    <div class="card shadow-sm border-0 border-start border-5 mt-2" style="cursor:pointer" onclick="window.location.href='@Url.Action("Index", "RilevamentoUbicazione", new { sessioneId = Model.SessioneId, ubicazioneId = ubi.UbicazioneId })'">
+        <div class="card-body p-2">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <div class="fw-bold text-primary mb-1">@ubi.Posizione</div>
+                    <i class="fa-solid fa-user me-2 text-muted"></i><span class="text-muted fw-normal">Nessun operatore</span>
                 </div>
+                <span class="badge border text-dark bg-light">In Attesa</span>
             </div>
-        }
+        </div>
+    </div>
+    }
     }
 
+    @* --- IN CORSO --- *@
+    @if (ubiInCorso.Any())
+    {
+        <div class="d-flex align-items-center mt-3">
+            <hr class="flex-grow-1 m-0 opacity-25">
+            <span class="mx-3 small text-muted fw-bold text-uppercase ls-05">IN CORSO</span>
+            <hr class="flex-grow-1 m-0 opacity-25">
+        </div>  
+
+    @foreach (var ubi in ubiInCorso)
+    {
+    var isMyUbi = ubi.OperatoreCorrenteId == currentUserId;
+    <div class="card shadow-sm border-0 border-start border-5 mt-2 border-warning" style="@(isMyUbi ? "cursor:pointer" : "")" @(isMyUbi ? $"onclick=window.location.href='{Url.Action("Index", "RilevamentoUbicazione", new { sessioneId = Model.SessioneId, ubicazioneId = ubi.UbicazioneId })}'" : "")>
+        <div class="card-body p-2">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <div class="fw-bold text-primary mb-1">@ubi.Posizione</div>
+                    <i class="fa-solid fa-user-gear me-2"></i>@ubi.OperatoreCorrente
+                </div>
+                <span class="badge text-bg-warning"><i class="fa-solid fa-circle fa-fade me-1"></i>In Corso</span>
+            </div>
+        </div>
+    </div>
+    }
+    }
+
+    @* --- COMPLETATE --- *@
     @if (ubiCompletate.Any())
     {
-        @foreach (var ubi in ubiCompletate)
-        {
-            <div class="card shadow-sm border-0 border-start border-5 mt-2 border-secondary border-opacity-75"
-                 style="cursor:pointer"
-                 onclick="window.location.href='@Url.Action("Index", "RilevamentoUbicazione", new { sessioneId = Model.SessioneId, ubicazioneId = ubi.UbicazioneId })'">
-                <div class="card-body p-2">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            @* Rimossa classe text-decoration-line-through *@
-                            <div class="text-muted mb-1">@ubi.Posizione</div>
-
-                            <i class="fa-solid fa-check-double me-2"></i>
-                            @ubi.OperatoreCorrente
-                         
-                        </div>
-                        <div>
-                            <span class="badge bg-secondary opacity-75">Completato</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        }
-    }
-    @if (!ubiDaFare.Any() && !ubiCompletate.Any())
-    {
-        <div class="text-center py-5 text-muted">
-            <i class="fas fa-box-open fa-3x mb-3"></i>
-            <p>Nessuna ubicazione trovata.</p>
+        <div class="d-flex align-items-center mt-3">
+            <hr class="flex-grow-1 m-0 opacity-25">
+            <span class="mx-3 small text-muted fw-bold text-uppercase ls-05">COMPLETATE</span>
+            <hr class="flex-grow-1 m-0 opacity-25">
         </div>
+
+    @foreach (var ubi in ubiCompletate)
+    {
+    <div class="card shadow-sm border-0 border-start border-5 mt-2 border-secondary border-opacity-50" style="cursor:pointer" onclick="window.location.href='@Url.Action("Index", "RilevamentoUbicazione", new { sessioneId = Model.SessioneId, ubicazioneId = ubi.UbicazioneId })'">
+        <div class="card-body p-2">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <div class="text-muted mb-1">@ubi.Posizione</div>
+                    <i class="fa-solid fa-check-double me-2 opacity-75"></i>@ubi.OperatoreCorrente
+                </div>
+                <span class="badge bg-secondary opacity-75">Completato</span>
+            </div>
+        </div>
+    </div>
+    }
+    }
+
+    @if (!Model.UbicazioniFiltrate.Any())
+    {
+    <div class="text-center py-5 text-muted">
+        <i class="fas fa-box-open fa-3x mb-3"></i>
+        <p>Nessuna ubicazione trovata.</p>
+    </div>
     }
 </div>
 
 @if (!Model.Chiuso)
 {
-    <div class="d-md-none mt-4 mb-3">
-        @if (Model.PuoChiudere)
-        {
-            <button type="button"
-                    class="btn btn-primary w-100 py-2 fw-bold shadow-sm"
-                    onclick="chiudiInventario(event)"
-                    data-url="@Url.Action("ChiudiSessione", "Dettaglio", new { area = "Inventari", id = Model.SessioneId })"
-                    data-message="Vuoi davvero chiudere l’inventario <b>@Model.NomeSessione</b>?">
-                <i class="fa-solid fa-check me-2"></i>
-                Completa Inventario
-            </button>
-        }
-        else
-        {
-            <button type="button"
-                    class="btn btn-secondary w-100 py-2 fw-bold shadow-sm disabled"
-                    title="Completa prima l'inventario"
-                    style="cursor:not-allowed; pointer-events:auto !important;">
-                <i class="fa-solid fa-lock me-2"></i>
-                Completa Inventario
-            </button>
-        }
-    </div>
+<div class="d-md-none mt-4 mb-3">
+    @if (Model.PuoChiudere)
+    {
+    <button type="button" class="btn btn-primary w-100 py-2 fw-bold shadow-sm" onclick="chiudiInventario(event)"
+            data-url="@Url.Action("ChiudiSessione", "Dettaglio", new { area = "Inventari", id = Model.SessioneId })"
+            data-message="Vuoi davvero chiudere l’inventario <b>@Model.NomeSessione</b>?">
+        <i class="fa-solid fa-check me-2"></i>Completa Inventario
+    </button>
+    }
+    else
+    {
+    <button type="button" class="btn btn-secondary w-100 py-2 fw-bold shadow-sm disabled" style="cursor:not-allowed; pointer-events:auto !important;">
+        <i class="fa-solid fa-lock me-2"></i>Completa Inventario
+    </button>
+    }
+</div>
 }
 
 @Html.AntiForgeryToken()
 
 @await Html.PartialAsync("~/Features/Modals/_ConfirmModal.cshtml",
-    new LogiHub.Web.Features.Modals.ConfirmModalViewModel
-    {
-        ModalId = "actionConfirmModal",
-        Title = "Conferma",
-        Message = "",
-        ConfirmButtonText = "Conferma",
-        ConfirmButtonClass = "btn-primary",
-        IconClass = "fa-solid fa-triangle-exclamation"
-    })
+new LogiHub.Web.Features.Modals.ConfirmModalViewModel
+{
+ModalId = "actionConfirmModal",
+Title = "Conferma",
+ConfirmButtonText = "Conferma",
+ConfirmButtonClass = "btn-primary",
+IconClass = "fa-solid fa-triangle-exclamation"
+})
 
 @section Scripts {
-    <script src="~/js/Features/Modals/ConfirmModal.js"></script>
+<script src="~/js/Features/Modals/ConfirmModal.js"></script>
+<script>
+    function chiudiInventario(e) {
+        e.preventDefault();
+        const btn = e.currentTarget;
+        const url = btn.getAttribute('data-url');
+        const msg = btn.getAttribute('data-message');
+        const modalEl = document.getElementById('actionConfirmModal');
+        const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
 
-    <script>
-        console.log("Dettaglio.cshtml scripts loaded");
+        modalEl.querySelector('.modal-title').innerText = "Conferma";
+        const msgEl = modalEl.querySelector('[data-confirm-message]');
+        if (msgEl) msgEl.innerHTML = msg;
 
-        function chiudiInventario(e) {
-            e.preventDefault();
-            const btn = e.currentTarget;
-            const url = btn.getAttribute('data-url');
-            const msg = btn.getAttribute('data-message');
+        const confirmBtn = modalEl.querySelector('[data-confirm-btn]');
+        const newBtn = confirmBtn.cloneNode(true);
+        confirmBtn.parentNode.replaceChild(newBtn, confirmBtn);
 
-            const modalEl = document.getElementById('actionConfirmModal');
-            const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
-
-            modalEl.querySelector('.modal-title').innerText = "Conferma";
-            const msgEl = modalEl.querySelector('[data-confirm-message]');
-            if (msgEl) msgEl.innerHTML = msg;
-
-            const confirmBtn = modalEl.querySelector('[data-confirm-btn]');
-            const newBtn = confirmBtn.cloneNode(true);
-            confirmBtn.parentNode.replaceChild(newBtn, confirmBtn);
-
-            newBtn.onclick = async () => {
-                newBtn.disabled = true;
-                newBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-2"></i>Attendere...';
-
-                try {
-                    const tokenInput = document.querySelector('input[name="__RequestVerificationToken"]');
-                    const formData = new FormData();
-                    if (tokenInput) formData.append('__RequestVerificationToken', tokenInput.value);
-
-                    const res = await fetch(url, {method: 'POST', body: formData});
-                    const data = await res.json();
-
-                    if (res.ok && data.success) {
-                        sessionStorage.setItem("pendingToast", JSON.stringify({
-                            msg: data.message || "Inventario completato con successo!",
-                            type: "success"
-                        }));
-
-                        sessionStorage.setItem('refreshSessioni', 'true');
-
-                        if (window.history.length > 1) {
-                            window.history.back();
-                        } else {
-                            window.location.replace(data.redirectUrl);
-                        }
-
-                    } else {
-                        alert("Errore: " + (data.message || "Impossibile chiudere la sessione."));
-                        location.reload();
-                    }
-                } catch (err) {
-                    console.error(err);
-                    alert("Errore di connessione");
-                }
-                
-
-            };
-            modal.show();
-        }
-
-        document.addEventListener('DOMContentLoaded', function () {
-            const toastEl = document.getElementById('errorToast');
-            if (toastEl) {
-                const toast = new bootstrap.Toast(toastEl, {delay: 5000});
-                toast.show();
-            }
-        });
-
-        function mostraPendingToast() {
-            const pending = sessionStorage.getItem("pendingToast");
-            if (!pending) return;
-
+        newBtn.onclick = async () => {
+            newBtn.disabled = true;
+            newBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-2"></i>Attendere...';
             try {
-                const {msg, type} = JSON.parse(pending);
+                const tokenInput = document.querySelector('input[name="__RequestVerificationToken"]');
+                const formData = new FormData();
+                if (tokenInput) formData.append('__RequestVerificationToken', tokenInput.value);
 
-                if (typeof notify === "function") {
-                    notify(msg, type || "success");
+                const res = await fetch(url, {method: 'POST', body: formData});
+                const data = await res.json();
+
+                if (res.ok && data.success) {
+                    sessionStorage.setItem("pendingToast", JSON.stringify({ msg: data.message || "Inventario completato!", type: "success" }));
+                    sessionStorage.setItem('refreshSessioni', 'true');
+                    window.history.length > 1 ? window.history.back() : window.location.replace(data.redirectUrl);
                 } else {
-                    console.warn("notify() non disponibile in Dettaglio");
-                    alert(msg);
+                    alert("Errore: " + (data.message || "Impossibile chiudere."));
+                    location.reload();
                 }
-            } finally {
-                sessionStorage.removeItem("pendingToast");
-            }
+            } catch (err) { console.error(err); alert("Errore di connessione"); }
+        };
+        modal.show();
+    }
+
+    function mostraPendingToast() {
+        const pending = sessionStorage.getItem("pendingToast");
+        if (!pending) return;
+        try {
+            const {msg, type} = JSON.parse(pending);
+            if (typeof notify === "function") notify(msg, type || "success"); else alert(msg);
+        } finally { sessionStorage.removeItem("pendingToast"); }
+    }
+
+    window.addEventListener('pageshow', function (event) {
+        if (event.persisted || sessionStorage.getItem('refreshDettaglio') === 'true') {
+            sessionStorage.removeItem('refreshDettaglio');
+            setTimeout(() => window.location.reload(), 150);
+            return;
         }
+        mostraPendingToast();
+    });
 
-        window.addEventListener('pageshow', function (event) {
-            const mustReload = event.persisted || sessionStorage.getItem('refreshDettaglio') === 'true';
-
-            if (mustReload) {
-                sessionStorage.removeItem('refreshDettaglio');
-                setTimeout(() => window.location.reload(), 150);
-                return;
-            }
-            mostraPendingToast();
+    (function () {
+        let pendingForm = null;
+        document.addEventListener('click', function (e) {
+            const btn = e.target.closest('[data-confirm-modal-trigger="true"]');
+            if (!btn || btn.getAttribute('data-confirm-modal') !== 'true') return;
+            e.preventDefault();
+            pendingForm = btn.closest('form');
+            if (!pendingForm) return;
+            const modalEl = document.getElementById('actionConfirmModal');
+            if (!modalEl) { pendingForm.submit(); return; }
+            const title = btn.getAttribute('data-confirm-title');
+            const message = btn.getAttribute('data-confirm-message');
+            const label = btn.getAttribute('data-confirm-label');
+            if (title) modalEl.querySelector('.modal-title').textContent = title;
+            if (message) modalEl.querySelector('[data-confirm-message]').childNodes[0].textContent = message + " ";
+            if (label) modalEl.querySelector('[data-dynamic-label]').textContent = label;
+            bootstrap.Modal.getOrCreateInstance(modalEl).show();
         });
-
-        (function () {
-            let pendingForm = null;
-
-            document.addEventListener('click', function (e) {
-                const btn = e.target.closest('[data-confirm-modal-trigger="true"]');
-                if (!btn) return;
-
-                if (btn.getAttribute('data-confirm-modal') !== 'true') return;
-                if (!btn) return;
-
-                e.preventDefault();
-
-                pendingForm = btn.closest('form');
-                if (!pendingForm) return;
-
-                const modalEl = document.getElementById('actionConfirmModal');
-                if (!modalEl) {
-                    pendingForm.submit();
-                    pendingForm = null;
-                    return;
-                }
-
-                const title = btn.getAttribute('data-confirm-title');
-                const message = btn.getAttribute('data-confirm-message');
-                const label = btn.getAttribute('data-confirm-label');
-
-                const titleEl = modalEl.querySelector('.modal-title');
-                const msgEl = modalEl.querySelector('[data-confirm-message]');
-                const labelEl = modalEl.querySelector('[data-dynamic-label]');
-
-                if (title && titleEl) titleEl.textContent = title;
-
-                if (msgEl && message) {
-                    msgEl.childNodes[0].textContent = message + " ";
-                }
-
-                if (labelEl) labelEl.textContent = label ?? "";
-
-                bootstrap.Modal.getOrCreateInstance(modalEl).show();
-            });
-
-            document.addEventListener('click', function (e) {
-                const confirmBtn = e.target.closest('#actionConfirmModal [data-confirm-btn]');
-                if (!confirmBtn) return;
-
-                e.preventDefault();
-
-                if (pendingForm) {
-                    pendingForm.submit();
-                    pendingForm = null;
-                }
-            });
-
-            document.addEventListener('hidden.bs.modal', function (e) {
-                if (e.target && e.target.id === 'actionConfirmModal') {
-                    pendingForm = null;
-                }
-            });
-        })();
-    </script>
+        document.addEventListener('click', function (e) {
+            const confirmBtn = e.target.closest('#actionConfirmModal [data-confirm-btn]');
+            if (confirmBtn && pendingForm) { e.preventDefault(); pendingForm.submit(); }
+        });
+    })();
+</script>
 }

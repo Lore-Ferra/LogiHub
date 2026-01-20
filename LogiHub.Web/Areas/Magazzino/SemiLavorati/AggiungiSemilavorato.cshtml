@@ -14,7 +14,7 @@
     @Html.AntiForgeryToken()
     
     <div class="mb-3">
-        <label asp-for="Barcode" class="small text-muted d-block mb-1">Barcode:</label>
+        <label asp-for="Barcode" class="small text-muted d-block mb-1">Barcode *</label>
 
         <div class="input-group d-md-none mb-2">
             <button type="button"
@@ -35,7 +35,7 @@
     </div>
 
     <div class="mb-3">
-        <label asp-for="UbicazioneId" class="small text-muted d-block mb-1">Ubicazione:</label>
+        <label asp-for="UbicazioneId" class="small text-muted d-block mb-1">Ubicazione *</label>
 
         <select asp-for="UbicazioneId"
                 asp-items="Model.UbicazioniList"
@@ -47,7 +47,7 @@
     </div>
 
     <div class="mb-3">
-        <label asp-for="Descrizione" class="small text-muted d-block mb-1">Descrizione:</label>
+        <label asp-for="Descrizione" class="small text-muted d-block mb-1">Descrizione *</label>
 
         <textarea asp-for="Descrizione"
                   class="form-control"
