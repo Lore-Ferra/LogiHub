@@ -71,6 +71,42 @@
                         </div>
                     </div>
                 </div>
+                
+                <div class="d-flex gap-2 mt-3">
+                    @if (isBloccato)
+                    {
+                        <button class="btn btn-sm btn-secondary disabled flex-fill w-100" disabled style="cursor: not-allowed; pointer-events: auto !important;">
+                            <i class="fa-solid fa-lock me-2"></i>Bloccato
+                        </button>
+                    }
+                    else
+                    {
+                        @if (!item.Uscito)
+                        {
+                            <button type="button"
+                                    class="btn btn-sm btn-outline-primary flex-fill w-100"
+                                    onclick="apriModale(event, '@Url.Action("GetSpostaModal", "SemiLavorati", new { id = item.Id })')">
+                                <i class="fa-solid fa-right-left me-2"></i>Sposta
+                            </button>
+                        }
+                        else
+                        {
+                            <button type="button" 
+                                    class="btn btn-sm btn-secondary disabled flex-fill w-100" 
+                                    disabled
+                                    title="Impossibile spostare: il pezzo è uscito"
+                                    style="cursor: not-allowed; pointer-events: auto !important;">
+                                <i class="fa-solid fa-right-left me-2"></i>Sposta
+                            </button>
+                        }
+
+                        <button type="button" 
+                                class="btn btn-sm btn-outline-warning flex-fill w-100" 
+                                onclick="apriModale(event, '@Url.Action("GetMovimentaModal", "SemiLavorati", new { id = item.Id })')">
+                            <i class="fa-solid fa-dolly me-2"></i>Entrata / Uscita
+                        </button>
+                    }
+                </div>
             </div>
         </div>
     }
@@ -93,6 +129,7 @@
                     <th>Descrizione</th>
                     <th class="text-center">Ubicazione</th>
                     <th>Ultima Modifica</th>
+                    <th class="text-center" style="width: 140px;">Azioni</th>
                 </tr>
                 </thead>
                 <tbody id="desktop-table-body">
@@ -115,6 +152,45 @@
                         </td>
 
                         <td>@item.UltimaModifica.ToString("dd/MM/yyyy")</td>
+                        <td class="text-center">
+                            <div class="d-flex gap-1 justify-content-center">
+                                @if (isBloccato)
+                                {
+                                    <button class="btn btn-sm btn-secondary disabled" disabled style="cursor: not-allowed; pointer-events: auto !important;">
+                                        <i class="fa-solid fa-lock"></i>
+                                    </button>
+                                }
+                                else
+                                {
+                                    @if (!item.Uscito)
+                                    {
+                                        <button type="button"
+                                                class="btn btn-sm btn-outline-primary"
+                                                title="Sposta Semilavorato"
+                                                onclick="apriModale(event, '@Url.Action("GetSpostaModal", "SemiLavorati", new { id = item.Id })')">
+                                            <i class="fa-solid fa-right-left"></i>
+                                        </button>
+                                    }
+                                    else
+                                    {
+                                        <button type="button" 
+                                                class="btn btn-sm btn-secondary disabled" 
+                                                disabled
+                                                title="Impossibile spostare: il pezzo è uscito"
+                                                style="cursor: not-allowed; pointer-events: auto !important;">
+                                            <i class="fa-solid fa-right-left"></i>
+                                        </button>
+                                    }
+
+                                    <button type="button" 
+                                            class="btn btn-sm btn-outline-warning" 
+                                            title="Entrata/Uscita"
+                                            onclick="apriModale(event, '@Url.Action("GetMovimentaModal", "SemiLavorati", new { id = item.Id })')">
+                                        <i class="fa-solid fa-dolly"></i>
+                                    </button>
+                                }
+                            </div>
+                        </td>
 
                     </tr>
                 }
@@ -122,7 +198,7 @@
                 @if (!Model.SemiLavorati.Any())
                 {
                     <tr>
-                        <td colspan="4" class="text-center py-5 text-muted">
+                        <td colspan="5" class="text-center py-5 text-muted">
                             <i class="fas fa-box-open fa-3x mb-3"></i>
                             <p>Nessun semilavorato trovato.</p>
                         </td>
@@ -146,7 +222,7 @@
 }
 else
 {
-    <button class="fab d-md-none btn btn-secondary disabled" title="Aggiunta bloccata"
+    <button class="fab d-md-none btn btn-secondary disabled" disabled title="Aggiunta bloccata"
             style="cursor: not-allowed; pointer-events: auto !important;">
         <i class="fa-solid fa-lock"></i>
     </button>
@@ -189,6 +265,8 @@ else
 
 <partial name="~/Features/Modals/_ConfirmModal.cshtml" model="confirmModel"/>
 
+@* Container per modali caricati via AJAX *@
+<div id="modalContainer"></div>
 
 @section Scripts {
     <script src="~/js/Features/Modals/ConfirmModal.js"></script>
@@ -325,6 +403,123 @@ else
                 });
         }, true);
     </script>
+    <script>
+        async function apriModale(e, url) {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            const container = document.getElementById('modalContainer');
+            
+            try {
+                const res = await fetch(url);
+                if (res.ok) {
+                    container.innerHTML = await res.text();
+                    
+                    // Trova il primo modale nel container e mostralo
+                    const modalEl = container.querySelector('.modal');
+                    const modal = new bootstrap.Modal(modalEl);
+                    modal.show();
+                    
+                } else {
+                    notify("Impossibile caricare il modale.", "danger");
+                }
+            } catch (err) {
+                console.error(err);
+                notify("Errore di connessione.", "danger");
+            }
+        }
+
+        function gestisciCambioStatoMovimento(isUscito) {
+            const form = document.getElementById('formStato');
+            // Leggiamo lo stato originale salvato nel form
+            const originalUscito = form.getAttribute('data-original-uscito') === 'true';
+            
+            const divRientro = document.getElementById('divRientro');
+            const divUscita = document.getElementById('divUscita');
+            const msgSposta = document.getElementById('msgUsaSposta');
+            const selUbi = document.getElementById('statoUbicazioneId');
+            const selAz = document.getElementById('statoAziendaId');
+            const btnSubmit = form.querySelector('button[type="submit"]');
+
+            if (isUscito) {
+                // Selezionato: USCITO
+                divRientro.classList.add('d-none');
+                divUscita.classList.remove('d-none');
+                if(msgSposta) msgSposta.classList.add('d-none');
+                
+                selUbi.required = false;
+                selAz.required = true;
+                if(btnSubmit) btnSubmit.disabled = false;
+            } else {
+                // Selezionato: IN MAGAZZINO
+                divUscita.classList.add('d-none');
+                
+                // Se era già dentro e seleziono "In", nascondo la select e mostro avviso
+                // Se era fuori (originalUscito == true), mostro la select per il rientro
+                const isRientro = originalUscito === true;
+                
+                if (isRientro) {
+                    divRientro.classList.remove('d-none');
+                    if(msgSposta) msgSposta.classList.add('d-none');
+                    selUbi.required = true;
+                    if(btnSubmit) btnSubmit.disabled = false;
+                } else {
+                    // Caso: Era dentro, seleziono dentro -> Blocco modifica ubicazione (Usa Sposta)
+                    divRientro.classList.add('d-none');
+                    if(msgSposta) msgSposta.classList.remove('d-none');
+                    selUbi.required = false;
+                    // Disabilito il submit per evitare confusione
+                    if(btnSubmit) btnSubmit.disabled = true;
+                }
+                
+                selAz.required = false;
+            }
+        }
+
+        document.addEventListener('submit', async function (e) {
+            const form = e.target;
+            // Intercetta solo i form dentro il container dei modali dinamici
+            if (!form.closest('#modalContainer')) return;
+
+            e.preventDefault();
+            e.stopPropagation();
+
+            const btn = form.querySelector('button[type="submit"]');
+            const originalText = btn ? btn.innerHTML : '';
+
+            if (btn) {
+                btn.disabled = true;
+                btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-2"></i>Attendere...';
+            }
+
+            try {
+                const formData = new FormData(form);
+                const res = await fetch(form.action, { method: 'POST', body: formData });
+                
+                if (res.ok) {
+                    const data = await res.json();
+                    if (data.success) {
+                        sessionStorage.setItem("pendingToast", JSON.stringify({ msg: data.message, type: "success" }));
+                        // QUI RISOLVIAMO IL PROBLEMA DEL BACK BUTTON:
+                        window.location.replace(window.location.href);
+                    } else {
+                        notify(data.message || "Errore durante l'operazione", "danger");
+                        if (btn) {
+                            btn.disabled = false;
+                            btn.innerHTML = originalText;
+                        }
+                    }
+                } else {
+                    notify("Errore di connessione al server.", "danger");
+                    if (btn) { btn.disabled = false; btn.innerHTML = originalText; }
+                }
+            } catch (err) {
+                console.error(err);
+                notify("Errore di rete.", "danger");
+                if (btn) { btn.disabled = false; btn.innerHTML = originalText; }
+            }
+        }, true);
+    </script>
 
     <script>
         document.addEventListener('click', async function (e) {
@@ -459,4 +654,12 @@ else
         }
             });
     </script>
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <script>document.addEventListener("DOMContentLoaded", () => notify('@Html.Raw(TempData["SuccessMessage"])', 'success'));</script>
+    }
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <script>document.addEventListener("DOMContentLoaded", () => notify('@Html.Raw(TempData["ErrorMessage"])', 'danger'));</script>
+    }
 }
