@@ -1,0 +1,67 @@
+@model LogiHub.Web.Areas.Magazzino.SemiLavorati.MovimentoSemiLavoratoViewModel
+
+<div class="modal fade" id="modalStato" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg">
+            <div class="modal-header border-bottom-0 pb-0">
+                <h5 class="modal-title fw-bold d-flex align-items-center gap-2">
+                    <span class="text-warning"><i class="fa-solid fa-dolly"></i></span>
+                    Movimenta Semilavorato
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body pt-4">
+                <div class="card bg-light border-0 mb-4">
+                    <div class="card-body p-3">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <h6 class="fw-bold text-dark mb-0">@Model.Descrizione</h6>
+                                <small class="text-muted">@Model.Barcode</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <form id="formStato" asp-action="CambiaStato" asp-area="Magazzino" method="post" data-original-uscito="@Model.Uscito.ToString().ToLower()">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="id" value="@Model.Id" />
+
+                    <label class="d-block small fw-bold text-muted mb-2">Stato Attuale:</label>
+                    <div class="btn-group w-100 mb-4" role="group">
+                        <input type="radio" class="btn-check" name="uscito" value="false" id="radioIn" @(!Model.Uscito ? "checked" : "") onchange="gestisciCambioStatoMovimento(false)">
+                        <label class="btn btn-outline-success w-50" for="radioIn"><i class="fas fa-warehouse me-2"></i>In Magazzino</label>
+
+                        <input type="radio" class="btn-check" name="uscito" value="true" id="radioOut" @(Model.Uscito ? "checked" : "") onchange="gestisciCambioStatoMovimento(true)">
+                        <label class="btn btn-outline-danger w-50" for="radioOut"><i class="fas fa-truck-arrow-right me-2"></i>Uscito</label>
+                    </div>
+
+                    @* Messaggio per usare Sposta (visibile solo se In Magazzino) *@
+                    <div id="msgUsaSposta" class="alert alert-info small mb-3 @(Model.Uscito ? "d-none" : "")">
+                        <i class="fa-solid fa-circle-info me-2"></i>Per spostamenti interni, utilizza il tasto <b><i class="fa-solid fa-right-left mx-1"></i>Sposta</b> nella tabella.
+                    </div>
+
+                    @* Sezione Rientro *@
+                    <div id="divRientro" class="mb-3 d-none">
+                        <label class="form-label fw-bold small text-muted">Ubicazione di Rientro</label>
+                        <select class="form-select" id="statoUbicazioneId" asp-for="UbicazioneId" asp-items="Model.UbicazioniList">
+                            <option value="">-- Seleziona Ubicazione --</option>
+                        </select>
+                    </div>
+
+                    @* Sezione Uscita *@
+                    <div id="divUscita" class="mb-3 @(!Model.Uscito ? "d-none" : "")">
+                        <label class="form-label fw-bold small text-muted">Destinazione (Azienda)</label>
+                        <select class="form-select" id="statoAziendaId" asp-for="AziendaId" asp-items="Model.AziendeList" required="@(Model.Uscito ? "required" : null)">
+                            <option value="">-- Seleziona Azienda --</option>
+                        </select>
+                    </div>
+
+                    <div class="d-flex justify-content-end gap-2 mt-4 pt-3 border-top">
+                        <button type="button" class="btn btn-light border" data-bs-dismiss="modal">Annulla</button>
+                        <button type="submit" class="btn btn-primary fw-bold" @(!Model.Uscito ? "disabled" : "")>Salva Modifiche</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
