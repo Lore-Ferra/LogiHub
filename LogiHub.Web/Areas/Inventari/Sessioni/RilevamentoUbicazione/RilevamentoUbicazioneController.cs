@@ -246,7 +246,6 @@ public partial class RilevamentoUbicazioneController : AuthenticatedBaseControll
     public virtual async Task<IActionResult> ConcludiUbicazione(Guid sessioneId, Guid ubicazioneId)
     {
         await _service.CompletaUbicazioneAsync(sessioneId, ubicazioneId);
-        TempData["SuccessMessage"] = "Ubicazione chiusa con successo.";
 
         return Json(new { success = true, redirectUrl = Url.Action("Index", "Dettaglio", new { area = "Inventari", id = sessioneId }) });
     }
