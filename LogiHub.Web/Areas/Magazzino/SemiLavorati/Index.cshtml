@@ -70,16 +70,6 @@
                             @item.UltimaModifica.ToString("dd/MM/yyyy")
                         </div>
                     </div>
-                    <div class="d-flex gap-3 align-items-center text-black">
-                        <button
-                            type="button"
-                            class="btn btn-md @(isBloccato ? "btn-secondary disabled" : "btn-outline-danger")"
-                            onclick="eliminaSemilavorato(event, '@Url.Action("Elimina", "SemiLavorati", new { area = "Magazzino", semiLavoratoId = item.Id })', 'Sei sicuro di voler eliminare <strong>@item.Barcode</strong>?')"
-                            title="Elimina"
-                            style="@(isBloccato ? "cursor: not-allowed; pointer-events: auto !important;" : "")">
-                            <i class="@(isBloccato ? "fa-solid fa-lock" : "fa-solid fa-trash")"></i>
-                        </button>
-                    </div>
                 </div>
             </div>
         </div>
@@ -103,7 +93,6 @@
                     <th>Descrizione</th>
                     <th class="text-center">Ubicazione</th>
                     <th>Ultima Modifica</th>
-                    <th class="text-center">Azioni</th>
                 </tr>
                 </thead>
                 <tbody id="desktop-table-body">
@@ -126,17 +115,6 @@
                         </td>
 
                         <td>@item.UltimaModifica.ToString("dd/MM/yyyy")</td>
-                        <td class="text-center">
-                            <button
-                                type="button"
-                                class="btn btn-sm @(isBloccato ? "btn-secondary disabled" : "btn-outline-danger")"
-                                onclick="eliminaSemilavorato(event, '@Url.Action("Elimina", "SemiLavorati", new { area = "Magazzino", semiLavoratoId = item.Id })', 'Sei sicuro di voler eliminare <strong>@item.Barcode</strong>?')"
-                                title="Elimina"
-                                style="@(isBloccato ? "cursor: not-allowed; pointer-events: auto !important;" : "")">
-                                <i class="@(isBloccato ? "fa-solid fa-lock me-1" : "fa-solid fa-trash")"></i>
-                                Elimina
-                            </button>
-                        </td>
 
                     </tr>
                 }
@@ -144,7 +122,7 @@
                 @if (!Model.SemiLavorati.Any())
                 {
                     <tr>
-                        <td colspan="6" class="text-center py-5 text-muted">
+                        <td colspan="4" class="text-center py-5 text-muted">
                             <i class="fas fa-box-open fa-3x mb-3"></i>
                             <p>Nessun semilavorato trovato.</p>
                         </td>
