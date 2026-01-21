@@ -43,15 +43,15 @@
                 </button>
                 <div class="collapse navbar-collapse" id="navbarSupportedContent">
 
-                    <ul class="navbar-nav ms-auto">
+                    <ul class="navbar-nav me-auto ms-4">
                         <li class="nav-item">
-                            <a class="nav-link @(currentArea == "Magazzino" ? "active" : "")"
+                            <a class="nav-link @(currentArea == "Magazzino" ? "active" : "") bg-white bg-opacity-10 rounded px-3 me-2"
                                asp-area="Magazzino" asp-controller="SemiLavorati" asp-action="Index">
                                 Magazzino
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link @(currentArea == "Inventari" ? "active" : "")"
+                            <a class="nav-link @(currentArea == "Inventari" ? "active" : "") bg-white bg-opacity-10 rounded px-3"
                                asp-area="Inventari" asp-controller="Sessioni" asp-action="Index">
                                 Inventari
                             </a>
