@@ -12,7 +12,7 @@ public class DiscrepanzeViewModel : PagingViewModel
     public List<DiscrepanzaDTO> DaAggiungere { get; set; } = new(); // Extra puri
     public List<DiscrepanzaDTO> DaRimuovere { get; set; } = new();  // Mancanti puri
     public List<DiscrepanzaDTO> DaSpostare { get; set; } = new();   // Mancante in A + Extra in B
-
+    public string NomeSessione { get; set; }
     public Guid SessioneId { get; set; }
     public bool IsSolaLettura { get; set; }
     public SearchCardViewModel SearchCard { get; set; }

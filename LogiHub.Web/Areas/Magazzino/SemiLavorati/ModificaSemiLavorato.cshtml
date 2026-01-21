@@ -1,87 +1,56 @@
 ﻿@model LogiHub.Web.Areas.Magazzino.SemiLavorati.ModificaSemiLavoratoViewModel
 
 @{
-    string jsIn = "var ub = document.getElementById('UbicazioneId'); ub.disabled = false; " +
-                  "var az = document.getElementById('AziendaEsternaId'); az.disabled = true; az.value = ''; " +
-                  "az.classList.remove('is-invalid'); az.classList.remove('is-valid');";
+    string jsIn = "var u=document.getElementById('UbicazioneId'), a=document.getElementById('AziendaEsternaId'); u.disabled=false; u.required=true; a.disabled=true; a.required=false; a.value=''; document.getElementById('astUb').classList.remove('d-none'); document.getElementById('astAz').classList.add('d-none'); a.classList.remove('is-invalid');";
 
-    string jsOut = "var az = document.getElementById('AziendaEsternaId'); az.disabled = false; " +
-                   "var ub = document.getElementById('UbicazioneId'); ub.disabled = true; ub.value = ''; " +
-                   "ub.classList.remove('is-invalid'); ub.classList.remove('is-valid');";
+    string jsOut = "var u=document.getElementById('UbicazioneId'), a=document.getElementById('AziendaEsternaId'); a.disabled=false; a.required=true; u.disabled=true; u.required=false; u.value=''; document.getElementById('astAz').classList.remove('d-none'); document.getElementById('astUb').classList.add('d-none'); u.classList.remove('is-invalid');";
 }
 
-<form id="formModificaSemilavorato" class="needs-validation" asp-action="Modifica" asp-area="Magazzino"
-      method="post" novalidate>
+<form id="formModificaSemilavorato" class="needs-validation" asp-action="Modifica" asp-area="Magazzino" method="post" novalidate>
     @Html.AntiForgeryToken()
     <input type="hidden" asp-for="Id"/>
 
-    @* Barcode *@
     <div class="mb-3">
-        <label asp-for="Barcode" class="small text-muted d-block mb-1">Barcode:</label>
+        <label asp-for="Barcode" class="small text-muted d-block mb-1">Barcode *</label>
         <input asp-for="Barcode" class="form-control" required/>
         <div class="invalid-feedback">Codice Barcode obbligatorio</div>
-        <span asp-validation-for="Barcode" class="text-danger"></span>
     </div>
 
-    @* Descrizione *@
     <div class="mb-4">
-        <label asp-for="Descrizione" class="small text-muted d-block mb-1">Descrizione:</label>
+        <label asp-for="Descrizione" class="small text-muted d-block mb-1">Descrizione *</label>
         <input asp-for="Descrizione" class="form-control" placeholder="Inserisci descrizione..." required/>
         <div class="invalid-feedback">Descrizione obbligatoria</div>
-        <span asp-validation-for="Descrizione" class="text-danger small"></span>
     </div>
 
     <div class="row mb-4">
         <div class="col-md-6">
-            <label asp-for="UbicazioneId" class="small text-muted d-block mb-1">Ubicazione:</label>
-            <select asp-for="UbicazioneId"
-                    asp-items="Model.UbicazioniList"
-                    class="form-select"
-                    id="UbicazioneId"
-                    disabled="@(Model.Uscito ? "disabled" : null)">
-                <option value="">-- Seleziona Ubicazione --</option>
+            <label class="small text-muted d-block mb-1">Ubicazione <span id="astUb" class="@(Model.Uscito ? "d-none" : "")">*</span></label>
+            <select asp-for="UbicazioneId" required asp-items="Model.UbicazioniList" class="form-select" id="UbicazioneId" disabled="@(Model.Uscito ? "disabled" : null)">
+                <option value="">-- Seleziona --</option>
             </select>
-            <span asp-validation-for="UbicazioneId" class="text-danger small d-block mt-1"></span>
+            <div class="invalid-feedback">Ubicazione obbligatoria</div>
         </div>
 
         <div class="col-md-6">
-            <label asp-for="AziendaEsternaId" class="small text-muted d-block mb-1">In carico a:</label>
-            <select asp-for="AziendaEsternaId"
-                    asp-items="Model.AziendeList"
-                    class="form-select"
-                    id="AziendaEsternaId"
-                    disabled="@(!Model.Uscito ? "disabled" : null)">
-                <option value="">-- Seleziona Azienda --</option>
+            <label class="small text-muted d-block mb-1">In carico a <span id="astAz" class="@(!Model.Uscito ? "d-none" : "")">*</span></label>
+            <select asp-for="AziendaEsternaId" required asp-items="Model.AziendeList" class="form-select" id="AziendaEsternaId" disabled="@(!Model.Uscito ? "disabled" : null)">
+                <option value="">-- Seleziona --</option>
             </select>
-            <span asp-validation-for="AziendaEsternaId" class="text-danger small d-block mt-1"></span>
+            <div class="invalid-feedback">Azienda obbligatoria</div>
         </div>
     </div>
 
     <label class="d-block small text-muted mb-2">Stato Semilavorato:</label>
-    <div class="col-12 col-md-9">
-        <div class="btn-group w-100" role="group">
+    <div class="btn-group w-100 mb-4" role="group">
+        <input type="radio" class="btn-check" asp-for="Uscito" value="false" id="StatoIn" onchange="@jsIn">
+        <label class="btn btn-outline-success w-50" for="StatoIn"><i class="fas fa-warehouse me-2"></i>In Magazzino</label>
 
-            @* In Magazzino -> Esegue jsIn *@
-            <input type="radio" class="btn-check" asp-for="Uscito" value="false" id="StatoIn" onchange="@jsIn">
-            <label class="btn btn-outline-success w-50" for="StatoIn">
-                <i class="fas fa-warehouse me-2"></i>In Magazzino
-            </label>
-
-            @* Uscito -> Esegue jsOut *@
-            <input type="radio" class="btn-check" asp-for="Uscito" value="true" id="StatoOut" onchange="@jsOut">
-            <label class="btn btn-outline-danger w-50" for="StatoOut">
-                <i class="fas fa-truck-loading me-2"></i>Uscito
-            </label>
-        </div>
+        <input type="radio" class="btn-check" asp-for="Uscito" value="true" id="StatoOut" onchange="@jsOut">
+        <label class="btn btn-outline-danger w-50" for="StatoOut"><i class="fas fa-truck-loading me-2"></i>Uscito</label>
     </div>
 
-
-    <hr class="my-4"/>
-
-    <div class="d-flex justify-content-end mt-4 gap-3">
-        <button type="submit" class="btn btn-primary">
-            <i class="fas fa-save me-2"></i>Salva Modifiche
-        </button>
+    <div class="d-flex justify-content-end gap-3">
+        <button type="submit" class="btn btn-primary"><i class="fas fa-save me-2"></i>Salva Modifiche</button>
         <button type="button" class="btn btn-secondary" data-bs-dismiss="offcanvas">Annulla</button>
     </div>
 </form>

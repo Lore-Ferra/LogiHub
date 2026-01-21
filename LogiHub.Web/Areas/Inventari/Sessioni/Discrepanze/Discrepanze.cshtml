@@ -1,7 +1,7 @@
 @model LogiHub.Web.Areas.Inventari.Sessioni.Discrepanze.DiscrepanzeViewModel
 
 @{
-    ViewData["Title"] = "Analisi Discrepanze";
+    ViewData["Title"] = "Discrepanze " + Model.NomeSessione;
 
     var countSpostati = Model.DaSpostare?.Count(x => x.Stato == StatoDiscrepanza.Aperta) ?? 0;
     var countExtra = Model.DaAggiungere?.Count(x => x.Stato == StatoDiscrepanza.Aperta) ?? 0;
