@@ -70,7 +70,7 @@ public partial class RilevamentoUbicazioneController : AuthenticatedBaseControll
         
         var bottoneEsci = new SearchCardButton
         {
-            Text = "Rilascia e Esci",
+            Text = "Rilascia ed Esci",
             CssClass = "btn-secondary",
             IconClass = "fa-solid fa-door-open",
             Type = "button",
