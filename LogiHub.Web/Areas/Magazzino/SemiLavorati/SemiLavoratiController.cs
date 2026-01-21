@@ -138,6 +138,17 @@ public partial class SemiLavoratiController : AuthenticatedBaseController
             SemiLavorati = dto.Items
         };
 
+        // Carico le liste per i modali di azione rapida (Sposta / Movimenta)
+        ViewData["UbicazioniList"] = await _context.Ubicazioni
+            .OrderBy(u => u.Posizione)
+            .Select(u => new SelectListItem { Value = u.UbicazioneId.ToString(), Text = u.Posizione })
+            .ToListAsync();
+
+        ViewData["AziendeList"] = await _context.AziendeEsterne
+            .OrderBy(a => a.Nome)
+            .Select(a => new SelectListItem { Value = a.Id.ToString(), Text = a.Nome })
+            .ToListAsync();
+
         SetBreadcrumb(
             ("Magazzino", "") 
         );
@@ -393,5 +404,133 @@ public partial class SemiLavoratiController : AuthenticatedBaseController
         var esiste = await query.AnyAsync();
 
         return Json(new { esiste });
+    }
+
+    [HttpGet]
+    public virtual async Task<IActionResult> GetSpostaModal(Guid id)
+    {
+        if (await _bloccoService.IsBloccatoAsync())
+            return BadRequest("Magazzino bloccato.");
+
+        var sl = await _context.SemiLavorati
+            .Include(s => s.Ubicazione)
+            .FirstOrDefaultAsync(x => x.Id == id);
+
+        if (sl == null) return NotFound();
+
+        var model = new SpostaSemiLavoratoViewModel
+        {
+            Id = sl.Id,
+            Barcode = sl.Barcode,
+            Descrizione = sl.Descrizione,
+            UbicazioneAttuale = sl.Ubicazione?.Posizione ?? "N/D",
+            NuovaUbicazioneId = sl.UbicazioneId, // Preseleziona l'ID corretto dal DB
+            UbicazioniList = await _context.Ubicazioni
+                .OrderBy(u => u.Posizione)
+                .Select(u => new SelectListItem { Value = u.UbicazioneId.ToString(), Text = u.Posizione })
+                .ToListAsync()
+        };
+
+        return PartialView("_SpostaModal", model);
+    }
+
+    [HttpGet]
+    public virtual async Task<IActionResult> GetMovimentaModal(Guid id)
+    {
+        if (await _bloccoService.IsBloccatoAsync())
+            return BadRequest("Magazzino bloccato.");
+
+        var sl = await _context.SemiLavorati.FindAsync(id);
+        if (sl == null) return NotFound();
+
+        var model = new MovimentoSemiLavoratoViewModel
+        {
+            Id = sl.Id,
+            Barcode = sl.Barcode,
+            Descrizione = sl.Descrizione,
+            Uscito = sl.Uscito,
+            UbicazioneId = sl.UbicazioneId,
+            AziendaId = sl.AziendaEsternaId,
+            UbicazioniList = await _context.Ubicazioni
+                .OrderBy(u => u.Posizione)
+                .Select(u => new SelectListItem { Value = u.UbicazioneId.ToString(), Text = u.Posizione })
+                .ToListAsync(),
+            AziendeList = await _context.AziendeEsterne
+                .OrderBy(a => a.Nome)
+                .Select(a => new SelectListItem { Value = a.Id.ToString(), Text = a.Nome })
+                .ToListAsync()
+        };
+
+        return PartialView("_MovimentoModal", model);
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public virtual async Task<IActionResult> Sposta(Guid id, Guid nuovaUbicazioneId)
+    {
+        if (await _bloccoService.IsBloccatoAsync())
+            return Json(new { success = false, message = "Magazzino bloccato per inventario." });
+
+        if (nuovaUbicazioneId == Guid.Empty)
+            return Json(new { success = false, message = "Seleziona un'ubicazione valida." });
+
+        var sl = await _context.SemiLavorati.FindAsync(id);
+        if (sl == null)
+            return Json(new { success = false, message = "Semilavorato non trovato." });
+
+        var dto = new ModificaSemiLavoratoDTO
+        {
+            Id = sl.Id,
+            Barcode = sl.Barcode,
+            Descrizione = sl.Descrizione,
+            UbicazioneId = nuovaUbicazioneId,
+            AziendaEsternaId = null, // Se sposto internamente, non è uscito
+            Uscito = false,
+            UserId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier))
+        };
+
+        var success = await _service.ModificaSemiLavorato(dto);
+        
+        if (success)
+            return Json(new { success = true, message = "Spostamento effettuato con successo!" });
+        
+        return Json(new { success = false, message = "Errore durante lo spostamento." });
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public virtual async Task<IActionResult> CambiaStato(Guid id, bool uscito, Guid? aziendaId, Guid? ubicazioneId)
+    {
+        if (await _bloccoService.IsBloccatoAsync())
+            return Json(new { success = false, message = "Magazzino bloccato per inventario." });
+
+        var sl = await _context.SemiLavorati.FindAsync(id);
+        if (sl == null)
+            return Json(new { success = false, message = "Semilavorato non trovato." });
+
+        // Validazione specifica
+        if (uscito && aziendaId == null)
+            return Json(new { success = false, message = "Seleziona l'azienda destinataria." });
+
+        if (!uscito && ubicazioneId == null)
+            return Json(new { success = false, message = "Seleziona l'ubicazione di rientro." });
+
+        var dto = new ModificaSemiLavoratoDTO
+        {
+            Id = sl.Id,
+            Barcode = sl.Barcode,
+            Descrizione = sl.Descrizione,
+            UbicazioneId = !uscito ? ubicazioneId : null,
+            AziendaEsternaId = uscito ? aziendaId : null,
+            Uscito = uscito,
+            UserId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier))
+        };
+
+        var success = await _service.ModificaSemiLavorato(dto);
+        
+        if (success) 
+            return Json(new { success = true, message = "Stato aggiornato con successo!" });
+            
+        return Json(new { success = false, message = "Errore durante l'aggiornamento." });
     }
 }
