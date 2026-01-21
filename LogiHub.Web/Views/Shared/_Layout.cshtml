@@ -85,17 +85,27 @@
                 </div>
             </div>
         </nav>
-        @RenderSection("pageTitle", false)
-    </div>
-    @* --- INIZIO BREADCRUMB --- *@
-    @if (breadcrumbs != null && breadcrumbs.Any())
-    {
-        <div class="container-xl px-3 py-2">
-            <partial name="~/Features/Breadcrumb/_Breadcrumb.cshtml" model="breadcrumbs"/>
+        <div class="container-xl px-3">
+            <div class="d-flex flex-column py-2 py-md-3 pb-0 pb-md-0">
+
+                @if (breadcrumbs != null && breadcrumbs.Any())
+                {
+                    <div class="d-flex align-items-center mb-1">
+                        <span class="me-2 opacity-0">
+                            <i class="fa-solid fa-arrow-left"></i>
+                        </span>
+
+                        <div class="flex-grow-1">
+                            <partial name="~/Features/Breadcrumb/_Breadcrumb.cshtml" model="breadcrumbs" />
+                        </div>
+                    </div>
+                }
+                <div>
+                    @RenderSection("pageTitle", false)
+                </div>
+            </div>
         </div>
-    }
-    @* --- FINE BREADCRUMB --- *@
-    @RenderSection("pageSubtitle", false)
+    </div>
     <div class="container-xl p-2 p-md-3">
         @RenderBody()
         @{
