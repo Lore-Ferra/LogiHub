@@ -7,6 +7,7 @@ using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Routing;
 
 namespace LogiHub.Web.Infrastructure
 {
@@ -60,11 +61,11 @@ namespace LogiHub.Web.Infrastructure
         }
         string ChangePageSizePageUrl(IUrlHelper url, IActionResult route, int pageSize)
         {
-            var idx = route.GetRouteValueDictionary();
+            var idx = MergeCurrentQueryString(url, route);
             idx["PageSize"] = pageSize;
             idx["Page"] = 1;
 
-            return url.Action(route);
+            return url.Action(idx["action"]?.ToString(), idx["controller"]?.ToString(), idx);
         }
 
 
@@ -75,10 +76,10 @@ namespace LogiHub.Web.Infrastructure
         }
         string NextPageUrl(IUrlHelper url, IActionResult route)
         {
-            var idx = route.GetRouteValueDictionary();
+            var idx = MergeCurrentQueryString(url, route);
             idx["Page"] = Math.Min(TotalPages(), Page + 1);
 
-            return url.Action(route);
+            return url.Action(idx["action"]?.ToString(), idx["controller"]?.ToString(), idx);
         }
         string NextPageUrl(IUrlHelper url, Task<ActionResult> route)
         {
@@ -93,10 +94,10 @@ namespace LogiHub.Web.Infrastructure
 
         string LastPageUrl(IUrlHelper url, IActionResult route)
         {
-            var idx = route.GetRouteValueDictionary();
+            var idx = MergeCurrentQueryString(url, route);
             idx["Page"] = TotalPages();
 
-            return url.Action(route);
+            return url.Action(idx["action"]?.ToString(), idx["controller"]?.ToString(), idx);
         }
         public string PrevPageUrl(IUrlHelper url)
         {
@@ -109,10 +110,10 @@ namespace LogiHub.Web.Infrastructure
         }
         string PrevPageUrl(IUrlHelper url, IActionResult route)
         {
-            var idx = route.GetRouteValueDictionary();
+            var idx = MergeCurrentQueryString(url, route);
             idx["Page"] = Math.Max(1, Page - 1);
 
-            return url.Action(route);
+            return url.Action(idx["action"]?.ToString(), idx["controller"]?.ToString(), idx);
         }
         public string FirstPageUrl(IUrlHelper url)
         {
@@ -122,10 +123,10 @@ namespace LogiHub.Web.Infrastructure
 
         string FirstPageUrl(IUrlHelper url, IActionResult route)
         {
-            var idx = route.GetRouteValueDictionary();
+            var idx = MergeCurrentQueryString(url, route);
             idx["Page"] = 1;
 
-            return url.Action(route);
+            return url.Action(idx["action"]?.ToString(), idx["controller"]?.ToString(), idx);
         }
 
 
@@ -142,7 +143,7 @@ namespace LogiHub.Web.Infrastructure
 
         string OrderbyUrl(IUrlHelper url, string propertyName, IActionResult route)
         {
-            var idx = route.GetRouteValueDictionary();
+            var idx = MergeCurrentQueryString(url, route);
 
             if (OrderBy == propertyName)
             {
@@ -154,15 +155,15 @@ namespace LogiHub.Web.Infrastructure
                 idx["OrderByDescending"] = false;
             }
 
-            return url.Action(route);
+            return url.Action(idx["action"]?.ToString(), idx["controller"]?.ToString(), idx);
         }
 
         public string ChangePageUrl(IUrlHelper url, int page)
         {
             var route = GetRoute();
-            var idx = route.GetRouteValueDictionary();
+            var idx = MergeCurrentQueryString(url, route);
             idx["Page"] = page;
-            return url.Action(route);
+            return url.Action(idx["action"]?.ToString(), idx["controller"]?.ToString(), idx);
         }
 
         protected string OrderbyCss<TModel, TProperty>(HttpContext context, Expression<Func<TModel, TProperty>> expression)
@@ -191,5 +192,26 @@ namespace LogiHub.Web.Infrastructure
         {
             return services.GetService(typeof(Microsoft.AspNetCore.Mvc.ViewFeatures.ModelExpressionProvider)) as Microsoft.AspNetCore.Mvc.ViewFeatures.ModelExpressionProvider;
         }
+        
+        protected RouteValueDictionary MergeCurrentQueryString(IUrlHelper url, IActionResult route)
+        {
+            var idx = route.GetRouteValueDictionary();
+
+            var requestQuery = url.ActionContext.HttpContext.Request.Query;
+
+            foreach (var kv in requestQuery)
+            {
+                if (idx.ContainsKey(kv.Key))
+                    continue;
+
+                if (kv.Value.Count <= 1)
+                    idx[kv.Key] = kv.Value.ToString();
+                else
+                    idx[kv.Key] = kv.Value.ToArray();
+            }
+
+            return idx;
+        }
+
     }
 }

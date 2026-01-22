@@ -83,7 +83,9 @@
 </div>
 
 
-<div class="card shadow-sm mb-3 border-0">
+<div class="card shadow-sm mb-3 border-0"
+     data-searchcard
+     data-default-key="@Model.DefaultSearchInColumnKey">
     <div class="card-body p-2 p-md-3">
         <form method="get">
             <div class="row g-2 align-items-end @(Model.ShowSearchInColumns || Model.ShowUscitoFilter ? "mb-3" : "")">
@@ -97,7 +99,7 @@
                                 <i class="fas fa-search"></i>
                             </span>
                             <input name="Query" id="searchQuery" type="search"
-                                   value="@Model.Query" class="form-control" placeholder="Cerca...">
+                                   value="@Model.Query" class="form-control" placeholder="Cerca..." autocomplete="off">
                         </div>
                         <button type="submit" class="btn btn-primary flex-shrink-0">
                             <i class="fas fa-search me-2"></i>Cerca
@@ -128,10 +130,23 @@
                     <span class="small text-uppercase text-muted fw-bold">Cerca in:</span>
                     @foreach (var opt in Model.SearchInColumns ?? new List<SearchInColumnOption>())
                     {
-                        var isChecked = Model.Filters.SearchInColumns?.Contains(opt.Key) ?? false;
+                        var anySelected = Model.Filters.SearchInColumns != null && Model.Filters.SearchInColumns.Any();
+                        var defaultKey = Model.DefaultSearchInColumnKey ?? "Barcode";
+
+                        var isChecked = anySelected
+                            ? (Model.Filters.SearchInColumns?.Contains(opt.Key) ?? false)
+                            : (opt.Key?.Equals(defaultKey, StringComparison.OrdinalIgnoreCase) ?? false);
+
                         var id = $"col_{opt.Key}";
-                        <input type="checkbox" class="btn-check" id="@id" name="Filters.SearchInColumns"
-                               value="@opt.Key" @(isChecked ? "checked" : "")>
+
+                        <input type="checkbox"
+                               class="btn-check search-col-check"
+                               id="@id"
+                               name="Filters.SearchInColumns"
+                               value="@opt.Key"
+                               data-label="@opt.Label"
+                               @(isChecked ? "checked" : "")>
+
                         <label class="btn btn-outline-primary btn-sm rounded-pill" for="@id">@opt.Label</label>
                     }
                 </div>

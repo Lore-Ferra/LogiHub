@@ -688,4 +688,67 @@ else
     {
         <script>document.addEventListener("DOMContentLoaded", () => notify('@Html.Raw(TempData["ErrorMessage"])', 'danger'));</script>
     }
+    <script>
+    document.addEventListener("DOMContentLoaded", () => {
+        const input = document.getElementById("searchQuery");
+        const checks = Array.from(document.querySelectorAll('input.search-col-check[name="Filters.SearchInColumns"]'));
+        if (!input || checks.length === 0) return;
+
+        const defaultKeys = ["Barcode", "Descrizione"];
+    
+        const qs = new URLSearchParams(window.location.search);
+    
+        const hasSearchInColumns =
+            qs.getAll("Filters.SearchInColumns").length > 0 ||
+            qs.getAll("Filters[SearchInColumns]").length > 0 ||
+            Array.from(qs.keys()).some(k => k.includes("Filters.SearchInColumns") || k.includes("Filters%5BSearchInColumns%5D"));
+    
+        const findByValue = (val) => {
+            const v = (val || "").toLowerCase();
+            return checks.find(c => (c.value || "").toLowerCase() === v) || null;
+        };
+
+        if (!hasSearchInColumns) {
+            checks.forEach(c => c.checked = false);
+
+            defaultKeys.forEach(k => {
+                const chk = findByValue(k);
+                if (chk) chk.checked = true;
+            });
+
+            if (checks.filter(c => c.checked).length === 0 && checks[0]) {
+                checks[0].checked = true;
+            }
+        }
+    
+        const buildPlaceholder = () => {
+            const selected = checks.filter(c => c.checked);
+            const labels = selected.map(c => (c.dataset.label || c.value || "").trim()).filter(Boolean);
+    
+            if (labels.length === 1) return `Cerca in ${labels[0]}…`;
+            if (labels.length === checks.length) return "Cerca in tutte le colonne…";
+            return `Cerca in: ${labels.join(", ")}…`;
+        };
+    
+        const updatePlaceholder = () => {
+            input.placeholder = buildPlaceholder();
+        };
+    
+        const getCheckedCount = () => checks.filter(c => c.checked).length;
+    
+        checks.forEach(chk => {
+            chk.addEventListener("change", () => {
+                if (!chk.checked && getCheckedCount() === 0) {
+                    chk.checked = true;
+                    if (typeof notify === "function") {
+                        notify("La ricerca richiede almeno un filtro selezionato.", "warning");
+                    }
+                }
+                updatePlaceholder();
+            });
+        });
+    
+        updatePlaceholder();
+    });
+    </script>
 }
