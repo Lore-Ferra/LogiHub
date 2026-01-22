@@ -117,7 +117,17 @@
     {
         <div class="text-center py-5 text-muted">
             <i class="fas fa-box-open fa-3x mb-3"></i>
-            <p>Nessun semilavorato trovato.</p>
+            @if (!string.IsNullOrWhiteSpace(Model.SearchCard?.Query))
+            {
+                <p>Nessun risultato per "<strong>@Model.SearchCard.Query</strong>"</p>
+                <p class="small text-muted mt-2">
+                    Prova a cercare abilitando altri <strong>filtri</strong>. <a href="@Url.Action("Index")" class="fw-bold text-decoration-none">Pulisci la ricerca</a>.
+                </p>
+            }
+            else
+            {
+                <p>Nessun semilavorato trovato.</p>
+            }
         </div>
     }
 </div>
@@ -206,7 +216,17 @@
                     <tr>
                         <td colspan="5" class="text-center py-5 text-muted">
                             <i class="fas fa-box-open fa-3x mb-3"></i>
-                            <p>Nessun semilavorato trovato.</p>
+                            @if (!string.IsNullOrWhiteSpace(Model.SearchCard?.Query))
+                            {
+                                <p>Nessun risultato per "<strong>@Model.SearchCard.Query</strong>"</p>
+                                <p class="small text-muted mt-2">
+                                    Prova a cercare abilitando altri <strong>filtri</strong>. <a href="@Url.Action("Index")" class="fw-bold text-decoration-none">Pulisci la ricerca</a>.
+                                </p>
+                            }
+                            else
+                            {
+                                <p>Nessun semilavorato trovato.</p>
+                            }
                         </td>
                     </tr>
                 }
