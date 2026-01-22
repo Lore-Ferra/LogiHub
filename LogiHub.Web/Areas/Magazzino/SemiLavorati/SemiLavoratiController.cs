@@ -69,6 +69,17 @@ public partial class SemiLavoratiController : AuthenticatedBaseController
             };
         }
 
+        if ((Filters.SearchInColumns == null || !Filters.SearchInColumns.Any())
+            && page == 1
+            && string.IsNullOrWhiteSpace(Query))
+        {
+            Filters.SearchInColumns = new List<string>
+            {
+                "Barcode",
+                "Descrizione"
+            };
+        }
+
         var serviceQuery = new SemilavoratiIndexQuery
         {
             SearchText = Query,
@@ -112,20 +123,22 @@ public partial class SemiLavoratiController : AuthenticatedBaseController
         var searchCardModel = new SearchCardViewModel
         {
             Title = "📦 Magazzino Semilavorati",
-            Placeholder = "Cerca barcode, descrizione...",
+            Placeholder = "Cerca…",
             Query = Query,
             Filters = Filters,
             HeaderButtons = new List<SearchCardButton>
             {
                 isBloccato ? bottoneDisabilitato : bottoneAttivo
             },
-
+        
+            DefaultSearchInColumnKey = "Barcode",
+        
             SearchInColumns = new()
             {
-                new() { Key = "Barcode", Label = "Barcode", DefaultSelected = true },
-                new() { Key = "Descrizione", Label = "Descrizione", DefaultSelected = true },
-                new() { Key = "Ubicazione", Label = "Ubicazione", DefaultSelected = true },
-                new() { Key = "UltimaModifica", Label = "Ultima modifica", DefaultSelected = true },
+                new() { Key = "Barcode", Label = "Barcode" },
+                new() { Key = "Descrizione", Label = "Descrizione" },
+                new() { Key = "Ubicazione", Label = "Ubicazione" },
+                new() { Key = "UltimaModifica", Label = "Ultima modifica" },
             }
         };
 

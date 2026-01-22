@@ -17,6 +17,8 @@ public class SearchCardViewModel
     
     public bool ShowUscitoFilter { get; set; } = true;
     public bool ShowSearchInColumns { get; set; } = true;
+
+    public string DefaultSearchInColumnKey { get; set; }
     
     public List<SearchInColumnOption> SearchInColumns { get; set; } = new();
 }
