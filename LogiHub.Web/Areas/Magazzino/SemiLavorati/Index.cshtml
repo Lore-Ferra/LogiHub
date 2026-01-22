@@ -721,7 +721,7 @@ else
                 if (!chk.checked && getCheckedCount() === 0) {
                     chk.checked = true;
                     if (typeof notify === "function") {
-                        notify("Devi lasciare attivo almeno un filtro di ricerca.", "warning");
+                        notify("La ricerca richiede almeno un filtro selezionato.", "warning");
                     }
                 }
                 updatePlaceholder();
