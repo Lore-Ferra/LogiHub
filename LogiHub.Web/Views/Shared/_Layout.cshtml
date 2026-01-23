@@ -17,7 +17,7 @@
 }
 
 @section metas{
-    <link rel="icon" type="image/png" href="~/images/icona.png" />
+    <link rel="icon" type="image/png" href="~/images/icona.png"/>
     @RenderSection("metas", false)
 }
 
@@ -31,9 +31,10 @@
     <div class="onit-page-sticky-top" id="onit-page-sticky-top">
         <nav class="navbar navbar-expand-md bg-dark" data-bs-theme="dark">
             <div class="container-fluid">
-                <a class="h1 text-light text-decoration-none d-flex align-items-center" asp-area="Magazzino" asp-controller="SemiLavorati"
+                <a class="h1 text-light text-decoration-none d-flex align-items-center" asp-area="Magazzino"
+                   asp-controller="SemiLavorati"
                    asp-action="Index">
-                    <img src="~/images/icona.png" alt="Logo" height="40" class="me-2" />
+                    <img src="~/images/icona.png" alt="Logo" height="40" class="me-2"/>
                     LogiHub
                 </a>
                 <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
@@ -85,18 +86,18 @@
                 </div>
             </div>
         </nav>
-        <div class="container-xl">
-            <div class="d-flex flex-column py-2 py-md-3 pb-0 ps-1 ps-md-0 pb-md-0">
+        <div class="container-xl p-2 p-md-3">
+            <div class="d-flex flex-column">
 
                 @if (breadcrumbs != null && breadcrumbs.Any())
                 {
-                    <div class="d-flex align-items-center mb-1">
-                        <span class="me-2 opacity-0 d-none d-md-inline">
+                    <div class="d-flex align-items-center px-3 px-md-2">
+                        <span class="opacity-0 d-none d-md-inline">
                             <i class="fa-solid fa-arrow-left"></i>
                         </span>
 
                         <div class="flex-grow-1">
-                            <partial name="~/Features/Breadcrumb/_Breadcrumb.cshtml" model="breadcrumbs" />
+                            <partial name="~/Features/Breadcrumb/_Breadcrumb.cshtml" model="breadcrumbs"/>
                         </div>
                     </div>
                 }
@@ -104,79 +105,34 @@
                     @RenderSection("pageTitle", false)
                 </div>
             </div>
-        </div>
-    </div>
-    <div class="container-xl p-2 p-md-3">
-        @RenderBody()
-        @{
-            int maxPagesToShow = 5;
-            int startPage = 1;
-            int endPage = 1;
 
-            if (paging != null)
-            {
-                startPage = Math.Max(1, paging.Page - 2);
-                endPage = Math.Min(paging.TotalPages(), paging.Page + 2);
 
-                if (endPage - startPage < maxPagesToShow - 1)
+            @RenderBody()
+            @{
+                int maxPagesToShow = 5;
+                int startPage = 1;
+                int endPage = 1;
+
+                if (paging != null)
                 {
-                    if (startPage == 1)
-                        endPage = Math.Min(paging.TotalPages(), startPage + maxPagesToShow - 1);
-                    else if (endPage == paging.TotalPages())
-                        startPage = Math.Max(1, endPage - maxPagesToShow + 1);
+                    startPage = Math.Max(1, paging.Page - 2);
+                    endPage = Math.Min(paging.TotalPages(), paging.Page + 2);
+
+                    if (endPage - startPage < maxPagesToShow - 1)
+                    {
+                        if (startPage == 1)
+                            endPage = Math.Min(paging.TotalPages(), startPage + maxPagesToShow - 1);
+                        else if (endPage == paging.TotalPages())
+                            startPage = Math.Max(1, endPage - maxPagesToShow + 1);
+                    }
                 }
             }
-        }
 
-        @if (paging != null)
-        {
-            <div class="d-flex d-md-none align-items-center gap-2 ps-2 mt-3">
-                <span class="small text-muted text-nowrap">Mostra:</span>
-                <select class="form-select form-select-sm w-auto"
-                        style="cursor: pointer;"
-                        onchange="location.href=this.value">
-                    @foreach (var size in paging.PageSizes)
-                    {
-                        <option value="@paging.ChangePageSizePageUrl(Url, size)" selected="@(paging.PageSize == size)">
-                            @size
-                        </option>
-                    }
-                </select>
-            </div>
-
-            <div class="d-flex d-md-none justify-content-center py-3">
-                <nav aria-label="Navigazione pagine">
-                    <ul class="pagination mb-0">
-                        <li class="page-item @(paging.Page <= 1 ? "disabled" : "")">
-                            <a class="page-link" href="@paging.PrevPageUrl(Url)">‹</a>
-                        </li>
-
-                        @for (int i = startPage; i <= endPage; i++)
-                        {
-                            if (i == paging.Page)
-                            {
-                                <li class="page-item active"><span class="page-link">@i</span></li>
-                            }
-                            else
-                            {
-                                <li class="page-item">
-                                    <a class="page-link" href="@paging.ChangePageUrl(Url, i)">@i</a>
-                                </li>
-                            }
-                        }
-
-                        <li class="page-item @(paging.Page >= paging.TotalPages() ? "disabled" : "")">
-                            <a class="page-link" href="@paging.NextPageUrl(Url)">›</a>
-                        </li>
-                    </ul>
-                </nav>
-            </div>
-
-            <div class="d-none d-md-flex justify-content-between align-items-center gap-3 pt-3 pb-4">
-
-                <div class="d-flex align-items-center gap-2">
+            @if (paging != null)
+            {
+                <div class="d-flex d-md-none align-items-center gap-2 ps-2 mt-3">
                     <span class="small text-muted text-nowrap">Mostra:</span>
-                    <select class="form-select form-select-sm"
+                    <select class="form-select form-select-sm w-auto"
                             style="cursor: pointer;"
                             onchange="location.href=this.value">
                         @foreach (var size in paging.PageSizes)
@@ -189,40 +145,85 @@
                     </select>
                 </div>
 
-                <nav aria-label="Navigazione pagine">
-                    <ul class="pagination mb-0 justify-content-center">
+                <div class="d-flex d-md-none justify-content-center py-3">
+                    <nav aria-label="Navigazione pagine">
+                        <ul class="pagination mb-0">
+                            <li class="page-item @(paging.Page <= 1 ? "disabled" : "")">
+                                <a class="page-link" href="@paging.PrevPageUrl(Url)">‹</a>
+                            </li>
 
-                        <li class="page-item @(paging.Page <= 1 ? "disabled" : "")">
-                            <a class="page-link" href="@paging.PrevPageUrl(Url)">‹</a>
-                        </li>
-
-                        @for (int i = startPage; i <= endPage; i++)
-                        {
-                            if (i == paging.Page)
+                            @for (int i = startPage; i <= endPage; i++)
                             {
-                                <li class="page-item active"><span class="page-link">@i</span></li>
+                                if (i == paging.Page)
+                                {
+                                    <li class="page-item active"><span class="page-link">@i</span></li>
+                                }
+                                else
+                                {
+                                    <li class="page-item">
+                                        <a class="page-link" href="@paging.ChangePageUrl(Url, i)">@i</a>
+                                    </li>
+                                }
                             }
-                            else
+
+                            <li class="page-item @(paging.Page >= paging.TotalPages() ? "disabled" : "")">
+                                <a class="page-link" href="@paging.NextPageUrl(Url)">›</a>
+                            </li>
+                        </ul>
+                    </nav>
+                </div>
+
+                <div class="d-none d-md-flex justify-content-between align-items-center gap-3 pt-3 pb-4">
+
+                    <div class="d-flex align-items-center gap-2">
+                        <span class="small text-muted text-nowrap">Mostra:</span>
+                        <select class="form-select form-select-sm"
+                                style="cursor: pointer;"
+                                onchange="location.href=this.value">
+                            @foreach (var size in paging.PageSizes)
                             {
-                                <li class="page-item">
-                                    <a class="page-link" href="@paging.ChangePageUrl(Url, i)">@i</a>
-                                </li>
+                                <option value="@paging.ChangePageSizePageUrl(Url, size)"
+                                        selected="@(paging.PageSize == size)">
+                                    @size
+                                </option>
                             }
-                        }
+                        </select>
+                    </div>
 
-                        <li class="page-item @(paging.Page >= paging.TotalPages() ? "disabled" : "")">
-                            <a class="page-link" href="@paging.NextPageUrl(Url)">›</a>
-                        </li>
+                    <nav aria-label="Navigazione pagine">
+                        <ul class="pagination mb-0 justify-content-center">
 
-                    </ul>
-                </nav>
+                            <li class="page-item @(paging.Page <= 1 ? "disabled" : "")">
+                                <a class="page-link" href="@paging.PrevPageUrl(Url)">‹</a>
+                            </li>
 
-                <div style="width:100px" class="d-none d-md-block"></div>
-            </div>
-        }
+                            @for (int i = startPage; i <= endPage; i++)
+                            {
+                                if (i == paging.Page)
+                                {
+                                    <li class="page-item active"><span class="page-link">@i</span></li>
+                                }
+                                else
+                                {
+                                    <li class="page-item">
+                                        <a class="page-link" href="@paging.ChangePageUrl(Url, i)">@i</a>
+                                    </li>
+                                }
+                            }
 
+                            <li class="page-item @(paging.Page >= paging.TotalPages() ? "disabled" : "")">
+                                <a class="page-link" href="@paging.NextPageUrl(Url)">›</a>
+                            </li>
+
+                        </ul>
+                    </nav>
+
+                    <div style="width:100px" class="d-none d-md-block"></div>
+                </div>
+            }
+           
+        </div>
     </div>
-
 </div>
 
 @section googlehead{
