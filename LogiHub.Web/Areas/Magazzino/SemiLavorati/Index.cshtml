@@ -725,6 +725,13 @@ else
             const selected = checks.filter(c => c.checked);
             const labels = selected.map(c => (c.dataset.label || c.value || "").trim()).filter(Boolean);
     
+            // --- LOGICA MOBILE (< 768px) ---
+            if (window.innerWidth < 768) {
+                if (labels.length === checks.length) return "Cerca..."; // Tutti attivi -> Testo pulito
+                if (labels.length > 1) return `Cerca in ${labels.length} colonne...`; // Multipli -> Mostra solo il numero
+                // Se è 1 solo, lasciamo che cada nella logica standard qui sotto (es. "Cerca in Barcode...")
+            }
+
             if (labels.length === 1) return `Cerca in ${labels[0]}…`;
             if (labels.length === checks.length) return "Cerca in tutte le colonne…";
             return `Cerca in: ${labels.join(", ")}…`;
@@ -748,6 +755,7 @@ else
             });
         });
     
+        window.addEventListener('resize', updatePlaceholder);
         updatePlaceholder();
     });
     </script>
