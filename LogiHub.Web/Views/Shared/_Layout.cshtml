@@ -91,11 +91,7 @@
 
                 @if (breadcrumbs != null && breadcrumbs.Any())
                 {
-                    <div class="d-flex align-items-center px-3 px-md-2">
-                        <span class="opacity-0 d-none d-md-inline">
-                            <i class="fa-solid fa-arrow-left"></i>
-                        </span>
-
+                    <div class="d-flex align-items-center px-3 px-md-4">
                         <div class="flex-grow-1">
                             <partial name="~/Features/Breadcrumb/_Breadcrumb.cshtml" model="breadcrumbs"/>
                         </div>

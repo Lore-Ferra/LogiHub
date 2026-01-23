@@ -157,7 +157,7 @@ public partial class RilevamentoUbicazioneController : AuthenticatedBaseControll
 
             SearchCard = new SearchCardViewModel
             {
-                Title = $"Rilevamento: {infoUbicazione.Nome}",
+                Title = $"📝 Rilevamento: {infoUbicazione.Nome}",
                 Placeholder = "Cerca barcode...",
                 Query = query,
                 ShowFilters = false,
