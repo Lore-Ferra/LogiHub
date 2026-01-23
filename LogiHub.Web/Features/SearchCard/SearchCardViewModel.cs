@@ -7,7 +7,7 @@ public class SearchCardViewModel
     public string Title { get; set; }
 
     public string Query { get; set; }
-    public string Placeholder { get; set; } = "Cerca…";
+    public string Placeholder { get; set; }
     public string BackUrl { get; set; }
     public SearchCardFiltersViewModel Filters { get; set; } = new();
 
