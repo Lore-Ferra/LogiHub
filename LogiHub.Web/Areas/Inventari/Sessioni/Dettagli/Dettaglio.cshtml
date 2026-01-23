@@ -2,35 +2,39 @@
 @using System.Security.Claims
 
 @{
-ViewData["Title"] = Model.NomeSessione;
-var currentUserId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
+    ViewData["Title"] = Model.NomeSessione;
+    var currentUserId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
 
-// Suddivisione per stato
-var ubiInAttesa = Model.UbicazioniFiltrate.Where(u => !u.Completata && !u.InLavorazione).ToList();
-var ubiInCorso = Model.UbicazioniFiltrate.Where(u => !u.Completata && u.InLavorazione).ToList();
-var ubiCompletate = Model.UbicazioniFiltrate.Where(u => u.Completata).ToList();
+    // Suddivisione per stato
+    var ubiInAttesa = Model.UbicazioniFiltrate.Where(u => !u.Completata && !u.InLavorazione).ToList();
+    var ubiInCorso = Model.UbicazioniFiltrate.Where(u => !u.Completata && u.InLavorazione).ToList();
+    var ubiCompletate = Model.UbicazioniFiltrate.Where(u => u.Completata).ToList();
+
+    // Calcolo se mostrare i separatori (solo se c'è più di uno stato attivo)
+    int sezioniAttive = (ubiInAttesa.Any() ? 1 : 0) + (ubiInCorso.Any() ? 1 : 0) + (ubiCompletate.Any() ? 1 : 0);
+    bool mostraSeparatori = sezioniAttive > 1;
 }
 
 @if (!Model.Chiuso && (Model.CiSonoUbicazioniAperte || Model.CiSonoDiscrepanzeAperte))
 {
-<div class="alert alert-warning border-0 shadow-sm mb-3 d-flex align-items-center">
-    <i class="fa-solid fa-lock me-3 fa-lg"></i>
-    <div>
-        <strong>Completamento Bloccato:</strong>
-        @if (Model.CiSonoUbicazioniAperte && Model.CiSonoDiscrepanzeAperte)
-        {
-        <span>Ci sono ancora ubicazioni da completare e discrepanze da risolvere.</span>
-        }
-        else if (Model.CiSonoUbicazioniAperte)
-        {
-        <span>Ci sono ancora ubicazioni da completare.</span>
-        }
-        else
-        {
-        <span>Ci sono ancora discrepanze da risolvere.</span>
-        }
+    <div class="alert alert-warning border-0 shadow-sm mb-3 d-flex align-items-center">
+        <i class="fa-solid fa-lock me-3 fa-lg"></i>
+        <div>
+            <strong>Completamento Bloccato:</strong>
+            @if (Model.CiSonoUbicazioniAperte && Model.CiSonoDiscrepanzeAperte)
+            {
+                <span>Ci sono ancora ubicazioni da completare e discrepanze da risolvere.</span>
+            }
+            else if (Model.CiSonoUbicazioniAperte)
+            {
+                <span>Ci sono ancora ubicazioni da completare.</span>
+            }
+            else
+            {
+                <span>Ci sono ancora discrepanze da risolvere.</span>
+            }
+        </div>
     </div>
-</div>
 }
 
 <div>
@@ -43,80 +47,89 @@ var ubiCompletate = Model.UbicazioniFiltrate.Where(u => u.Completata).ToList();
         <div class="table-responsive">
             <table class="table table-hover align-middle mb-0">
                 <thead class="bg-light">
-                <tr>
-                    <th>Ubicazione</th>
-                    <th>Operatore</th>
-                    <th class="text-center">Stato</th>
-                </tr>
+                    <tr>
+                        <th>Ubicazione</th>
+                        <th>Operatore</th>
+                        <th class="text-center">Stato</th>
+                    </tr>
                 </thead>
                 <tbody>
 
-                @* --- IN ATTESA --- *@
-                @if (ubiInAttesa.Any())
-                {
-                    <tr style="pointer-events: none; border-bottom: 2px solid #dee2e6;">
-                        <td colspan="3" class="py-2 ps-3 bg-light">
-                            <span class="small ls-05 text-muted fw-bold text-uppercase">In Attesa</span>
-                        </td>
-                    </tr>
-                    @foreach (var ubi in ubiInAttesa)
+                    @* --- IN ATTESA --- *@
+                    @if (ubiInAttesa.Any())
                     {
-                        <tr style="cursor:pointer" onclick="window.location.href='@Url.Action("Index", "RilevamentoUbicazione", new { sessioneId = Model.SessioneId, ubicazioneId = ubi.UbicazioneId })'">
-                            <td class="fw-bold text-primary">@ubi.Posizione</td>
-                            <td class="text-muted fw-normal"><i class="fa-solid fa-user me-1"></i> Nessun operatore</td>
-                            <td class="text-center"><span class="badge bg-light text-dark border">In Attesa</span></td>
-                        </tr>
+                        if (mostraSeparatori)
+                        {
+                            <tr style="pointer-events: none; border-bottom: 2px solid #dee2e6;">
+                                <td colspan="3" class="py-2 ps-3 bg-light">
+                                    <span class="small ls-05 text-muted fw-bold text-uppercase">In Attesa</span>
+                                </td>
+                            </tr>
+                        }
+                        @foreach (var ubi in ubiInAttesa)
+                        {
+                            <tr style="cursor:pointer" onclick="window.location.href='@Url.Action("Index", "RilevamentoUbicazione", new { sessioneId = Model.SessioneId, ubicazioneId = ubi.UbicazioneId })'">
+                                <td class="fw-bold text-primary">@ubi.Posizione</td>
+                                <td class="text-muted fw-normal"><i class="fa-solid fa-user me-1"></i> Nessun operatore</td>
+                                <td class="text-center"><span class="badge bg-light text-dark border">In Attesa</span></td>
+                            </tr>
+                        }
                     }
-                }
 
-                @* --- IN CORSO --- *@
-                @if (ubiInCorso.Any())
-                {
-                    <tr style="pointer-events: none; border-bottom: 2px solid #dee2e6;">
-                        <td colspan="3" class="py-2 ps-3 bg-light">
-                            <span class="small ls-05 text-muted fw-bold text-uppercase">In Corso</span>
-                        </td>
-                    </tr>
-                    @foreach (var ubi in ubiInCorso)
+                    @* --- IN CORSO --- *@
+                    @if (ubiInCorso.Any())
                     {
-                        var isMyUbi = ubi.OperatoreCorrenteId == currentUserId;
-                        <tr style="@(isMyUbi ? "cursor:pointer" : "")" @(isMyUbi ? $"onclick=window.location.href='{Url.Action("Index", "RilevamentoUbicazione", new { sessioneId = Model.SessioneId, ubicazioneId = ubi.UbicazioneId })}'" : "")>
-                            <td class="fw-bold text-primary">@ubi.Posizione</td>
-                            <td><div class="fw-semibold"><i class="fa-solid fa-user-gear me-2"></i>@ubi.OperatoreCorrente</div></td>
-                            <td class="text-center">
-                                <span class="badge bg-warning text-dark"><i class="fa-solid fa-circle fa-fade me-1"></i>In Corso</span>
+                        if (mostraSeparatori)
+                        {
+                            <tr style="pointer-events: none; border-bottom: 2px solid #dee2e6;">
+                                <td colspan="3" class="py-2 ps-3 bg-light">
+                                    <span class="small ls-05 text-muted fw-bold text-uppercase">In Corso</span>
+                                </td>
+                            </tr>
+                        }
+                        @foreach (var ubi in ubiInCorso)
+                        {
+                            var isMyUbi = ubi.OperatoreCorrenteId == currentUserId;
+                            <tr style="@(isMyUbi ? "cursor:pointer" : "")" @(isMyUbi ? $"onclick=window.location.href='{Url.Action("Index", "RilevamentoUbicazione", new { sessioneId = Model.SessioneId, ubicazioneId = ubi.UbicazioneId })}'" : "")>
+                                <td class="fw-bold text-primary">@ubi.Posizione</td>
+                                <td><div class="fw-semibold"><i class="fa-solid fa-user-gear me-2"></i>@ubi.OperatoreCorrente</div></td>
+                                <td class="text-center">
+                                    <span class="badge bg-warning text-dark"><i class="fa-solid fa-circle fa-fade me-1"></i>In Corso</span>
+                                </td>
+                            </tr>
+                        }
+                    }
+
+                    @* --- COMPLETATE --- *@
+                    @if (ubiCompletate.Any())
+                    {
+                        if (mostraSeparatori)
+                        {
+                            <tr style="pointer-events: none; border-bottom: 2px solid #dee2e6;">
+                                <td colspan="3" class="py-2 ps-3 bg-light">
+                                    <span class="small ls-05 text-muted fw-bold text-uppercase">Completate</span>
+                                </td>
+                            </tr>
+                        }
+                        @foreach (var ubi in ubiCompletate)
+                        {
+                            <tr class="text-muted" style="cursor:pointer" onclick="window.location.href='@Url.Action("Index", "RilevamentoUbicazione", new { sessioneId = Model.SessioneId, ubicazioneId = ubi.UbicazioneId })'">
+                                <td class="fw-bold">@ubi.Posizione</td>
+                                <td><div><i class="fa-solid fa-check-double me-1"></i>@ubi.OperatoreCorrente</div></td>
+                                <td class="text-center"><span class="badge bg-secondary opacity-75">Completato</span></td>
+                            </tr>
+                        }
+                    }
+
+                    @if (!Model.UbicazioniFiltrate.Any())
+                    {
+                        <tr>
+                            <td colspan="3" class="text-center py-5 text-muted">
+                                <i class="fas fa-box-open fa-3x mb-3"></i>
+                                <p>Nessuna ubicazione trovata.</p>
                             </td>
                         </tr>
                     }
-                }
-
-                @* --- COMPLETATE --- *@
-                @if (ubiCompletate.Any())
-                {
-                    <tr style="pointer-events: none; border-bottom: 2px solid #dee2e6;">
-                        <td colspan="3" class="py-2 ps-3 bg-light">
-                            <span class="small ls-05 text-muted fw-bold text-uppercase">Completate</span>
-                        </td>
-                    </tr>
-                    @foreach (var ubi in ubiCompletate)
-                    {
-                        <tr class="text-muted" style="cursor:pointer" onclick="window.location.href='@Url.Action("Index", "RilevamentoUbicazione", new { sessioneId = Model.SessioneId, ubicazioneId = ubi.UbicazioneId })'">
-                            <td class="fw-bold">@ubi.Posizione</td>
-                            <td><div><i class="fa-solid fa-check-double me-1"></i>@ubi.OperatoreCorrente</div></td>
-                            <td class="text-center"><span class="badge bg-secondary opacity-75">Completato</span></td>
-                        </tr>
-                    }
-                }
-
-                @if (!Model.UbicazioniFiltrate.Any())
-                {
-                    <tr>
-                        <td colspan="3" class="text-center py-5 text-muted">
-                            <i class="fas fa-box-open fa-3x mb-3"></i>
-                            <p>Nessuna ubicazione trovata.</p>
-                        </td>
-                    </tr>
-                }
                 </tbody>
             </table>
         </div>
@@ -129,202 +142,209 @@ var ubiCompletate = Model.UbicazioniFiltrate.Where(u => u.Completata).ToList();
     @* --- IN ATTESA --- *@
     @if (ubiInAttesa.Any())
     {
-        <div class="d-flex align-items-center">
-            <hr class="flex-grow-1 m-0 opacity-25 ">
-            <span class="mx-3 small text-muted fw-bold text-uppercase ls-05">IN ATTESA</span>
-            <hr class="flex-grow-1 m-0 opacity-25">
-        </div>  
-        @foreach (var ubi in ubiInAttesa)
-    {
-    <div class="card shadow-sm border-0 border-start border-5 mt-2" style="cursor:pointer" onclick="window.location.href='@Url.Action("Index", "RilevamentoUbicazione", new { sessioneId = Model.SessioneId, ubicazioneId = ubi.UbicazioneId })'">
-        <div class="card-body p-2">
-            <div class="d-flex justify-content-between align-items-center">
-                <div>
-                    <div class="fw-bold text-primary mb-1">@ubi.Posizione</div>
-                    <i class="fa-solid fa-user me-2 text-muted"></i><span class="text-muted fw-normal">Nessun operatore</span>
-                </div>
-                <span class="badge border text-dark bg-light">In Attesa</span>
+        if (mostraSeparatori)
+        {
+            <div class="d-flex align-items-center mt-3">
+                <hr class="flex-grow-1 m-0 opacity-25">
+                <span class="mx-3 small text-muted fw-bold text-uppercase ls-05">IN ATTESA</span>
+                <hr class="flex-grow-1 m-0 opacity-25">
             </div>
-        </div>
-    </div>
-    }
+        }
+        @foreach (var ubi in ubiInAttesa)
+        {
+            <div class="card shadow-sm border-0 border-start border-5 mt-2" style="cursor:pointer" onclick="window.location.href='@Url.Action("Index", "RilevamentoUbicazione", new { sessioneId = Model.SessioneId, ubicazioneId = ubi.UbicazioneId })'">
+                <div class="card-body p-2">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <div class="fw-bold text-primary mb-1">@ubi.Posizione</div>
+                            <i class="fa-solid fa-user me-2 text-muted"></i><span class="text-muted fw-normal">Nessun operatore</span>
+                        </div>
+                        <span class="badge border text-dark bg-light">In Attesa</span>
+                    </div>
+                </div>
+            </div>
+        }
     }
 
     @* --- IN CORSO --- *@
     @if (ubiInCorso.Any())
     {
-        <div class="d-flex align-items-center mt-3">
-            <hr class="flex-grow-1 m-0 opacity-25">
-            <span class="mx-3 small text-muted fw-bold text-uppercase ls-05">IN CORSO</span>
-            <hr class="flex-grow-1 m-0 opacity-25">
-        </div>  
-
-    @foreach (var ubi in ubiInCorso)
-    {
-    var isMyUbi = ubi.OperatoreCorrenteId == currentUserId;
-    <div class="card shadow-sm border-0 border-start border-5 mt-2 border-warning" style="@(isMyUbi ? "cursor:pointer" : "")" @(isMyUbi ? $"onclick=window.location.href='{Url.Action("Index", "RilevamentoUbicazione", new { sessioneId = Model.SessioneId, ubicazioneId = ubi.UbicazioneId })}'" : "")>
-        <div class="card-body p-2">
-            <div class="d-flex justify-content-between align-items-center">
-                <div>
-                    <div class="fw-bold text-primary mb-1">@ubi.Posizione</div>
-                    <i class="fa-solid fa-user-gear me-2"></i>@ubi.OperatoreCorrente
-                </div>
-                <span class="badge text-bg-warning"><i class="fa-solid fa-circle fa-fade me-1"></i>In Corso</span>
+        if (mostraSeparatori)
+        {
+            <div class="d-flex align-items-center mt-3">
+                <hr class="flex-grow-1 m-0 opacity-25">
+                <span class="mx-3 small text-muted fw-bold text-uppercase ls-05">IN CORSO</span>
+                <hr class="flex-grow-1 m-0 opacity-25">
             </div>
-        </div>
-    </div>
-    }
+        }
+        @foreach (var ubi in ubiInCorso)
+        {
+            var isMyUbi = ubi.OperatoreCorrenteId == currentUserId;
+            <div class="card shadow-sm border-0 border-start border-5 mt-2 border-warning" style="@(isMyUbi ? "cursor:pointer" : "")" @(isMyUbi ? $"onclick=window.location.href='{Url.Action("Index", "RilevamentoUbicazione", new { sessioneId = Model.SessioneId, ubicazioneId = ubi.UbicazioneId })}'" : "")>
+                <div class="card-body p-2">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <div class="fw-bold text-primary mb-1">@ubi.Posizione</div>
+                            <i class="fa-solid fa-user-gear me-2"></i>@ubi.OperatoreCorrente
+                        </div>
+                        <span class="badge text-bg-warning"><i class="fa-solid fa-circle fa-fade me-1"></i>In Corso</span>
+                    </div>
+                </div>
+            </div>
+        }
     }
 
     @* --- COMPLETATE --- *@
     @if (ubiCompletate.Any())
     {
-        <div class="d-flex align-items-center mt-3">
-            <hr class="flex-grow-1 m-0 opacity-25">
-            <span class="mx-3 small text-muted fw-bold text-uppercase ls-05">COMPLETATE</span>
-            <hr class="flex-grow-1 m-0 opacity-25">
-        </div>
-
-    @foreach (var ubi in ubiCompletate)
-    {
-    <div class="card shadow-sm border-0 border-start border-5 mt-2 border-secondary border-opacity-50" style="cursor:pointer" onclick="window.location.href='@Url.Action("Index", "RilevamentoUbicazione", new { sessioneId = Model.SessioneId, ubicazioneId = ubi.UbicazioneId })'">
-        <div class="card-body p-2">
-            <div class="d-flex justify-content-between align-items-center">
-                <div>
-                    <div class="text-muted mb-1">@ubi.Posizione</div>
-                    <i class="fa-solid fa-check-double me-2 opacity-75"></i>@ubi.OperatoreCorrente
-                </div>
-                <span class="badge bg-secondary opacity-75">Completato</span>
+        if (mostraSeparatori)
+        {
+            <div class="d-flex align-items-center mt-3">
+                <hr class="flex-grow-1 m-0 opacity-25">
+                <span class="mx-3 small text-muted fw-bold text-uppercase ls-05">COMPLETATE</span>
+                <hr class="flex-grow-1 m-0 opacity-25">
             </div>
-        </div>
-    </div>
-    }
+        }
+        @foreach (var ubi in ubiCompletate)
+        {
+            <div class="card shadow-sm border-0 border-start border-5 mt-2 border-secondary border-opacity-50" style="cursor:pointer" onclick="window.location.href='@Url.Action("Index", "RilevamentoUbicazione", new { sessioneId = Model.SessioneId, ubicazioneId = ubi.UbicazioneId })'">
+                <div class="card-body p-2">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <div class="text-muted mb-1">@ubi.Posizione</div>
+                            <i class="fa-solid fa-check-double me-2 opacity-75"></i>@ubi.OperatoreCorrente
+                        </div>
+                        <span class="badge bg-secondary opacity-75">Completato</span>
+                    </div>
+                </div>
+            </div>
+        }
     }
 
     @if (!Model.UbicazioniFiltrate.Any())
     {
-    <div class="text-center py-5 text-muted">
-        <i class="fas fa-box-open fa-3x mb-3"></i>
-        <p>Nessuna ubicazione trovata.</p>
-    </div>
+        <div class="text-center py-5 text-muted">
+            <i class="fas fa-box-open fa-3x mb-3"></i>
+            <p>Nessuna ubicazione trovata.</p>
+        </div>
     }
 </div>
 
 @if (!Model.Chiuso)
 {
-<div class="d-md-none mt-4 mb-3">
-    @if (Model.PuoChiudere)
-    {
-    <button type="button" class="btn btn-primary w-100 py-2 fw-bold shadow-sm" onclick="chiudiInventario(event)"
-            data-url="@Url.Action("ChiudiSessione", "Dettaglio", new { area = "Inventari", id = Model.SessioneId })"
-            data-message="Vuoi davvero chiudere l’inventario <b>@Model.NomeSessione</b>?">
-        <i class="fa-solid fa-check me-2"></i>Completa Inventario
-    </button>
-    }
-    else
-    {
-    <button type="button" class="btn btn-secondary w-100 py-2 fw-bold shadow-sm disabled" style="cursor:not-allowed; pointer-events:auto !important;">
-        <i class="fa-solid fa-lock me-2"></i>Completa Inventario
-    </button>
-    }
-</div>
+    <div class="d-md-none mt-4 mb-3">
+        @if (Model.PuoChiudere)
+        {
+            <button type="button" class="btn btn-primary w-100 py-2 fw-bold shadow-sm" onclick="chiudiInventario(event)"
+                    data-url="@Url.Action("ChiudiSessione", "Dettaglio", new { area = "Inventari", id = Model.SessioneId })"
+                    data-message="Vuoi davvero chiudere l’inventario <b>@Model.NomeSessione</b>?">
+                <i class="fa-solid fa-check me-2"></i>Completa Inventario
+            </button>
+        }
+        else
+        {
+            <button type="button" class="btn btn-secondary w-100 py-2 fw-bold shadow-sm disabled" style="cursor:not-allowed; pointer-events:auto !important;">
+                <i class="fa-solid fa-lock me-2"></i>Completa Inventario
+            </button>
+        }
+    </div>
 }
 
 @Html.AntiForgeryToken()
 
 @await Html.PartialAsync("~/Features/Modals/_ConfirmModal.cshtml",
-new LogiHub.Web.Features.Modals.ConfirmModalViewModel
-{
-ModalId = "actionConfirmModal",
-Title = "Conferma",
-ConfirmButtonText = "Conferma",
-ConfirmButtonClass = "btn-primary",
-IconClass = "fa-solid fa-triangle-exclamation"
-})
+    new LogiHub.Web.Features.Modals.ConfirmModalViewModel
+    {
+        ModalId = "actionConfirmModal",
+        Title = "Conferma",
+        ConfirmButtonText = "Conferma",
+        ConfirmButtonClass = "btn-primary",
+        IconClass = "fa-solid fa-triangle-exclamation"
+    })
 
 @section Scripts {
-<script src="~/js/Features/Modals/ConfirmModal.js"></script>
-<script>
-    function chiudiInventario(e) {
-        e.preventDefault();
-        const btn = e.currentTarget;
-        const url = btn.getAttribute('data-url');
-        const msg = btn.getAttribute('data-message');
-        const modalEl = document.getElementById('actionConfirmModal');
-        const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
-
-        modalEl.querySelector('.modal-title').innerText = "Conferma";
-        const msgEl = modalEl.querySelector('[data-confirm-message]');
-        if (msgEl) msgEl.innerHTML = msg;
-
-        const confirmBtn = modalEl.querySelector('[data-confirm-btn]');
-        const newBtn = confirmBtn.cloneNode(true);
-        confirmBtn.parentNode.replaceChild(newBtn, confirmBtn);
-
-        newBtn.onclick = async () => {
-            newBtn.disabled = true;
-            newBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-2"></i>Attendere...';
-            try {
-                const tokenInput = document.querySelector('input[name="__RequestVerificationToken"]');
-                const formData = new FormData();
-                if (tokenInput) formData.append('__RequestVerificationToken', tokenInput.value);
-
-                const res = await fetch(url, {method: 'POST', body: formData});
-                const data = await res.json();
-
-                if (res.ok && data.success) {
-                    sessionStorage.setItem("pendingToast", JSON.stringify({ msg: data.message || "Inventario completato!", type: "success" }));
-                    sessionStorage.setItem('refreshSessioni', 'true');
-                    window.history.length > 1 ? window.history.back() : window.location.replace(data.redirectUrl);
-                } else {
-                    alert("Errore: " + (data.message || "Impossibile chiudere."));
-                    location.reload();
-                }
-            } catch (err) { console.error(err); alert("Errore di connessione"); }
-        };
-        modal.show();
-    }
-
-    function mostraPendingToast() {
-        const pending = sessionStorage.getItem("pendingToast");
-        if (!pending) return;
-        try {
-            const {msg, type} = JSON.parse(pending);
-            if (typeof notify === "function") notify(msg, type || "success"); else alert(msg);
-        } finally { sessionStorage.removeItem("pendingToast"); }
-    }
-
-    window.addEventListener('pageshow', function (event) {
-        if (event.persisted || sessionStorage.getItem('refreshDettaglio') === 'true') {
-            sessionStorage.removeItem('refreshDettaglio');
-            setTimeout(() => window.location.reload(), 150);
-            return;
-        }
-        mostraPendingToast();
-    });
-
-    (function () {
-        let pendingForm = null;
-        document.addEventListener('click', function (e) {
-            const btn = e.target.closest('[data-confirm-modal-trigger="true"]');
-            if (!btn || btn.getAttribute('data-confirm-modal') !== 'true') return;
+    <script src="~/js/Features/Modals/ConfirmModal.js"></script>
+    <script>
+        function chiudiInventario(e) {
             e.preventDefault();
-            pendingForm = btn.closest('form');
-            if (!pendingForm) return;
+            const btn = e.currentTarget;
+            const url = btn.getAttribute('data-url');
+            const msg = btn.getAttribute('data-message');
             const modalEl = document.getElementById('actionConfirmModal');
-            if (!modalEl) { pendingForm.submit(); return; }
-            const title = btn.getAttribute('data-confirm-title');
-            const message = btn.getAttribute('data-confirm-message');
-            const label = btn.getAttribute('data-confirm-label');
-            if (title) modalEl.querySelector('.modal-title').textContent = title;
-            if (message) modalEl.querySelector('[data-confirm-message]').childNodes[0].textContent = message + " ";
-            if (label) modalEl.querySelector('[data-dynamic-label]').textContent = label;
-            bootstrap.Modal.getOrCreateInstance(modalEl).show();
+            const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+
+            modalEl.querySelector('.modal-title').innerText = "Conferma";
+            const msgEl = modalEl.querySelector('[data-confirm-message]');
+            if (msgEl) msgEl.innerHTML = msg;
+
+            const confirmBtn = modalEl.querySelector('[data-confirm-btn]');
+            const newBtn = confirmBtn.cloneNode(true);
+            confirmBtn.parentNode.replaceChild(newBtn, confirmBtn);
+
+            newBtn.onclick = async () => {
+                newBtn.disabled = true;
+                newBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-2"></i>Attendere...';
+                try {
+                    const tokenInput = document.querySelector('input[name="__RequestVerificationToken"]');
+                    const formData = new FormData();
+                    if (tokenInput) formData.append('__RequestVerificationToken', tokenInput.value);
+
+                    const res = await fetch(url, { method: 'POST', body: formData });
+                    const data = await res.json();
+
+                    if (res.ok && data.success) {
+                        sessionStorage.setItem("pendingToast", JSON.stringify({ msg: data.message || "Inventario completato!", type: "success" }));
+                        sessionStorage.setItem('refreshSessioni', 'true');
+                        window.history.length > 1 ? window.history.back() : window.location.replace(data.redirectUrl);
+                    } else {
+                        alert("Errore: " + (data.message || "Impossibile chiudere."));
+                        location.reload();
+                    }
+                } catch (err) { console.error(err); alert("Errore di connessione"); }
+            };
+            modal.show();
+        }
+
+        function mostraPendingToast() {
+            const pending = sessionStorage.getItem("pendingToast");
+            if (!pending) return;
+            try {
+                const { msg, type } = JSON.parse(pending);
+                if (typeof notify === "function") notify(msg, type || "success"); else alert(msg);
+            } finally { sessionStorage.removeItem("pendingToast"); }
+        }
+
+        window.addEventListener('pageshow', function (event) {
+            if (event.persisted || sessionStorage.getItem('refreshDettaglio') === 'true') {
+                sessionStorage.removeItem('refreshDettaglio');
+                setTimeout(() => window.location.reload(), 150);
+                return;
+            }
+            mostraPendingToast();
         });
-        document.addEventListener('click', function (e) {
-            const confirmBtn = e.target.closest('#actionConfirmModal [data-confirm-btn]');
-            if (confirmBtn && pendingForm) { e.preventDefault(); pendingForm.submit(); }
-        });
-    })();
-</script>
+
+        (function () {
+            let pendingForm = null;
+            document.addEventListener('click', function (e) {
+                const btn = e.target.closest('[data-confirm-modal-trigger="true"]');
+                if (!btn || btn.getAttribute('data-confirm-modal') !== 'true') return;
+                e.preventDefault();
+                pendingForm = btn.closest('form');
+                if (!pendingForm) return;
+                const modalEl = document.getElementById('actionConfirmModal');
+                if (!modalEl) { pendingForm.submit(); return; }
+                const title = btn.getAttribute('data-confirm-title');
+                const message = btn.getAttribute('data-confirm-message');
+                const label = btn.getAttribute('data-confirm-label');
+                if (title) modalEl.querySelector('.modal-title').textContent = title;
+                if (message) modalEl.querySelector('[data-confirm-message]').childNodes[0].textContent = message + " ";
+                if (label) modalEl.querySelector('[data-dynamic-label]').textContent = label;
+                bootstrap.Modal.getOrCreateInstance(modalEl).show();
+            });
+            document.addEventListener('click', function (e) {
+                const confirmBtn = e.target.closest('#actionConfirmModal [data-confirm-btn]');
+                if (confirmBtn && pendingForm) { e.preventDefault(); pendingForm.submit(); }
+            });
+        })();
+    </script>
 }
