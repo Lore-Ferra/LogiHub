@@ -335,6 +335,31 @@
     <script src="~/js/Features/Modals/ConfirmModal.js"></script>
 
     <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            const input = document.getElementById("searchQuery");
+            if (!input) return;
+
+            const desktopPlaceholder = "Cerca in Barcode, Descrizione...";
+            const mobilePlaceholder  = "Cerca in Barcode, Descrizione...";
+
+            const apply = () => {
+            input.placeholder = (window.innerWidth < 768)
+            ? mobilePlaceholder
+            : desktopPlaceholder;
+        };
+
+            requestAnimationFrame(apply);
+            setTimeout(apply, 0);
+
+            window.addEventListener("resize", apply);
+
+            document.addEventListener("change", (e) => {
+            if (e.target && e.target.classList && e.target.classList.contains("search-col-check")) {
+            setTimeout(apply, 0);
+        }
+        }, true);
+        });
+        
         let rilevati = @Model.PezziRilevati;
         const totali = @Model.TotaliPezzi;
         const urlConcludi = '@Html.Raw(urlConcludi)';

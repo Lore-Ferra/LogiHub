@@ -338,51 +338,22 @@ else
     <script src="~/js/Features/Modals/ConfirmModal.js"></script>
 
     <script>
-        document.addEventListener('DOMContentLoaded', function () {
-
-            const pending = sessionStorage.getItem("pendingToast");
-            if (pending) {
-                try {
-                    const { msg, type } = JSON.parse(pending);
-                    notify(msg, type || "success");
-                } finally {
-                    sessionStorage.removeItem("pendingToast");
-                }
-                aggiornaBottoneRisolviTutto();
-            }
-
-            // ---- ACCORDION: ricorda ultima tab aperta ----
-            const storageKey = 'discrepanze_active_tab';
-            const accordion = document.getElementById('discrepanzeAccordion');
-
-            const lastOpen = sessionStorage.getItem(storageKey);
-            if (lastOpen) {
-                const target = document.getElementById(lastOpen);
-                if (target) new bootstrap.Collapse(target, { show: true });
-            }
-
-            if (accordion) {
-                accordion.addEventListener('shown.bs.collapse', function (e) {
-                    sessionStorage.setItem(storageKey, e.target.id);
-                });
-
-                accordion.addEventListener('hidden.bs.collapse', function (e) {
-                    if (sessionStorage.getItem(storageKey) === e.target.id) {
-                        sessionStorage.removeItem(storageKey);
-                    }
-                });
-            }
-
-            document.querySelectorAll('[data-confirm-trigger="true"][data-url]').forEach(btn => {
-                btn.addEventListener('click', (e) => {
-                    e.preventDefault();
-
-                    const url = btn.getAttribute('data-url');
-                    const msg = btn.getAttribute('data-message') || 'Confermi?';
-
-                    avviaRisoluzione(btn, url, msg, { reloadOnSuccess: true });
-                });
-            });
+        document.addEventListener("DOMContentLoaded", () => {
+            const inputs = Array.from(document.querySelectorAll(
+                '#searchQuery, input[name="Query"], input[name$=".Query"], input[id$="__Query"]'
+            ));
+            if (inputs.length === 0) return;
+    
+            const desktopPlaceholder = "Cerca per Barcode, Descrizione, Info, Dettagli Gestione...";
+            const mobilePlaceholder  = "Cerca per Barcode, Descrizione, Info, Dettagli Gestione...";
+    
+            const apply = () => {
+                const ph = (window.innerWidth < 768) ? mobilePlaceholder : desktopPlaceholder;
+                inputs.forEach(i => i.placeholder = ph);
+            };
+    
+            requestAnimationFrame(apply);
+            window.addEventListener("resize", apply);
         });
 
         function avviaRisoluzione(btn, url, msg, options = {}) {
