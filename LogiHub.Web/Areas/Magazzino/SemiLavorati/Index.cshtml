@@ -79,7 +79,14 @@
                             <i class="fa-solid fa-right-left me-2"></i>Sposta
                         </button>
                         <button class="btn btn-sm btn-secondary disabled flex-fill w-100" disabled style="cursor: not-allowed; pointer-events: auto !important;" title="Magazzino bloccato">
-                            <i class="fa-solid fa-dolly me-2"></i>Entrata / Uscita
+                            @if (item.Uscito)
+                            {
+                                <i class="fa-solid fa-right-from-bracket fa-rotate-180 me-2"></i><text>Rientro</text>
+                            }
+                            else
+                            {
+                                <i class="fa-solid fa-right-from-bracket me-2"></i><text>Uscita</text>
+                            }
                         </button>
                     }
                     else
@@ -104,9 +111,16 @@
                         }
 
                         <button type="button" 
-                                class="btn btn-sm btn-outline-warning flex-fill w-100" 
+                                class="btn btn-sm btn-outline-dark flex-fill w-100" 
                                 onclick="apriModale(event, '@Url.Action("GetMovimentaModal", "SemiLavorati", new { id = item.Id })')">
-                            <i class="fa-solid fa-dolly me-2"></i>Entrata / Uscita
+                            @if (item.Uscito)
+                            {
+                                <i class="fa-solid fa-right-from-bracket fa-rotate-180 me-2"></i><text>Rientro</text>
+                            }
+                            else
+                            {
+                                <i class="fa-solid fa-right-from-bracket me-2"></i><text>Uscita</text>
+                            }
                         </button>
                     }
                 </div>
@@ -142,7 +156,7 @@
                     <th>Descrizione</th>
                     <th class="text-center">Ubicazione</th>
                     <th>Ultima Modifica</th>
-                    <th class="text-center" style="width: 140px;">Azioni</th>
+                    <th class="text-center">Azioni</th>
                 </tr>
                 </thead>
                 <tbody id="desktop-table-body">
@@ -170,10 +184,17 @@
                                 @if (isBloccato)
                                 {
                                     <button class="btn btn-sm btn-secondary disabled" disabled style="cursor: not-allowed; pointer-events: auto !important;" title="Magazzino bloccato">
-                                        <i class="fa-solid fa-right-left"></i>
+                                        <i class="fa-solid fa-right-left me-1"></i> Sposta
                                     </button>
                                     <button class="btn btn-sm btn-secondary disabled" disabled style="cursor: not-allowed; pointer-events: auto !important;" title="Magazzino bloccato">
-                                        <i class="fa-solid fa-dolly"></i>
+                                        @if (item.Uscito)
+                                        {
+                                            <i class="fa-solid fa-right-from-bracket fa-rotate-180 me-1"></i> <text>Fai Entrare</text>
+                                        }
+                                        else
+                                        {
+                                            <i class="fa-solid fa-right-from-bracket me-1"></i> <text>Fai Uscire</text>
+                                        }
                                     </button>
                                 }
                                 else
@@ -184,7 +205,7 @@
                                                 class="btn btn-sm btn-outline-primary"
                                                 title="Sposta Semilavorato"
                                                 onclick="apriModale(event, '@Url.Action("GetSpostaModal", "SemiLavorati", new { id = item.Id })')">
-                                            <i class="fa-solid fa-right-left"></i>
+                                            <i class="fa-solid fa-right-left me-1"></i> Sposta
                                         </button>
                                     }
                                     else
@@ -194,15 +215,22 @@
                                                 disabled
                                                 title="Impossibile spostare: il pezzo è uscito"
                                                 style="cursor: not-allowed; pointer-events: auto !important;">
-                                            <i class="fa-solid fa-right-left"></i>
+                                            <i class="fa-solid fa-right-left me-1"></i> Sposta
                                         </button>
                                     }
 
                                     <button type="button" 
-                                            class="btn btn-sm btn-outline-warning" 
-                                            title="Entrata/Uscita"
+                                            class="btn btn-sm btn-outline-dark" 
+                                            title="@(item.Uscito ? "Rientro" : "Uscita")"
                                             onclick="apriModale(event, '@Url.Action("GetMovimentaModal", "SemiLavorati", new { id = item.Id })')">
-                                        <i class="fa-solid fa-dolly"></i>
+                                        @if (item.Uscito)
+                                        {
+                                            <i class="fa-solid fa-right-from-bracket fa-rotate-180 me-1"></i> <text>Fai Entrare</text>
+                                        }
+                                        else
+                                        {
+                                            <i class="fa-solid fa-right-from-bracket me-1"></i> <text>Fai Uscire</text>
+                                        }
                                     </button>
                                 }
                             </div>
