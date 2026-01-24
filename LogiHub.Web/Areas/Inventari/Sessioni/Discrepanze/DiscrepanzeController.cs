@@ -74,7 +74,20 @@ public partial class DiscrepanzeController : AuthenticatedBaseController
             ShowSearchInColumns = false,
             HeaderButtons = headerButtons
         };
+        int totalOpen = tutte.Count(x => x.Stato == StatoDiscrepanza.Aperta);
 
+        if (totalOpen == 0 && (string.IsNullOrWhiteSpace(query) || isSolaLettura))
+        {
+            searchCard.AlertTitle = "Ottimo lavoro!";
+            searchCard.Message = "Tutte le discrepanze sono state allineate.";
+            searchCard.MessageType = SearchCardMessageType.Success;
+        }
+        else if (isSolaLettura && totalOpen > 0)
+        {
+            searchCard.AlertTitle = "Risoluzione Bloccata:";
+            searchCard.Message = "Terminare il controllo prima di allineare il magazzino.";
+            searchCard.MessageType = SearchCardMessageType.Warning;
+        }
         var model = new DiscrepanzeViewModel
         {
             SessioneId = id,

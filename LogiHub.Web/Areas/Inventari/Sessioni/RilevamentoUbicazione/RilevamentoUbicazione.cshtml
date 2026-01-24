@@ -7,16 +7,6 @@
     ViewData["Title"] = "Rilevamento " + Model.NomeUbicazione;
 }
 
-@if (Model.IsSolaLettura)
-{
-    <div class="alert alert-warning opacity-100 border-0 shadow-sm mb-3 d-flex align-items-center">
-        <i class="fa-solid fa-lock me-3 fa-lg"></i>
-        <div>
-            <strong>Ubicazione Completata.</strong> Modalità sola lettura attiva.
-        </div>
-    </div>
-}
-
 <div>
     @await Html.PartialAsync("~/Features/SearchCard/_SearchCard.cshtml", Model.SearchCard)
 </div>
@@ -30,11 +20,11 @@
     var btnMancanteClass = Model.IsSolaLettura ? "btn btn-sm btn-secondary text-nowrap" : "btn btn-sm btn-outline-danger text-nowrap";
 }
 @* --- STATISTICHE --- *@
-<div id="stats-container" class="d-flex mb-3 flex-wrap gap-2 sticky-top shadow-sm rounded">
+<div id="stats-container" class="d-flex mb-3 flex-wrap gap-2 sticky-top rounded">
 
     @* Card Avanzamento *@
-    <div class="card border-0 shadow-sm flex-grow-1 @(Model.IsSolaLettura ? "bg-light" : "")">
-        <div class="card-body p-2 p-md-3">
+    <div class="card border-0 bg-light flex-grow-1 @(Model.IsSolaLettura ? "bg-light" : "")">
+        <div class="card-body px-2 py-3 p-md-3">
             <div class="d-flex flex-column">
                 
                 <div class="d-flex justify-content-between align-items-center mb-1">
@@ -154,7 +144,7 @@
         @foreach (var pezzo in Model.Pezzi)
         {
             <div id="card-@pezzo.RigaId"
-                 class="card shadow-sm border-0 border-start border-5 mb-2 @(pezzo.Stato == StatoRigaInventario.Trovato ? "border-success" : pezzo.Stato == StatoRigaInventario.Mancante ? "border-danger" : "")">
+                 class="card border-0 border-start border-5 mb-2 @(pezzo.Stato == StatoRigaInventario.Trovato ? "border-success" : pezzo.Stato == StatoRigaInventario.Mancante ? "border-danger" : "")">
                 <div class="card-body p-2">
 
                     <div class="d-flex justify-content-between align-items-start">

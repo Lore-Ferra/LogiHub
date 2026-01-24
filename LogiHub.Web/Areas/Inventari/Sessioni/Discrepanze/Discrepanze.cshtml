@@ -8,32 +8,10 @@
     var countMancanti = Model.DaRimuovere?.Count(x => x.Stato == StatoDiscrepanza.Aperta) ?? 0;
 
     var totalOpen = countSpostati + countExtra + countMancanti;
-    bool canRisolviTutto = !Model.IsSolaLettura && totalOpen > 0;
 }
 
 @{
     bool hasQuery = !string.IsNullOrWhiteSpace(Model.SearchCard?.Query);
-}
-
-@if (totalOpen == 0 && (!hasQuery || Model.IsSolaLettura))
-{
-    @* CASO 1: TUTTO RISOLTO (Verde) *@
-    <div class="alert alert-success border-0 shadow-sm mb-3 d-flex align-items-center">
-        <i class="fa-solid fa-circle-check me-2 fa-lg"></i>
-        <span class="fw-bold me-1">Ottimo lavoro!</span>
-        <span>Tutte le discrepanze sono state allineate.</span>
-    </div>
-}
-else if (Model.IsSolaLettura && totalOpen > 0)
-{
-    @* CASO 2: BLOCCATO (Giallo) - Appare solo se ci sono ancora cose aperte *@
-    <div class="alert alert-warning border-0 shadow-sm mb-3 d-flex align-items-center">
-        <i class="fa-solid fa-lock me-3 fa-lg"></i>
-        <div>
-            <strong>Risoluzione Bloccata:</strong>
-            Terminare il controllo prima di allineare il magazzino.
-        </div>
-    </div>
 }
 
 @section Styles {
@@ -54,7 +32,6 @@ else if (Model.IsSolaLettura && totalOpen > 0)
     };
 
     // Renderizza la tabella (o le card su mobile)
-    // Renderizza la tabella (o le card su mobile) con gestione stato vuoto
     async Task RenderTabella(IEnumerable<DiscrepanzaDTO> items, string colorClass, TipoRisoluzione tipoDefault)
     {
         @if (items == null || !items.Any())

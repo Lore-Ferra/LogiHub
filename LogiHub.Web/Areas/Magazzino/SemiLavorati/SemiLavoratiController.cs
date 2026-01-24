@@ -131,6 +131,10 @@ public partial class SemiLavoratiController : AuthenticatedBaseController
                 isBloccato ? bottoneDisabilitato : bottoneAttivo
             },
         
+            AlertTitle = isBloccato ? "Magazzino Bloccato: " : null,
+            Message = isBloccato ? "Inventario in corso. Inserimento, modifica ed eliminazione disabilitati." : null,
+            MessageType = isBloccato ? SearchCardMessageType.Warning : SearchCardMessageType.None,
+            
             DefaultSearchInColumnKey = "Barcode",
         
             SearchInColumns = new()

@@ -15,28 +15,6 @@
     bool mostraSeparatori = sezioniAttive > 1;
 }
 
-@if (!Model.Chiuso && (Model.CiSonoUbicazioniAperte || Model.CiSonoDiscrepanzeAperte))
-{
-    <div class="alert alert-warning border-0 shadow-sm mb-3 d-flex align-items-center">
-        <i class="fa-solid fa-lock me-3 fa-lg"></i>
-        <div>
-            <strong>Completamento Bloccato:</strong>
-            @if (Model.CiSonoUbicazioniAperte && Model.CiSonoDiscrepanzeAperte)
-            {
-                <span>Ci sono ancora ubicazioni da completare e discrepanze da risolvere.</span>
-            }
-            else if (Model.CiSonoUbicazioniAperte)
-            {
-                <span>Ci sono ancora ubicazioni da completare.</span>
-            }
-            else
-            {
-                <span>Ci sono ancora discrepanze da risolvere.</span>
-            }
-        </div>
-    </div>
-}
-
 <div>
     @await Html.PartialAsync("~/Features/SearchCard/_SearchCard.cshtml", Model.SearchCard)
 </div>

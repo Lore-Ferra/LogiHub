@@ -13,17 +13,7 @@
     <link rel="stylesheet" href="~/css/offcanvas.css"/>
 }
 
-@if (isBloccato)
-{
-    <div class="alert alert-warning border-0 shadow-sm mb-3 d-flex align-items-center">
-        <i class="fa-solid fa-triangle-exclamation me-3 fa-lg"></i>
-        <div>
-            <strong>Magazzino Bloccato:</strong> Inventario in corso. Inserimento, modifica ed eliminazione
-            disabilitati.
 
-        </div>
-    </div>
-}
 <div>
     @await Html.PartialAsync("~/Features/SearchCard/_SearchCard.cshtml", Model.SearchCard)
 </div>

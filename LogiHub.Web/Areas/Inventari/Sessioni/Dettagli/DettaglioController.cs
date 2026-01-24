@@ -43,21 +43,11 @@ public partial class DettaglioController : AuthenticatedBaseController
 
         if (!string.IsNullOrWhiteSpace(query))
         {
-            if (!string.IsNullOrWhiteSpace(query))
-            {
-                if (!string.IsNullOrWhiteSpace(query))
-                {
-                    ubicazioniFiltrate = ubicazioniFiltrate
-                        .Where(u =>
-                            (!string.IsNullOrEmpty(u.Posizione) &&
-                             u.Posizione.Contains(query, StringComparison.OrdinalIgnoreCase))
-                            ||
-                            (!string.IsNullOrEmpty(u.OperatoreCorrente) &&
-                             u.OperatoreCorrente.Contains(query, StringComparison.OrdinalIgnoreCase))
-                        )
-                        .ToList();
-                }
-            }
+            ubicazioniFiltrate = ubicazioniFiltrate
+                .Where(u =>
+                    (!string.IsNullOrEmpty(u.Posizione) && u.Posizione.Contains(query, StringComparison.OrdinalIgnoreCase)) ||
+                    (!string.IsNullOrEmpty(u.OperatoreCorrente) && u.OperatoreCorrente.Contains(query, StringComparison.OrdinalIgnoreCase))
+                ).ToList();
         }
 
         // Calcola la paginazione
@@ -91,8 +81,22 @@ public partial class DettaglioController : AuthenticatedBaseController
                     }
                 }
             }
+            
         };
+        if (!data.Chiuso && (ciSonoUbicazioniAperte || ciSonoDiscrepanzeAperte))
+        {
+            searchCardModel.AlertTitle = "Completamento Bloccato:";
+            searchCardModel.MessageType = SearchCardMessageType.Warning;
 
+            if (ciSonoUbicazioniAperte)
+            {
+                searchCardModel.Message = "Rileva tutte le ubicazioni per poter procedere.";
+            }
+            else
+            {
+                searchCardModel.Message = "Allinea le discrepanze rimaste per sbloccare l'azione Completa.";
+            }
+        }
         // Se la sessione non è chiusa, aggiungi il pulsante di chiusura
         if (!data.Chiuso)
         {
