@@ -36,12 +36,11 @@
                     <div class="mb-3">
                         <label class="form-label fw-bold small text-muted" for="nuovaUbicazioneId">Nuova Ubicazione</label>
                         <div class="input-group">
-                            <span class="input-group-text bg-white text-muted"><i class="fa-solid fa-magnifying-glass"></i></span>
-                            <select class="form-select" id="nuovaUbicazioneId" name="nuovaUbicazioneId" required asp-for="NuovaUbicazioneId" asp-items="Model.UbicazioniList">
+                            <select class="form-select @(ViewData.ModelState[nameof(Model.NuovaUbicazioneId)]?.Errors.Any() == true ? "is-invalid" : "")" id="nuovaUbicazioneId" asp-for="NuovaUbicazioneId" asp-items="Model.UbicazioniList" >
                                 <option value="">-- Seleziona Ubicazione --</option>
                             </select>
                         </div>
-                        <div class="form-text small">Seleziona la nuova posizione fisica del semilavorato.</div>
+                        <span asp-validation-for="NuovaUbicazioneId" class="text-danger small"></span>
                     </div>
 
                     <div class="d-flex justify-content-end gap-2 mt-4 pt-3 border-top">

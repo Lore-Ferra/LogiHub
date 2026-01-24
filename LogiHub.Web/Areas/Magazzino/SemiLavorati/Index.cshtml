@@ -464,6 +464,10 @@ else
                     const modal = new bootstrap.Modal(modalEl);
                     modal.show();
                     
+                    // Inizializza la logica di change detection specifica per il modale caricato
+                    if (container.querySelector('#formSposta')) initSpostaModal();
+                    if (container.querySelector('#formStato')) initMovimentaModal();
+                    
                 } else {
                     notify("Impossibile caricare il modale.", "danger");
                 }
@@ -473,50 +477,66 @@ else
             }
         }
 
-        function gestisciCambioStatoMovimento(isUscito) {
+        // --- LOGICA MODALE SPOSTA ---
+        function initSpostaModal() {
+            const form = document.getElementById('formSposta');
+            if (!form) return;
+            const select = document.getElementById('nuovaUbicazioneId');
+            
+            // Salva il valore iniziale (l'ubicazione corrente)
+            const initialVal = select.value;
+        }
+
+        // --- LOGICA MODALE MOVIMENTA ---
+        function initMovimentaModal() {
             const form = document.getElementById('formStato');
-            // Leggiamo lo stato originale salvato nel form
+            if (!form) return;
+            
+            const ubiSelect = document.getElementById('statoUbicazioneId');
+            const azSelect = document.getElementById('statoAziendaId');
+            
+            // Salva valori iniziali
+            if (!ubiSelect.hasAttribute('data-initial')) ubiSelect.setAttribute('data-initial', ubiSelect.value);
+            if (!azSelect.hasAttribute('data-initial')) azSelect.setAttribute('data-initial', azSelect.value);
+            
+            // Aggiungi listener a tutti gli input
+            const inputs = form.querySelectorAll('input[type="radio"], select');
+            inputs.forEach(el => el.addEventListener('change', updateMovimentaUI));
+            
+            // Esegui check iniziale
+            updateMovimentaUI();
+        }
+
+        function updateMovimentaUI() {
+            const form = document.getElementById('formStato');
+            if (!form) return;
+            
             const originalUscito = form.getAttribute('data-original-uscito') === 'true';
+            
+            const radioOut = document.getElementById('radioOut');
+            const isUscito = radioOut.checked;
             
             const divRientro = document.getElementById('divRientro');
             const divUscita = document.getElementById('divUscita');
             const msgSposta = document.getElementById('msgUsaSposta');
-            const selUbi = document.getElementById('statoUbicazioneId');
-            const selAz = document.getElementById('statoAziendaId');
-            const btnSubmit = form.querySelector('button[type="submit"]');
 
+            // 1. Gestione Visibilità
             if (isUscito) {
-                // Selezionato: USCITO
                 divRientro.classList.add('d-none');
                 divUscita.classList.remove('d-none');
                 if(msgSposta) msgSposta.classList.add('d-none');
-                
-                selUbi.required = false;
-                selAz.required = true;
-                if(btnSubmit) btnSubmit.disabled = false;
             } else {
-                // Selezionato: IN MAGAZZINO
                 divUscita.classList.add('d-none');
                 
-                // Se era già dentro e seleziono "In", nascondo la select e mostro avviso
-                // Se era fuori (originalUscito == true), mostro la select per il rientro
-                const isRientro = originalUscito === true;
-                
-                if (isRientro) {
+                if (originalUscito) {
+                    // Era FUORI, ora DENTRO (Rientro)
                     divRientro.classList.remove('d-none');
                     if(msgSposta) msgSposta.classList.add('d-none');
-                    selUbi.required = true;
-                    if(btnSubmit) btnSubmit.disabled = false;
                 } else {
-                    // Caso: Era dentro, seleziono dentro -> Blocco modifica ubicazione (Usa Sposta)
+                    // Era DENTRO, resta DENTRO (Bloccato -> Usa Sposta)
                     divRientro.classList.add('d-none');
                     if(msgSposta) msgSposta.classList.remove('d-none');
-                    selUbi.required = false;
-                    // Disabilito il submit per evitare confusione
-                    if(btnSubmit) btnSubmit.disabled = true;
                 }
-                
-                selAz.required = false;
             }
         }
 
@@ -540,11 +560,13 @@ else
                 const formData = new FormData(form);
                 const res = await fetch(form.action, { method: 'POST', body: formData });
                 
-                if (res.ok) {
+                const contentType = res.headers.get("content-type");
+                
+                if (contentType && contentType.indexOf("application/json") !== -1) {
+                    // Risposta JSON (Successo o Errore generico)
                     const data = await res.json();
                     if (data.success) {
                         sessionStorage.setItem("pendingToast", JSON.stringify({ msg: data.message, type: "success" }));
-                        // QUI RISOLVIAMO IL PROBLEMA DEL BACK BUTTON:
                         window.location.replace(window.location.href);
                     } else {
                         notify(data.message || "Errore durante l'operazione", "danger");
@@ -554,15 +576,47 @@ else
                         }
                     }
                 } else {
-                    notify("Errore di connessione al server.", "danger");
-                    if (btn) { btn.disabled = false; btn.innerHTML = originalText; }
+                    // Risposta HTML (Errori di validazione)
+                    const html = await res.text();
+                    const container = document.getElementById('modalContainer');
+                    
+                    // Parsing del nuovo HTML per aggiornamento parziale (evita sfarfallio)
+                    const parser = new DOMParser();
+                    const doc = parser.parseFromString(html, 'text/html');
+                    const newContent = doc.querySelector('.modal-content');
+                    const currentModal = container.querySelector('.modal.show');
+                    
+                    if (currentModal && newContent && currentModal.querySelector('.modal-content')) {
+                        const currentContent = currentModal.querySelector('.modal-content');
+                        
+                        currentContent.replaceWith(newContent);
+                        
+                        // Re-inizializza la logica specifica del modale
+                        if (newContent.querySelector('#formSposta')) initSpostaModal();
+                        if (newContent.querySelector('#formStato')) initMovimentaModal();
+                        return;
+                    }
+                    
+                    // Rimuovo eventuali backdrop vecchi per evitare duplicati
+                    document.querySelectorAll('.modal-backdrop').forEach(el => el.remove());
+                    
+                    container.innerHTML = html;
+                    
+                    // Re-inizializzo il modale
+                    const modalEl = container.querySelector('.modal');
+                    const modal = new bootstrap.Modal(modalEl);
+                    modal.show();
+                    
+                    // Re-inizializzo la logica UI
+                    if (container.querySelector('#formSposta')) initSpostaModal();
+                    if (container.querySelector('#formStato')) initMovimentaModal();
                 }
             } catch (err) {
                 console.error(err);
                 notify("Errore di rete.", "danger");
                 if (btn) { btn.disabled = false; btn.innerHTML = originalText; }
             }
-        }, true);
+        }, false);
     </script>
 
     <script>

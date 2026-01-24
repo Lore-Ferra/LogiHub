@@ -1,4 +1,7 @@
 @model LogiHub.Web.Areas.Magazzino.SemiLavorati.MovimentoSemiLavoratoViewModel
+@{
+    var originalUscito = ViewData["OriginalUscito"] as bool? ?? Model.Uscito;
+}
 
 <div class="modal fade" id="modalStato" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
@@ -22,43 +25,46 @@
                     </div>
                 </div>
                 
-                <form id="formStato" asp-action="CambiaStato" asp-area="Magazzino" method="post" data-original-uscito="@Model.Uscito.ToString().ToLower()">
+                <form id="formStato" asp-action="CambiaStato" asp-area="Magazzino" method="post" data-original-uscito="@originalUscito.ToString().ToLower()">
                     @Html.AntiForgeryToken()
                     <input type="hidden" name="id" value="@Model.Id" />
 
                     <label class="d-block small fw-bold text-muted mb-2">Stato Attuale:</label>
                     <div class="btn-group w-100 mb-4" role="group">
-                        <input type="radio" class="btn-check" name="uscito" value="false" id="radioIn" @(!Model.Uscito ? "checked" : "") onchange="gestisciCambioStatoMovimento(false)">
+                        <input type="radio" class="btn-check" asp-for="Uscito" value="false" id="radioIn">
                         <label class="btn btn-outline-success w-50" for="radioIn"><i class="fas fa-warehouse me-2"></i>In Magazzino</label>
 
-                        <input type="radio" class="btn-check" name="uscito" value="true" id="radioOut" @(Model.Uscito ? "checked" : "") onchange="gestisciCambioStatoMovimento(true)">
+                        <input type="radio" class="btn-check" asp-for="Uscito" value="true" id="radioOut">
                         <label class="btn btn-outline-danger w-50" for="radioOut"><i class="fas fa-truck-arrow-right me-2"></i>Uscito</label>
                     </div>
+                    <span asp-validation-for="Uscito" class="text-danger d-block text-center mb-3"></span>
 
                     @* Messaggio per usare Sposta (visibile solo se In Magazzino) *@
-                    <div id="msgUsaSposta" class="alert alert-info small mb-3 @(Model.Uscito ? "d-none" : "")">
+                    <div id="msgUsaSposta" class="alert alert-info small mb-3 @(!Model.Uscito && !originalUscito ? "" : "d-none")">
                         <i class="fa-solid fa-circle-info me-2"></i>Per spostamenti interni, utilizza il tasto <b><i class="fa-solid fa-right-left mx-1"></i>Sposta</b> nella tabella.
                     </div>
 
                     @* Sezione Rientro *@
-                    <div id="divRientro" class="mb-3 d-none">
+                    <div id="divRientro" class="mb-3 @(!Model.Uscito && originalUscito ? "" : "d-none")">
                         <label class="form-label fw-bold small text-muted">Ubicazione di Rientro</label>
-                        <select class="form-select" id="statoUbicazioneId" asp-for="UbicazioneId" asp-items="Model.UbicazioniList">
+                        <select class="form-select @(ViewData.ModelState[nameof(Model.UbicazioneId)]?.Errors.Any() == true ? "is-invalid" : "")" id="statoUbicazioneId" asp-for="UbicazioneId" asp-items="Model.UbicazioniList">
                             <option value="">-- Seleziona Ubicazione --</option>
                         </select>
+                        <span asp-validation-for="UbicazioneId" class="text-danger"></span>
                     </div>
 
                     @* Sezione Uscita *@
                     <div id="divUscita" class="mb-3 @(!Model.Uscito ? "d-none" : "")">
                         <label class="form-label fw-bold small text-muted">Destinazione (Azienda)</label>
-                        <select class="form-select" id="statoAziendaId" asp-for="AziendaId" asp-items="Model.AziendeList" required="@(Model.Uscito ? "required" : null)">
+                        <select class="form-select @(ViewData.ModelState[nameof(Model.AziendaId)]?.Errors.Any() == true ? "is-invalid" : "")" id="statoAziendaId" asp-for="AziendaId" asp-items="Model.AziendeList">
                             <option value="">-- Seleziona Azienda --</option>
                         </select>
+                        <span asp-validation-for="AziendaId" class="text-danger"></span>
                     </div>
 
                     <div class="d-flex justify-content-end gap-2 mt-4 pt-3 border-top">
                         <button type="button" class="btn btn-secondary border" data-bs-dismiss="modal">Annulla</button>
-                        <button type="submit" class="btn btn-primary" @(!Model.Uscito ? "disabled" : "")>Conferma</button>
+                        <button type="submit" class="btn btn-primary">Conferma</button>
                     </div>
                 </form>
             </div>
