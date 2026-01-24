@@ -459,12 +459,10 @@ else
                 if (res.ok) {
                     container.innerHTML = await res.text();
                     
-                    // Trova il primo modale nel container e mostralo
                     const modalEl = container.querySelector('.modal');
                     const modal = new bootstrap.Modal(modalEl);
                     modal.show();
                     
-                    // Inizializza la logica di change detection specifica per il modale caricato
                     if (container.querySelector('#formSposta')) initSpostaModal();
                     if (container.querySelector('#formStato')) initMovimentaModal();
                     
@@ -477,17 +475,14 @@ else
             }
         }
 
-        // --- LOGICA MODALE SPOSTA ---
         function initSpostaModal() {
             const form = document.getElementById('formSposta');
             if (!form) return;
             const select = document.getElementById('nuovaUbicazioneId');
             
-            // Salva il valore iniziale (l'ubicazione corrente)
             const initialVal = select.value;
         }
 
-        // --- LOGICA MODALE MOVIMENTA ---
         function initMovimentaModal() {
             const form = document.getElementById('formStato');
             if (!form) return;
@@ -495,15 +490,12 @@ else
             const ubiSelect = document.getElementById('statoUbicazioneId');
             const azSelect = document.getElementById('statoAziendaId');
             
-            // Salva valori iniziali
             if (!ubiSelect.hasAttribute('data-initial')) ubiSelect.setAttribute('data-initial', ubiSelect.value);
             if (!azSelect.hasAttribute('data-initial')) azSelect.setAttribute('data-initial', azSelect.value);
             
-            // Aggiungi listener a tutti gli input
             const inputs = form.querySelectorAll('input[type="radio"], select');
             inputs.forEach(el => el.addEventListener('change', updateMovimentaUI));
             
-            // Esegui check iniziale
             updateMovimentaUI();
         }
 
@@ -520,7 +512,6 @@ else
             const divUscita = document.getElementById('divUscita');
             const msgSposta = document.getElementById('msgUsaSposta');
 
-            // 1. Gestione Visibilità
             if (isUscito) {
                 divRientro.classList.add('d-none');
                 divUscita.classList.remove('d-none');
@@ -529,11 +520,9 @@ else
                 divUscita.classList.add('d-none');
                 
                 if (originalUscito) {
-                    // Era FUORI, ora DENTRO (Rientro)
                     divRientro.classList.remove('d-none');
                     if(msgSposta) msgSposta.classList.add('d-none');
                 } else {
-                    // Era DENTRO, resta DENTRO (Bloccato -> Usa Sposta)
                     divRientro.classList.add('d-none');
                     if(msgSposta) msgSposta.classList.remove('d-none');
                 }
@@ -542,7 +531,6 @@ else
 
         document.addEventListener('submit', async function (e) {
             const form = e.target;
-            // Intercetta solo i form dentro il container dei modali dinamici
             if (!form.closest('#modalContainer')) return;
 
             e.preventDefault();
@@ -563,7 +551,6 @@ else
                 const contentType = res.headers.get("content-type");
                 
                 if (contentType && contentType.indexOf("application/json") !== -1) {
-                    // Risposta JSON (Successo o Errore generico)
                     const data = await res.json();
                     if (data.success) {
                         sessionStorage.setItem("pendingToast", JSON.stringify({ msg: data.message, type: "success" }));
@@ -576,11 +563,9 @@ else
                         }
                     }
                 } else {
-                    // Risposta HTML (Errori di validazione)
                     const html = await res.text();
                     const container = document.getElementById('modalContainer');
                     
-                    // Parsing del nuovo HTML per aggiornamento parziale (evita sfarfallio)
                     const parser = new DOMParser();
                     const doc = parser.parseFromString(html, 'text/html');
                     const newContent = doc.querySelector('.modal-content');
@@ -591,23 +576,19 @@ else
                         
                         currentContent.replaceWith(newContent);
                         
-                        // Re-inizializza la logica specifica del modale
                         if (newContent.querySelector('#formSposta')) initSpostaModal();
                         if (newContent.querySelector('#formStato')) initMovimentaModal();
                         return;
                     }
                     
-                    // Rimuovo eventuali backdrop vecchi per evitare duplicati
                     document.querySelectorAll('.modal-backdrop').forEach(el => el.remove());
                     
                     container.innerHTML = html;
                     
-                    // Re-inizializzo il modale
                     const modalEl = container.querySelector('.modal');
                     const modal = new bootstrap.Modal(modalEl);
                     modal.show();
                     
-                    // Re-inizializzo la logica UI
                     if (container.querySelector('#formSposta')) initSpostaModal();
                     if (container.querySelector('#formStato')) initMovimentaModal();
                 }
