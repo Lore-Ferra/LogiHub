@@ -15,14 +15,14 @@
             </div>
             <div class="modal-body pt-2">
                 <div class="rounded mb-2">
-                    <div class="d-flex align-items-center justify-content-between">
-                        <div class="d-flex align-items-center gap-2">
-                            <small class="text-muted" style="font-size: 0.9rem;">Barcode:</small>
+                    <div class="d-flex align-items-start justify-content-between">
+                        <div>
+                            <small class="text-muted d-block">Barcode</small>
                             <span class="fw-bold text-primary fs-5">@Model.Barcode</span>
                         </div>
-                        <div class="d-flex align-items-center gap-2 ps-3">
-                            @* <small class="text-muted" style="font-size: 0.9rem;">Descrizione:</small> *@
-                            <span class="fw-bold text-dark">@Model.Descrizione</span>
+                        <div class="text-end">
+                            <small class="text-muted d-block">Descrizione</small>
+                            <span class="text-dark">@Model.Descrizione</span>
                         </div>
                     </div>
                 </div>
