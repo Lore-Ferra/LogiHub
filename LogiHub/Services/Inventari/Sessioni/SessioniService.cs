@@ -342,7 +342,7 @@ public class SessioniService : ISessioniService
     }
 
     // 2. Recupero o Creazione del SemiLavorato (se non esiste nel sistema)
-    var sl = await _context.SemiLavorati.FirstOrDefaultAsync(s => s.Barcode == barcode);
+    var sl = await _context.SemiLavorati.IgnoreQueryFilters().FirstOrDefaultAsync(s => s.Barcode == barcode);
 
     if (sl == null)
     {
@@ -353,7 +353,8 @@ public class SessioniService : ISessioniService
             Descrizione = string.IsNullOrWhiteSpace(descrizione) ? "Nuovo Articolo" : descrizione,
             UbicazioneId = null,
             DataCreazione = DateTime.Now,
-            UltimaModifica = DateTime.Now
+            UltimaModifica = DateTime.Now,
+            Eliminato = true // Lo creiamo nascosto finché non viene confermato nella risoluzione discrepanze
         };
         _context.SemiLavorati.Add(sl);
 

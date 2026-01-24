@@ -49,8 +49,14 @@ public class SemiLavoratoService : ISemiLavoratoService
         if (!dto.IsRettificaInventario && await _bloccoService.IsBloccatoAsync())
             throw new InvalidOperationException("Magazzino bloccato per inventario.");
 
-        var sl = await _context.SemiLavorati.FirstOrDefaultAsync(x => x.Id == dto.Id);
-        if (sl == null || sl.Eliminato) return false;
+        var sl = await _context.SemiLavorati.IgnoreQueryFilters().FirstOrDefaultAsync(x => x.Id == dto.Id);
+        if (sl == null) return false;
+
+        if (sl.Eliminato)
+        {
+            if (!dto.IsRettificaInventario) return false;
+            sl.Eliminato = false;
+        }
         
         var ubicazioneOld = await _context.Ubicazioni
             .Where(x => x.UbicazioneId == sl.UbicazioneId)
