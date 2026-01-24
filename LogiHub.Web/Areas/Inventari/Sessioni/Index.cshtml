@@ -116,7 +116,17 @@
     {
         <div class="text-center py-5 text-muted">
             <i class="fas fa-box-open fa-3x mb-3"></i>
-            <p>Nessuna sessione trovata.</p>
+            @if (!string.IsNullOrWhiteSpace(Model.SearchCard?.Query))
+            {
+                <p>Nessun risultato per "<strong>@Model.SearchCard.Query</strong>"</p>
+                <p class="small text-muted mt-2">
+                    Prova a cercare abilitando altri <strong>filtri</strong>. Prova a <a href="@Url.Action("Index")" class="fw-bold text-decoration-none" onclick="window.location.replace(this.href); return false;">pulire la ricerca</a>.
+                </p>
+            }
+            else
+            {
+                <p>Nessuna sessione trovata.</p>
+            }
         </div>
     }
 </div>
@@ -189,7 +199,17 @@
                     <tr>
                         <td colspan="4" class="text-center py-5 text-muted">
                             <i class="fas fa-box-open fa-3x mb-3"></i>
-                            <p>Nessuna sessione trovata.</p>
+                            @if (!string.IsNullOrWhiteSpace(Model.SearchCard?.Query))
+                            {
+                                <p>Nessun risultato per "<strong>@Model.SearchCard.Query</strong>"</p>
+                                <p class="small text-muted mt-2">
+                                    Prova a cercare abilitando altri <strong>filtri</strong>. Prova a <a href="@Url.Action("Index")" class="fw-bold text-decoration-none" onclick="window.location.replace(this.href); return false;">pulire la ricerca</a>.
+                                </p>
+                            }
+                            else
+                            {
+                                <p>Nessuna sessione trovata.</p>
+                            }
                         </td>
                     </tr>
                 }

@@ -104,7 +104,17 @@
                         <tr>
                             <td colspan="3" class="text-center py-5 text-muted">
                                 <i class="fas fa-box-open fa-3x mb-3"></i>
-                                <p>Nessuna ubicazione trovata.</p>
+                                @if (!string.IsNullOrWhiteSpace(Model.SearchCard?.Query))
+                                {
+                                    <p>Nessun risultato per "<strong>@Model.SearchCard.Query</strong>"</p>
+                                    <p class="small text-muted mt-2">
+                                        Nessuna ubicazione o operatore trovato. Prova a <a href="@Url.Action("Index", new { id = Model.SessioneId })" class="fw-bold text-decoration-none" onclick="window.location.replace(this.href); return false;">pulire la ricerca</a>.
+                                    </p>
+                                }
+                                else
+                                {
+                                    <p>Nessuna ubicazione trovata.</p>
+                                }
                             </td>
                         </tr>
                     }
@@ -203,7 +213,17 @@
     {
         <div class="text-center py-5 text-muted">
             <i class="fas fa-box-open fa-3x mb-3"></i>
-            <p>Nessuna ubicazione trovata.</p>
+            @if (!string.IsNullOrWhiteSpace(Model.SearchCard?.Query))
+            {
+                <p>Nessun risultato per "<strong>@Model.SearchCard.Query</strong>"</p>
+                <p class="small text-muted mt-2">
+                    Nessuna ubicazione o operatore trovato. Prova a <a href="@Url.Action("Index", new { id = Model.SessioneId })" class="fw-bold text-decoration-none" onclick="window.location.replace(this.href); return false;">pulire la ricerca</a>.
+                </p>
+            }
+            else
+            {
+                <p>Nessuna ubicazione trovata.</p>
+            }
         </div>
     }
 </div>
