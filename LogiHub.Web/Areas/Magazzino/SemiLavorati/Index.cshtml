@@ -464,6 +464,10 @@ else
                     const modal = new bootstrap.Modal(modalEl);
                     modal.show();
                     
+                    // Inizializza la logica di change detection specifica per il modale caricato
+                    if (container.querySelector('#formSposta')) initSpostaModal();
+                    if (container.querySelector('#formStato')) initMovimentaModal();
+                    
                 } else {
                     notify("Impossibile caricare il modale.", "danger");
                 }
@@ -473,50 +477,108 @@ else
             }
         }
 
-        function gestisciCambioStatoMovimento(isUscito) {
+        // --- LOGICA MODALE SPOSTA ---
+        function initSpostaModal() {
+            const form = document.getElementById('formSposta');
+            if (!form) return;
+            const select = document.getElementById('nuovaUbicazioneId');
+            const btn = form.querySelector('button[type="submit"]');
+            
+            // Salva il valore iniziale (l'ubicazione corrente)
+            const initialVal = select.value;
+            
+            // Disabilita inizialmente
+            btn.disabled = true;
+            
+            select.addEventListener('change', function() {
+                // Abilita solo se il valore è diverso dall'iniziale e non è vuoto
+                btn.disabled = (this.value === initialVal) || (this.value === "");
+            });
+        }
+
+        // --- LOGICA MODALE MOVIMENTA ---
+        function initMovimentaModal() {
             const form = document.getElementById('formStato');
-            // Leggiamo lo stato originale salvato nel form
+            if (!form) return;
+            
+            const ubiSelect = document.getElementById('statoUbicazioneId');
+            const azSelect = document.getElementById('statoAziendaId');
+            
+            // Salva valori iniziali
+            if (!ubiSelect.hasAttribute('data-initial')) ubiSelect.setAttribute('data-initial', ubiSelect.value);
+            if (!azSelect.hasAttribute('data-initial')) azSelect.setAttribute('data-initial', azSelect.value);
+            
+            // Aggiungi listener a tutti gli input
+            const inputs = form.querySelectorAll('input[type="radio"], select');
+            inputs.forEach(el => el.addEventListener('change', updateMovimentaUI));
+            
+            // Esegui check iniziale
+            updateMovimentaUI();
+        }
+
+        function updateMovimentaUI() {
+            const form = document.getElementById('formStato');
+            if (!form) return;
+            
+            const btnSubmit = form.querySelector('button[type="submit"]');
             const originalUscito = form.getAttribute('data-original-uscito') === 'true';
+            
+            const radioOut = document.getElementById('radioOut');
+            const isUscito = radioOut.checked;
             
             const divRientro = document.getElementById('divRientro');
             const divUscita = document.getElementById('divUscita');
             const msgSposta = document.getElementById('msgUsaSposta');
             const selUbi = document.getElementById('statoUbicazioneId');
             const selAz = document.getElementById('statoAziendaId');
-            const btnSubmit = form.querySelector('button[type="submit"]');
 
+            // 1. Gestione Visibilità
             if (isUscito) {
-                // Selezionato: USCITO
                 divRientro.classList.add('d-none');
                 divUscita.classList.remove('d-none');
                 if(msgSposta) msgSposta.classList.add('d-none');
                 
                 selUbi.required = false;
                 selAz.required = true;
-                if(btnSubmit) btnSubmit.disabled = false;
             } else {
-                // Selezionato: IN MAGAZZINO
                 divUscita.classList.add('d-none');
                 
-                // Se era già dentro e seleziono "In", nascondo la select e mostro avviso
-                // Se era fuori (originalUscito == true), mostro la select per il rientro
-                const isRientro = originalUscito === true;
-                
-                if (isRientro) {
+                if (originalUscito) {
+                    // Era FUORI, ora DENTRO (Rientro)
                     divRientro.classList.remove('d-none');
                     if(msgSposta) msgSposta.classList.add('d-none');
                     selUbi.required = true;
-                    if(btnSubmit) btnSubmit.disabled = false;
                 } else {
-                    // Caso: Era dentro, seleziono dentro -> Blocco modifica ubicazione (Usa Sposta)
+                    // Era DENTRO, resta DENTRO (Bloccato -> Usa Sposta)
                     divRientro.classList.add('d-none');
                     if(msgSposta) msgSposta.classList.remove('d-none');
                     selUbi.required = false;
-                    // Disabilito il submit per evitare confusione
-                    if(btnSubmit) btnSubmit.disabled = true;
                 }
-                
                 selAz.required = false;
+            }
+            
+            // 2. Change Detection (Abilita/Disabilita bottone)
+            let hasChanged = false;
+            
+            if (isUscito !== originalUscito) {
+                hasChanged = true;
+            } else {
+                // Lo stato (In/Out) è lo stesso, controlliamo i dettagli
+                if (isUscito) {
+                    // Out -> Out: Controlla se è cambiata l'azienda
+                    const initialAz = selAz.getAttribute('data-initial');
+                    if (selAz.value !== initialAz) hasChanged = true;
+                } else {
+                    // In -> In: Non permesso da UI (c'è il messaggio "Usa Sposta"), quindi sempre false
+                    hasChanged = false;
+                }
+            }
+            
+            // Forza disabilitato se In->In (caso speciale), altrimenti usa la logica di cambiamento
+            if (!originalUscito && !isUscito) {
+                btnSubmit.disabled = true;
+            } else {
+                btnSubmit.disabled = !hasChanged;
             }
         }
 
