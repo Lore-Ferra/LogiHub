@@ -34,6 +34,19 @@ public partial class DiscrepanzeController : AuthenticatedBaseController
         Filters ??= new SearchCardFiltersViewModel();
 
         var tutte = await _service.OttieniDiscrepanzeAsync(id);
+        if (!string.IsNullOrWhiteSpace(query))
+        {
+            var q = query.Trim();
+
+            tutte = tutte.Where(x =>
+                (!string.IsNullOrWhiteSpace(x.Barcode)            && x.Barcode.Contains(q, StringComparison.OrdinalIgnoreCase))
+                || (!string.IsNullOrWhiteSpace(x.Descrizione)        && x.Descrizione.Contains(q, StringComparison.OrdinalIgnoreCase))
+                || (!string.IsNullOrWhiteSpace(x.UbicazioneSnapshot) && x.UbicazioneSnapshot.Contains(q, StringComparison.OrdinalIgnoreCase))
+                || (!string.IsNullOrWhiteSpace(x.UbicazioneRilevata) && x.UbicazioneRilevata.Contains(q, StringComparison.OrdinalIgnoreCase))
+                || (!string.IsNullOrWhiteSpace(x.GestitaDa)          && x.GestitaDa.Contains(q, StringComparison.OrdinalIgnoreCase))
+            ).ToList();
+        }
+
         var sessione = await _service.OttieniDettaglioSessioneAsync(id);
 
         bool isSolaLettura = sessione.Ubicazioni.Any(u => !u.Completata);
