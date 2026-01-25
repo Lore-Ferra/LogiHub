@@ -253,17 +253,23 @@
 {
     <div class="text-center py-5 text-muted">
         <i class="fas fa-box-open fa-3x mb-3"></i>
-        <p>
-            @(string.IsNullOrWhiteSpace(Model.SearchCard?.Query)
-                ? "Nessuna discrepanza trovata."
-                : "Nessun risultato per la ricerca.")
-        </p>
+
+        @if (!string.IsNullOrWhiteSpace(Model.SearchCard?.Query))
+        {
+            <p>Nessun risultato per "<strong>@Model.SearchCard.Query</strong>"</p>
+            <p class="small text-muted mt-2">
+                Prova ad <a href="@Url.Action("Index", new { id = Model.SessioneId })"
+                           class="fw-bold text-decoration-none"
+                           onclick="window.location.replace(this.href); return false;">
+                    azzerare la ricerca
+                </a> per vedere tutti gli elementi.
+            </p>
+        }
     </div>
 }
 else
 {
     <div class="container-fluid p-0 mt-3">
-        @* --- ACCORDION CONTAINER --- *@
         <div class="accordion" id="discrepanzeAccordion">
             @{
                 bool hasSpostati = Model.DaSpostare != null && Model.DaSpostare.Any();
@@ -283,12 +289,10 @@ else
             }
 
             @{ await RenderAccordionItem("spostati", "Spostamenti", "fa-solid fa-right-left", countSpostati, Model.DaSpostare, "primary", TipoRisoluzione.Sposta, openSpostati); }
-
             @{ await RenderAccordionItem("extra", "Extra", "fa-solid fa-plus", countExtra, Model.DaAggiungere, "warning", TipoRisoluzione.Aggiungi, openExtra); }
-
             @{ await RenderAccordionItem("mancanti", "Mancanti", "fa-solid fa-minus", countMancanti, Model.DaRimuovere, "danger", TipoRisoluzione.Rimuovi, openMancanti); }
         </div>
-    </div>    
+    </div>
 }
 
 <div class="d-md-none mt-4 mb-3">
