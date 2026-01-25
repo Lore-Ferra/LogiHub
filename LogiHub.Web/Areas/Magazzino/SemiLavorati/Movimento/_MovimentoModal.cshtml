@@ -6,8 +6,9 @@
     var titolo = originalUscito 
         ? "Rientro in Magazzino" 
         : (isSpedizioneEsterna ? "Spedizione Esterna" : "Invio a Terzista");
+    
     var testoStato = originalUscito ? "Uscito" : "In Magazzino";
-    var badgeStato = originalUscito ? "bg-danger" : "bg-success";
+    var iconaStato = originalUscito ? "fa-truck-arrow-right" : "fa-warehouse";
 }
 
 <div class="modal fade" id="modalStato" tabindex="-1" aria-hidden="true">
@@ -25,13 +26,15 @@
                 <div class="rounded mb-2">
                     <div class="d-flex align-items-start justify-content-between">
                         <div>
-                            <small class="text-muted d-block">Barcode</small>
+                            <small class="text-muted d-block" style="font-size: 0.9rem;">Barcode</small>
                             <span class="fw-bold text-primary fs-5">@Model.Barcode</span>
-                            <div class="text-muted small mt-1">@Model.Descrizione</div>
                         </div>
                         <div class="text-end">
-                            <small class="text-muted d-block">Stato attuale</small>
-                            <span class="badge @badgeStato">@testoStato</span>
+                            <small class="text-muted d-block" style="font-size: 0.9rem;">Ubicazione attuale</small>
+                            <span>
+                                <i class="fa-solid text-primary @iconaStato me-1"></i>
+                                @testoStato
+                            </span>
                         </div>
                     </div>
                 </div>
