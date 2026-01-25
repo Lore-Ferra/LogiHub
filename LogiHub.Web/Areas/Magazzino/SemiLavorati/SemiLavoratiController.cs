@@ -597,10 +597,16 @@ public partial class SemiLavoratiController : AuthenticatedBaseController
         };
 
         var success = await _service.ModificaSemiLavorato(dto);
-        
-        if (success) 
-            return Json(new { success = true, message = "Stato aggiornato con successo!" });
-            
+
+        if (success)
+        {
+            var msg = model.Uscito
+                ? "Uscita registrata con successo!"
+                : "Rientro registrato con successo!";
+
+            return Json(new { success = true, message = msg });
+        }
+
         return Json(new { success = false, message = "Errore durante l'aggiornamento." });
     }
 }
