@@ -179,11 +179,11 @@
                                     <button class="btn btn-sm btn-secondary disabled" disabled style="cursor: not-allowed; pointer-events: auto !important;" title="Magazzino bloccato">
                                         @if (item.Uscito)
                                         {
-                                            <i class="fa-solid fa-lock me-1"></i> <text>Fai Entrare</text>
+                                            <i class="fa-solid fa-lock me-1"></i> <text>Rientro</text>
                                         }
                                         else
                                         {
-                                            <i class="fa-solid fa-lock me-1"></i> <text>Fai Uscire</text>
+                                            <i class="fa-solid fa-lock me-1"></i> <text>Uscita</text>
                                         }
                                     </button>
                                 }
@@ -215,11 +215,11 @@
                                             onclick="apriModale(event, '@Url.Action("GetMovimentaModal", "SemiLavorati", new { id = item.Id })')">
                                         @if (item.Uscito)
                                         {
-                                            <i class="fa-solid fa-right-from-bracket fa-rotate-180 me-1"></i> <text>Fai Entrare</text>
+                                            <i class="fa-solid fa-right-from-bracket fa-rotate-180 me-1"></i> <text>Rientro</text>
                                         }
                                         else
                                         {
-                                            <i class="fa-solid fa-right-from-bracket me-1"></i> <text>Fai Uscire</text>
+                                            <i class="fa-solid fa-right-from-bracket me-1"></i> <text>Uscita</text>
                                         }
                                     </button>
                                 }

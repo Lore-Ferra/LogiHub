@@ -464,7 +464,7 @@ public partial class SemiLavoratiController : AuthenticatedBaseController
             Id = sl.Id,
             Barcode = sl.Barcode,
             Descrizione = sl.Descrizione,
-            Uscito = !sl.Uscito, // Propongo l'azione opposta allo stato attuale
+            Uscito = !sl.Uscito,
             UbicazioniList = await _context.Ubicazioni
                 .OrderBy(u => u.Posizione)
                 .Select(u => new SelectListItem { Value = u.UbicazioneId.ToString(), Text = u.Posizione })
@@ -499,7 +499,6 @@ public partial class SemiLavoratiController : AuthenticatedBaseController
 
         if (!ModelState.IsValid)
         {
-            // Ricarico i dati necessari per la vista
             model.Barcode = sl.Barcode;
             model.Descrizione = sl.Descrizione;
             model.UbicazioneAttuale = sl.Ubicazione?.Posizione ?? "N/D";
