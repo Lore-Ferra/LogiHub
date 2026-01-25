@@ -435,16 +435,26 @@ public partial class SemiLavoratiController : AuthenticatedBaseController
 
         if (sl == null) return NotFound();
 
+        var ubicazioni = await _context.Ubicazioni
+            .OrderBy(u => u.Posizione)
+            .Select(u => new SelectListItem { Value = u.UbicazioneId.ToString(), Text = u.Posizione })
+            .ToListAsync();
+
+        if (sl.UbicazioneId.HasValue)
+        {
+            var currentIdStr = sl.UbicazioneId.Value.ToString();
+            ubicazioni = ubicazioni
+                .Where(x => x.Value != currentIdStr)
+                .ToList();
+        }
+
         var model = new SpostaSemiLavoratoViewModel
         {
             Id = sl.Id,
             Barcode = sl.Barcode,
             Descrizione = sl.Descrizione,
             UbicazioneAttuale = sl.Ubicazione?.Posizione ?? "N/D",
-            UbicazioniList = await _context.Ubicazioni
-                .OrderBy(u => u.Posizione)
-                .Select(u => new SelectListItem { Value = u.UbicazioneId.ToString(), Text = u.Posizione })
-                .ToListAsync()
+            UbicazioniList = ubicazioni
         };
 
         return PartialView("_SpostaModal", model);
@@ -502,7 +512,18 @@ public partial class SemiLavoratiController : AuthenticatedBaseController
             model.Barcode = sl.Barcode;
             model.Descrizione = sl.Descrizione;
             model.UbicazioneAttuale = sl.Ubicazione?.Posizione ?? "N/D";
-            model.UbicazioniList = await _context.Ubicazioni.OrderBy(u => u.Posizione).Select(u => new SelectListItem { Value = u.UbicazioneId.ToString(), Text = u.Posizione }).ToListAsync();
+            var ubicazioni = await _context.Ubicazioni
+                .OrderBy(u => u.Posizione)
+                .Select(u => new SelectListItem { Value = u.UbicazioneId.ToString(), Text = u.Posizione })
+                .ToListAsync();
+
+            if (sl.UbicazioneId.HasValue)
+            {
+                var currentIdStr = sl.UbicazioneId.Value.ToString();
+                ubicazioni = ubicazioni.Where(x => x.Value != currentIdStr).ToList();
+            }
+
+            model.UbicazioniList = ubicazioni;
             return PartialView("_SpostaModal", model);
         }
 
