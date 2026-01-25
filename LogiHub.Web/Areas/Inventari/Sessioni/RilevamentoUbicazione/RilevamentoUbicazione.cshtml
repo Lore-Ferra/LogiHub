@@ -142,7 +142,7 @@
                                 {
                                     <p>Nessun risultato per "<strong>@Model.SearchCard.Query</strong>"</p>
                                     <p class="small text-muted mt-2">
-                                        Nessun semilavorato trovato. Prova a <a href="@Url.Action("Index", new { sessioneId = Model.SessioneId, ubicazioneId = Model.UbicazioneId })" class="fw-bold text-decoration-none" onclick="window.location.replace(this.href); return false;">pulire la ricerca</a>.
+                                        Prova ad <a href="@Url.Action("Index", new { sessioneId = Model.SessioneId, ubicazioneId = Model.UbicazioneId })" class="fw-bold text-decoration-none" onclick="window.location.replace(this.href); return false;">azzerare la ricerca</a>.
                                     </p>
                                 }
                                 else
@@ -227,7 +227,7 @@
                 {
                     <p>Nessun risultato per "<strong>@Model.SearchCard.Query</strong>"</p>
                     <p class="small text-muted mt-2">
-                        Nessun semilavorato trovato. Prova a <a href="@Url.Action("Index", new { sessioneId = Model.SessioneId, ubicazioneId = Model.UbicazioneId })" class="fw-bold text-decoration-none" onclick="window.location.replace(this.href); return false;">pulire la ricerca</a>.
+                        Prova ad <a href="@Url.Action("Index", new { sessioneId = Model.SessioneId, ubicazioneId = Model.UbicazioneId })" class="fw-bold text-decoration-none" onclick="window.location.replace(this.href); return false;">azzerare la ricerca</a>.
                     </p>
                 }
                 else

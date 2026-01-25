@@ -108,7 +108,7 @@
                                 {
                                     <p>Nessun risultato per "<strong>@Model.SearchCard.Query</strong>"</p>
                                     <p class="small text-muted mt-2">
-                                        Nessuna ubicazione o operatore trovato. Prova a <a href="@Url.Action("Index", new { id = Model.SessioneId })" class="fw-bold text-decoration-none" onclick="window.location.replace(this.href); return false;">pulire la ricerca</a>.
+                                        Prova ad <a href="@Url.Action("Index", new { id = Model.SessioneId })" class="fw-bold text-decoration-none" onclick="window.location.replace(this.href); return false;">azzerare la ricerca</a> per vedere tutti gli elementi.
                                     </p>
                                 }
                                 else
@@ -217,7 +217,7 @@
             {
                 <p>Nessun risultato per "<strong>@Model.SearchCard.Query</strong>"</p>
                 <p class="small text-muted mt-2">
-                    Nessuna ubicazione o operatore trovato. Prova a <a href="@Url.Action("Index", new { id = Model.SessioneId })" class="fw-bold text-decoration-none" onclick="window.location.replace(this.href); return false;">pulire la ricerca</a>.
+                    Prova ad <a href="@Url.Action("Index", new { id = Model.SessioneId })" class="fw-bold text-decoration-none" onclick="window.location.replace(this.href); return false;">azzerare la ricerca</a> per vedere tutti gli elementi.
                 </p>
             }
             else
