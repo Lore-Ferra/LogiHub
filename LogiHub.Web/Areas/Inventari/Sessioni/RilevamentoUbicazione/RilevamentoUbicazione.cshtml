@@ -332,29 +332,28 @@
                     <input type="hidden" name="sessioneId" value="@Model.SessioneId"/>
                     <input type="hidden" name="ubicazioneId" value="@Model.UbicazioneId"/>
 
-                    <div class="mb-3">
+                    <div>
                         <label class="form-label fw-bold">Barcode</label>
                         <div class="input-group">
                             <input type="text" class="form-control" name="barcode" id="inputBarcodeExtra" required
                                    placeholder="Scansiona o inserisci..."/>
-                            @* Bottone Scan QR *@
                             <button type="button" class="btn btn-secondary" onclick="simulaScanQR()"
                                     title="Simula Scansione">
                                 <i class="fa-solid fa-qrcode"></i>
                             </button>
                         </div>
-                        <div class="form-text">Se il barcode esiste già, verrà segnato come spostamento.</div>
+                        
+                        <div class="alert alert-info mt-2 py-1 px-2 d-inline-flex align-items-center border-0 small shadow-sm">
+                            <i class="fa-solid fa-circle-info me-2"></i>
+                            <span>I barcode già presenti verranno registrati come <strong>spostamenti</strong>.</span>
+                        </div>
                     </div>
 
-                    <div class="mb-3">
+                    <div>
                         <label class="form-label fw-bold">Descrizione (Opzionale)</label>
                         <textarea class="form-control" name="descrizione" rows="2"
                                   placeholder="Inserisci descrizione..."></textarea>
-                        <div class="form-text text-muted">
-                            <i class="fa-solid fa-circle-info me-1"></i>
-                            Se lasciata vuota, verrà mantenuta quella esistente (se presente). Se compilata,
-                            sovrascriverà quella vecchia alla risoluzione.
-                        </div>
+                        
                     </div>
                 </div>
                 <div class="modal-footer border-0 pt-0">
@@ -367,7 +366,6 @@
         </div>
     </div>
 </div>
-
 @section Scripts {
     <script src="~/js/Features/Modals/ConfirmModal.js"></script>
 
