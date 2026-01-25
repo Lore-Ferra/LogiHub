@@ -8,32 +8,10 @@
     var countMancanti = Model.DaRimuovere?.Count(x => x.Stato == StatoDiscrepanza.Aperta) ?? 0;
 
     var totalOpen = countSpostati + countExtra + countMancanti;
-    bool canRisolviTutto = !Model.IsSolaLettura && totalOpen > 0;
 }
 
 @{
     bool hasQuery = !string.IsNullOrWhiteSpace(Model.SearchCard?.Query);
-}
-
-@if (totalOpen == 0 && (!hasQuery || Model.IsSolaLettura))
-{
-    @* CASO 1: TUTTO RISOLTO (Verde) *@
-    <div class="alert alert-success border-0 shadow-sm mb-3 d-flex align-items-center">
-        <i class="fa-solid fa-circle-check me-2 fa-lg"></i>
-        <span class="fw-bold me-1">Ottimo lavoro!</span>
-        <span>Tutte le discrepanze sono state allineate.</span>
-    </div>
-}
-else if (Model.IsSolaLettura && totalOpen > 0)
-{
-    @* CASO 2: BLOCCATO (Giallo) - Appare solo se ci sono ancora cose aperte *@
-    <div class="alert alert-warning border-0 shadow-sm mb-3 d-flex align-items-center">
-        <i class="fa-solid fa-lock me-3 fa-lg"></i>
-        <div>
-            <strong>Risoluzione Bloccata:</strong>
-            Terminare il controllo prima di allineare il magazzino.
-        </div>
-    </div>
 }
 
 @section Styles {
@@ -54,7 +32,6 @@ else if (Model.IsSolaLettura && totalOpen > 0)
     };
 
     // Renderizza la tabella (o le card su mobile)
-    // Renderizza la tabella (o le card su mobile) con gestione stato vuoto
     async Task RenderTabella(IEnumerable<DiscrepanzaDTO> items, string colorClass, TipoRisoluzione tipoDefault)
     {
         @if (items == null || !items.Any())
@@ -93,7 +70,7 @@ else if (Model.IsSolaLettura && totalOpen > 0)
                                 <td class="info-cell text-nowrap @(item.Stato != StatoDiscrepanza.Aperta ? "text-muted" : "")">
                                     @if (item.Tipo == TipoDiscrepanzaOperativa.Spostato)
                                     {
-                                        <p class="m-0">Da <b>@item.UbicazioneSnapshot</b> &rarr; Trovato in
+                                        <p class="m-0">Da <b>@item.UbicazioneSnapshot</b> &rarr; Spostato in
                                             <b>@item.UbicazioneRilevata</b></p>
                                     }
                                     else if (item.Tipo == TipoDiscrepanzaOperativa.Extra)
@@ -276,17 +253,23 @@ else if (Model.IsSolaLettura && totalOpen > 0)
 {
     <div class="text-center py-5 text-muted">
         <i class="fas fa-box-open fa-3x mb-3"></i>
-        <p>
-            @(string.IsNullOrWhiteSpace(Model.SearchCard?.Query)
-                ? "Nessuna discrepanza trovata."
-                : "Nessun risultato per la ricerca.")
-        </p>
+
+        @if (!string.IsNullOrWhiteSpace(Model.SearchCard?.Query))
+        {
+            <p>Nessun risultato per "<strong>@Model.SearchCard.Query</strong>"</p>
+            <p class="small text-muted mt-2">
+                Prova ad <a href="@Url.Action("Index", new { id = Model.SessioneId })"
+                           class="fw-bold text-decoration-none"
+                           onclick="window.location.replace(this.href); return false;">
+                    azzerare la ricerca
+                </a> per vedere tutti gli elementi.
+            </p>
+        }
     </div>
 }
 else
 {
     <div class="container-fluid p-0 mt-3">
-        @* --- ACCORDION CONTAINER --- *@
         <div class="accordion" id="discrepanzeAccordion">
             @{
                 bool hasSpostati = Model.DaSpostare != null && Model.DaSpostare.Any();
@@ -299,19 +282,17 @@ else
 
                 if (hasQuery)
                 {
-                    if (hasSpostati) openSpostati = true;
-                    else if (hasExtra) openExtra = true;
-                    else if (hasMancanti) openMancanti = true;
+                    openSpostati = hasSpostati;
+                    openExtra = hasExtra;
+                    openMancanti = hasMancanti;
                 }
             }
 
             @{ await RenderAccordionItem("spostati", "Spostamenti", "fa-solid fa-right-left", countSpostati, Model.DaSpostare, "primary", TipoRisoluzione.Sposta, openSpostati); }
-
             @{ await RenderAccordionItem("extra", "Extra", "fa-solid fa-plus", countExtra, Model.DaAggiungere, "warning", TipoRisoluzione.Aggiungi, openExtra); }
-
             @{ await RenderAccordionItem("mancanti", "Mancanti", "fa-solid fa-minus", countMancanti, Model.DaRimuovere, "danger", TipoRisoluzione.Rimuovi, openMancanti); }
         </div>
-    </div>    
+    </div>
 }
 
 <div class="d-md-none mt-4 mb-3">
@@ -319,9 +300,8 @@ else
             id="btnRisolviTuttoMobile"
             class="btn @(Model.IsSolaLettura ? "btn-secondary disabled" : "btn-primary") w-100 py-2 fw-bold shadow-sm @(totalOpen == 0 ? "d-none" : "")"
             @(Model.IsSolaLettura ? "disabled" : "")
-            data-confirm-trigger="@((!Model.IsSolaLettura && totalOpen > 0).ToString().ToLower())"
+            onclick="avviaRisoluzione(this, this.getAttribute('data-url'), this.getAttribute('data-message'), { reloadOnSuccess: true })"
             data-url="@Url.Action("RisolviTutto", "Discrepanze", new { area = "Inventari", id = Model.SessioneId })"
-            data-url-original="@Url.Action("RisolviTutto", "Discrepanze", new { area = "Inventari", id = Model.SessioneId })"
             data-message="Sei sicuro di voler allineare tutto il magazzino?"
             data-is-readonly="@Model.IsSolaLettura.ToString().ToLower()">
         <i class="fa-solid @(Model.IsSolaLettura ? "fa-lock" : "fa-wand-magic-sparkles") me-2"></i>
@@ -361,51 +341,22 @@ else
     <script src="~/js/Features/Modals/ConfirmModal.js"></script>
 
     <script>
-        document.addEventListener('DOMContentLoaded', function () {
-
-            const pending = sessionStorage.getItem("pendingToast");
-            if (pending) {
-                try {
-                    const { msg, type } = JSON.parse(pending);
-                    notify(msg, type || "success");
-                } finally {
-                    sessionStorage.removeItem("pendingToast");
-                }
-                aggiornaBottoneRisolviTutto();
-            }
-
-            // ---- ACCORDION: ricorda ultima tab aperta ----
-            const storageKey = 'discrepanze_active_tab';
-            const accordion = document.getElementById('discrepanzeAccordion');
-
-            const lastOpen = sessionStorage.getItem(storageKey);
-            if (lastOpen) {
-                const target = document.getElementById(lastOpen);
-                if (target) new bootstrap.Collapse(target, { show: true });
-            }
-
-            if (accordion) {
-                accordion.addEventListener('shown.bs.collapse', function (e) {
-                    sessionStorage.setItem(storageKey, e.target.id);
-                });
-
-                accordion.addEventListener('hidden.bs.collapse', function (e) {
-                    if (sessionStorage.getItem(storageKey) === e.target.id) {
-                        sessionStorage.removeItem(storageKey);
-                    }
-                });
-            }
-
-            document.querySelectorAll('[data-confirm-trigger="true"][data-url]').forEach(btn => {
-                btn.addEventListener('click', (e) => {
-                    e.preventDefault();
-
-                    const url = btn.getAttribute('data-url');
-                    const msg = btn.getAttribute('data-message') || 'Confermi?';
-
-                    avviaRisoluzione(btn, url, msg, { reloadOnSuccess: true });
-                });
-            });
+        document.addEventListener("DOMContentLoaded", () => {
+            const inputs = Array.from(document.querySelectorAll(
+                '#searchQuery, input[name="Query"], input[name$=".Query"], input[id$="__Query"]'
+            ));
+            if (inputs.length === 0) return;
+    
+            const desktopPlaceholder = "Cerca per Barcode, Descrizione, Info, Dettagli Gestione...";
+            const mobilePlaceholder  = "Cerca per Barcode, Descrizione, Info, Dettagli Gestione...";
+    
+            const apply = () => {
+                const ph = (window.innerWidth < 768) ? mobilePlaceholder : desktopPlaceholder;
+                inputs.forEach(i => i.placeholder = ph);
+            };
+    
+            requestAnimationFrame(apply);
+            window.addEventListener("resize", apply);
         });
 
         function avviaRisoluzione(btn, url, msg, options = {}) {

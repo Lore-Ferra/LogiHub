@@ -116,7 +116,17 @@
     {
         <div class="text-center py-5 text-muted">
             <i class="fas fa-box-open fa-3x mb-3"></i>
-            <p>Nessuna sessione trovata.</p>
+            @if (!string.IsNullOrWhiteSpace(Model.SearchCard?.Query))
+            {
+                <p>Nessun risultato per "<strong>@Model.SearchCard.Query</strong>"</p>
+                <p class="small text-muted mt-2">
+                    Prova a modificare i <strong>filtri</strong> oppure <a href="@Url.Action("Index")" class="fw-bold text-decoration-none" onclick="window.location.replace(this.href); return false;">azzera la ricerca</a>.
+                </p>
+            }
+            else
+            {
+                <p>Nessuna sessione trovata.</p>
+            }
         </div>
     }
 </div>
@@ -189,7 +199,17 @@
                     <tr>
                         <td colspan="4" class="text-center py-5 text-muted">
                             <i class="fas fa-box-open fa-3x mb-3"></i>
-                            <p>Nessuna sessione trovata.</p>
+                            @if (!string.IsNullOrWhiteSpace(Model.SearchCard?.Query))
+                            {
+                                <p>Nessun risultato per "<strong>@Model.SearchCard.Query</strong>"</p>
+                                <p class="small text-muted mt-2">
+                                    Prova a modificare i <strong>filtri</strong> oppure <a href="@Url.Action("Index")" class="fw-bold text-decoration-none" onclick="window.location.replace(this.href); return false;">azzera la ricerca</a>.
+                                </p>
+                            }
+                            else
+                            {
+                                <p>Nessuna sessione trovata.</p>
+                            }
                         </td>
                     </tr>
                 }
@@ -287,6 +307,60 @@ else
             };
             modal.show();
         }
+    </script>
+    <script>
+    document.addEventListener("DOMContentLoaded", () => {
+        const input = document.getElementById("searchQuery");
+        const checks = Array.from(document.querySelectorAll('input.search-col-check[name="Filters.SearchInColumns"]'));
+        if (!input || checks.length === 0) return;
+    
+        const defaultKey = "NomeSessione";
+    
+        const qs = new URLSearchParams(window.location.search);
+    
+        const hasSearchInColumns =
+            qs.getAll("Filters.SearchInColumns").length > 0 ||
+            qs.getAll("Filters[SearchInColumns]").length > 0 ||
+            Array.from(qs.keys()).some(k => k.includes("Filters.SearchInColumns") || k.includes("Filters%5BSearchInColumns%5D"));
+    
+        const findByValue = (val) => {
+            const v = (val || "").toLowerCase();
+            return checks.find(c => (c.value || "").toLowerCase() === v) || null;
+        };
+    
+        if (!hasSearchInColumns) {
+            checks.forEach(c => c.checked = false);
+            const toCheck = findByValue(defaultKey) || checks[0];
+            if (toCheck) toCheck.checked = true;
+        }
+    
+        const buildPlaceholder = () => {
+            const selected = checks.filter(c => c.checked);
+            const labels = selected.map(c => (c.dataset.label || c.value || "").trim()).filter(Boolean);
+    
+            if (labels.length === 1) return `Cerca in ${labels[0]}…`;
+            if (labels.length === checks.length) return "Cerca in tutte le colonne…";
+            return `Cerca in: ${labels.join(", ")}…`;
+        };
+    
+        const updatePlaceholder = () => { input.placeholder = buildPlaceholder(); };
+    
+        const getCheckedCount = () => checks.filter(c => c.checked).length;
+    
+        checks.forEach(chk => {
+            chk.addEventListener("change", () => {
+                if (!chk.checked && getCheckedCount() === 0) {
+                    chk.checked = true;
+                    if (typeof notify === "function") {
+                        notify("La ricerca richiede almeno un filtro selezionato.", "warning");
+                    }
+                }
+                updatePlaceholder();
+            });
+        });
+    
+        updatePlaceholder();
+    });
     </script>
 }
 

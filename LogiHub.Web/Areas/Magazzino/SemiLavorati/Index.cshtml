@@ -13,17 +13,7 @@
     <link rel="stylesheet" href="~/css/offcanvas.css"/>
 }
 
-@if (isBloccato)
-{
-    <div class="alert alert-warning border-0 shadow-sm mb-3 d-flex align-items-center">
-        <i class="fa-solid fa-triangle-exclamation me-3 fa-lg"></i>
-        <div>
-            <strong>Magazzino Bloccato:</strong> Inventario in corso. Inserimento, modifica ed eliminazione
-            disabilitati.
 
-        </div>
-    </div>
-}
 <div>
     @await Html.PartialAsync("~/Features/SearchCard/_SearchCard.cshtml", Model.SearchCard)
 </div>
@@ -70,16 +60,59 @@
                             @item.UltimaModifica.ToString("dd/MM/yyyy")
                         </div>
                     </div>
-                    <div class="d-flex gap-3 align-items-center text-black">
-                        <button
-                            type="button"
-                            class="btn btn-md @(isBloccato ? "btn-secondary disabled" : "btn-outline-danger")"
-                            onclick="eliminaSemilavorato(event, '@Url.Action("Elimina", "SemiLavorati", new { area = "Magazzino", semiLavoratoId = item.Id })', 'Sei sicuro di voler eliminare <strong>@item.Barcode</strong>?')"
-                            title="Elimina"
-                            style="@(isBloccato ? "cursor: not-allowed; pointer-events: auto !important;" : "")">
-                            <i class="@(isBloccato ? "fa-solid fa-lock" : "fa-solid fa-trash")"></i>
+                </div>
+                
+                <div class="d-flex gap-2 mt-3">
+                    @if (isBloccato)
+                    {
+                        <button class="btn btn-sm btn-secondary disabled flex-fill w-100" disabled style="cursor: not-allowed; pointer-events: auto !important;" title="Magazzino bloccato">
+                            <i class="fa-solid fa-lock me-2"></i>Sposta
                         </button>
-                    </div>
+                        <button class="btn btn-sm btn-secondary disabled flex-fill w-100" disabled style="cursor: not-allowed; pointer-events: auto !important;" title="Magazzino bloccato">
+                            @if (item.Uscito)
+                            {
+                                <i class="fa-solid fa-lock me-2"></i><text>Rientro</text>
+                            }
+                            else
+                            {
+                                <i class="fa-solid fa-lock me-2"></i><text>Uscita</text>
+                            }
+                        </button>
+                    }
+                    else
+                    {
+                        @if (!item.Uscito)
+                        {
+                            <button type="button"
+                                    class="btn btn-sm btn-outline-primary flex-fill w-100"
+                                    onclick="apriModale(event, '@Url.Action("GetSpostaModal", "SemiLavorati", new { id = item.Id })')">
+                                <i class="fa-solid fa-right-left me-2"></i>Sposta
+                            </button>
+                        }
+                        else
+                        {
+                            <button type="button" 
+                                    class="btn btn-sm btn-secondary disabled flex-fill w-100" 
+                                    disabled
+                                    title="Impossibile spostare: il pezzo è uscito"
+                                    style="cursor: not-allowed; pointer-events: auto !important;">
+                                <i class="fa-solid fa-lock me-2"></i>Sposta
+                            </button>
+                        }
+
+                        <button type="button" 
+                                class="btn btn-sm btn-outline-primary flex-fill w-100" 
+                                onclick="apriModale(event, '@Url.Action("GetMovimentaModal", "SemiLavorati", new { id = item.Id })')">
+                            @if (item.Uscito)
+                            {
+                                <i class="fa-solid fa-right-from-bracket fa-rotate-180 me-2"></i><text>Rientro</text>
+                            }
+                            else
+                            {
+                                <i class="fa-solid fa-right-from-bracket me-2"></i><text>Uscita</text>
+                            }
+                        </button>
+                    }
                 </div>
             </div>
         </div>
@@ -88,7 +121,17 @@
     {
         <div class="text-center py-5 text-muted">
             <i class="fas fa-box-open fa-3x mb-3"></i>
-            <p>Nessun semilavorato trovato.</p>
+            @if (!string.IsNullOrWhiteSpace(Model.SearchCard?.Query))
+            {
+                <p>Nessun risultato per "<strong>@Model.SearchCard.Query</strong>"</p>
+                <p class="small text-muted mt-2">
+                    Prova a modificare i <strong>filtri</strong> oppure <a href="@Url.Action("Index")" class="fw-bold text-decoration-none" onclick="window.location.replace(this.href); return false;">azzera la ricerca</a>.
+                </p>
+            }
+            else
+            {
+                <p>Nessun semilavorato trovato.</p>
+            }
         </div>
     }
 </div>
@@ -127,15 +170,60 @@
 
                         <td>@item.UltimaModifica.ToString("dd/MM/yyyy")</td>
                         <td class="text-center">
-                            <button
-                                type="button"
-                                class="btn btn-sm @(isBloccato ? "btn-secondary disabled" : "btn-outline-danger")"
-                                onclick="eliminaSemilavorato(event, '@Url.Action("Elimina", "SemiLavorati", new { area = "Magazzino", semiLavoratoId = item.Id })', 'Sei sicuro di voler eliminare <strong>@item.Barcode</strong>?')"
-                                title="Elimina"
-                                style="@(isBloccato ? "cursor: not-allowed; pointer-events: auto !important;" : "")">
-                                <i class="@(isBloccato ? "fa-solid fa-lock me-1" : "fa-solid fa-trash")"></i>
-                                Elimina
-                            </button>
+                            <div class="d-flex gap-1 justify-content-center text-nowrap">
+                                @if (isBloccato)
+                                {
+                                    <button class="btn btn-sm btn-secondary disabled" disabled style="cursor: not-allowed; pointer-events: auto !important;" title="Magazzino bloccato">
+                                        <i class="fa-solid fa-lock me-1"></i> Sposta
+                                    </button>
+                                    <button class="btn btn-sm btn-secondary disabled" disabled style="cursor: not-allowed; pointer-events: auto !important;" title="Magazzino bloccato">
+                                        @if (item.Uscito)
+                                        {
+                                            <i class="fa-solid fa-lock me-1"></i> <text>Rientro</text>
+                                        }
+                                        else
+                                        {
+                                            <i class="fa-solid fa-lock me-1"></i> <text>Uscita</text>
+                                        }
+                                    </button>
+                                }
+                                else
+                                {
+                                    @if (!item.Uscito)
+                                    {
+                                        <button type="button"
+                                                class="btn btn-sm btn-outline-primary"
+                                                title="Sposta Semilavorato"
+                                                onclick="apriModale(event, '@Url.Action("GetSpostaModal", "SemiLavorati", new { id = item.Id })')">
+                                            <i class="fa-solid fa-right-left me-1"></i> Sposta
+                                        </button>
+                                    }
+                                    else
+                                    {
+                                        <button type="button" 
+                                                class="btn btn-sm btn-secondary disabled" 
+                                                disabled
+                                                title="Impossibile spostare: il pezzo è uscito"
+                                                style="cursor: not-allowed; pointer-events: auto !important;">
+                                            <i class="fa-solid fa-lock me-1"></i> Sposta
+                                        </button>
+                                    }
+
+                                    <button type="button" 
+                                            class="btn btn-sm btn-outline-primary" 
+                                            title="@(item.Uscito ? "Rientro" : "Uscita")"
+                                            onclick="apriModale(event, '@Url.Action("GetMovimentaModal", "SemiLavorati", new { id = item.Id })')">
+                                        @if (item.Uscito)
+                                        {
+                                            <i class="fa-solid fa-right-from-bracket fa-rotate-180 me-1"></i> <text>Rientro</text>
+                                        }
+                                        else
+                                        {
+                                            <i class="fa-solid fa-right-from-bracket me-1"></i> <text>Uscita</text>
+                                        }
+                                    </button>
+                                }
+                            </div>
                         </td>
 
                     </tr>
@@ -144,9 +232,19 @@
                 @if (!Model.SemiLavorati.Any())
                 {
                     <tr>
-                        <td colspan="6" class="text-center py-5 text-muted">
+                        <td colspan="5" class="text-center py-5 text-muted">
                             <i class="fas fa-box-open fa-3x mb-3"></i>
-                            <p>Nessun semilavorato trovato.</p>
+                            @if (!string.IsNullOrWhiteSpace(Model.SearchCard?.Query))
+                            {
+                                <p>Nessun risultato per "<strong>@Model.SearchCard.Query</strong>"</p>
+                                <p class="small text-muted mt-2">
+                                    Prova a modificare i <strong>filtri</strong> oppure <a href="@Url.Action("Index")" class="fw-bold text-decoration-none" onclick="window.location.replace(this.href); return false;">azzera la ricerca</a>.
+                                </p>
+                            }
+                            else
+                            {
+                                <p>Nessun semilavorato trovato.</p>
+                            }
                         </td>
                     </tr>
                 }
@@ -168,7 +266,7 @@
 }
 else
 {
-    <button class="fab d-md-none btn btn-secondary disabled" title="Aggiunta bloccata"
+    <button class="fab d-md-none btn btn-secondary disabled" disabled title="Aggiunta bloccata"
             style="cursor: not-allowed; pointer-events: auto !important;">
         <i class="fa-solid fa-lock"></i>
     </button>
@@ -211,6 +309,8 @@ else
 
 <partial name="~/Features/Modals/_ConfirmModal.cshtml" model="confirmModel"/>
 
+@* Container per modali caricati via AJAX *@
+<div id="modalContainer"></div>
 
 @section Scripts {
     <script src="~/js/Features/Modals/ConfirmModal.js"></script>
@@ -347,6 +447,148 @@ else
                 });
         }, true);
     </script>
+    <script>
+        async function apriModale(e, url) {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            const container = document.getElementById('modalContainer');
+            
+            try {
+                const res = await fetch(url);
+                if (res.ok) {
+                    container.innerHTML = await res.text();
+                    
+                    const modalEl = container.querySelector('.modal');
+                    const modal = new bootstrap.Modal(modalEl);
+                    modal.show();
+                    
+                    if (container.querySelector('#formSposta')) initSpostaModal();
+                    if (container.querySelector('#formStato')) initMovimentaModal();
+                    
+                } else {
+                    notify("Impossibile caricare il modale.", "danger");
+                }
+            } catch (err) {
+                console.error(err);
+                notify("Errore di connessione.", "danger");
+            }
+        }
+
+        function initSpostaModal() {
+            const form = document.getElementById('formSposta');
+            if (!form) return;
+            const select = document.getElementById('nuovaUbicazioneId');
+            
+            const initialVal = select.value;
+        }
+
+        function initMovimentaModal() {
+            const form = document.getElementById('formStato');
+            if (!form) return;
+
+            const ubiSelect = document.getElementById('statoUbicazioneId');
+            const azSelect = document.getElementById('statoAziendaId');
+
+            if(ubiSelect) ubiSelect.addEventListener('change', updateMovimentaUI);
+            if(azSelect) azSelect.addEventListener('change', updateMovimentaUI);
+
+            updateMovimentaUI();
+        }
+        function updateMovimentaUI() {
+            const form = document.getElementById('formStato');
+            if (!form) return;
+
+            const inputUscito = form.querySelector('input[name="Uscito"]');
+            if (!inputUscito) return;
+
+            const isUscendo = inputUscito.value === 'true';
+
+            const divRientro = document.getElementById('divRientro');
+            const divUscita = document.getElementById('divUscita');
+            const msgSposta = document.getElementById('msgUsaSposta');
+
+            if (isUscendo) {
+                if(divUscita) divUscita.classList.remove('d-none');
+                if(divRientro) divRientro.classList.add('d-none');
+                if(msgSposta) msgSposta.classList.add('d-none');
+            } else {
+                if(divUscita) divUscita.classList.add('d-none');
+                if(divRientro) divRientro.classList.remove('d-none');
+                if(msgSposta) msgSposta.classList.add('d-none');
+            }
+}
+
+        document.addEventListener('submit', async function (e) {
+            const form = e.target;
+            if (!form.closest('#modalContainer')) return;
+
+            e.preventDefault();
+            e.stopPropagation();
+
+            const btn = form.querySelector('button[type="submit"]');
+            const originalText = btn ? btn.innerHTML : '';
+
+            if (btn) {
+                btn.disabled = true;
+                btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-2"></i>Attendere...';
+            }
+
+            try {
+                const formData = new FormData(form);
+                const res = await fetch(form.action, { method: 'POST', body: formData });
+                
+                const contentType = res.headers.get("content-type");
+                
+                if (contentType && contentType.indexOf("application/json") !== -1) {
+                    const data = await res.json();
+                    if (data.success) {
+                        sessionStorage.setItem("pendingToast", JSON.stringify({ msg: data.message, type: "success" }));
+                        window.location.replace(window.location.href);
+                    } else {
+                        notify(data.message || "Errore durante l'operazione", "danger");
+                        if (btn) {
+                            btn.disabled = false;
+                            btn.innerHTML = originalText;
+                        }
+                    }
+                } else {
+                    const html = await res.text();
+                    const container = document.getElementById('modalContainer');
+                    
+                    const parser = new DOMParser();
+                    const doc = parser.parseFromString(html, 'text/html');
+                    const newContent = doc.querySelector('.modal-content');
+                    const currentModal = container.querySelector('.modal.show');
+                    
+                    if (currentModal && newContent && currentModal.querySelector('.modal-content')) {
+                        const currentContent = currentModal.querySelector('.modal-content');
+                        
+                        currentContent.replaceWith(newContent);
+                        
+                        if (newContent.querySelector('#formSposta')) initSpostaModal();
+                        if (newContent.querySelector('#formStato')) initMovimentaModal();
+                        return;
+                    }
+                    
+                    document.querySelectorAll('.modal-backdrop').forEach(el => el.remove());
+                    
+                    container.innerHTML = html;
+                    
+                    const modalEl = container.querySelector('.modal');
+                    const modal = new bootstrap.Modal(modalEl);
+                    modal.show();
+                    
+                    if (container.querySelector('#formSposta')) initSpostaModal();
+                    if (container.querySelector('#formStato')) initMovimentaModal();
+                }
+            } catch (err) {
+                console.error(err);
+                notify("Errore di rete.", "danger");
+                if (btn) { btn.disabled = false; btn.innerHTML = originalText; }
+            }
+        }, false);
+    </script>
 
     <script>
         document.addEventListener('click', async function (e) {
@@ -480,5 +722,84 @@ else
             sessionStorage.removeItem("pendingToast");
         }
             });
+    </script>
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <script>document.addEventListener("DOMContentLoaded", () => notify('@Html.Raw(TempData["SuccessMessage"])', 'success'));</script>
+    }
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <script>document.addEventListener("DOMContentLoaded", () => notify('@Html.Raw(TempData["ErrorMessage"])', 'danger'));</script>
+    }
+    <script>
+    document.addEventListener("DOMContentLoaded", () => {
+        const input = document.getElementById("searchQuery");
+        const checks = Array.from(document.querySelectorAll('input.search-col-check[name="Filters.SearchInColumns"]'));
+        if (!input || checks.length === 0) return;
+
+        const defaultKeys = ["Barcode", "Descrizione"];
+    
+        const qs = new URLSearchParams(window.location.search);
+    
+        const hasSearchInColumns =
+            qs.getAll("Filters.SearchInColumns").length > 0 ||
+            qs.getAll("Filters[SearchInColumns]").length > 0 ||
+            Array.from(qs.keys()).some(k => k.includes("Filters.SearchInColumns") || k.includes("Filters%5BSearchInColumns%5D"));
+    
+        const findByValue = (val) => {
+            const v = (val || "").toLowerCase();
+            return checks.find(c => (c.value || "").toLowerCase() === v) || null;
+        };
+
+        if (!hasSearchInColumns) {
+            checks.forEach(c => c.checked = false);
+
+            defaultKeys.forEach(k => {
+                const chk = findByValue(k);
+                if (chk) chk.checked = true;
+            });
+
+            if (checks.filter(c => c.checked).length === 0 && checks[0]) {
+                checks[0].checked = true;
+            }
+        }
+    
+        const buildPlaceholder = () => {
+            const selected = checks.filter(c => c.checked);
+            const labels = selected.map(c => (c.dataset.label || c.value || "").trim()).filter(Boolean);
+    
+            // --- LOGICA MOBILE (< 768px) ---
+            if (window.innerWidth < 768) {
+                if (labels.length === checks.length) return "Cerca..."; // Tutti attivi -> Testo pulito
+                if (labels.length > 1) return `Cerca in ${labels.length} colonne...`; // Multipli -> Mostra solo il numero
+                // Se è 1 solo, lasciamo che cada nella logica standard qui sotto (es. "Cerca in Barcode...")
+            }
+
+            if (labels.length === 1) return `Cerca in ${labels[0]}…`;
+            if (labels.length === checks.length) return "Cerca in tutte le colonne…";
+            return `Cerca in ${labels.join(", ")}…`;
+        };
+    
+        const updatePlaceholder = () => {
+            input.placeholder = buildPlaceholder();
+        };
+    
+        const getCheckedCount = () => checks.filter(c => c.checked).length;
+    
+        checks.forEach(chk => {
+            chk.addEventListener("change", () => {
+                if (!chk.checked && getCheckedCount() === 0) {
+                    chk.checked = true;
+                    if (typeof notify === "function") {
+                        notify("La ricerca richiede almeno un filtro selezionato.", "warning");
+                    }
+                }
+                updatePlaceholder();
+            });
+        });
+    
+        window.addEventListener('resize', updatePlaceholder);
+        updatePlaceholder();
+    });
     </script>
 }

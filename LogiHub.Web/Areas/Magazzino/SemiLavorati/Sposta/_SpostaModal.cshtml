@@ -1,0 +1,54 @@
+@model LogiHub.Web.Areas.Magazzino.SemiLavorati.SpostaSemiLavoratoViewModel
+
+<div class="modal fade" id="modalSposta" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg">
+            <div class="modal-header border-bottom-0 pb-0">
+                <h5 class="modal-title fw-bold d-flex align-items-center gap-2">
+                    <span class="text-primary"><i class="fa-solid fa-right-left"></i></span>
+                    Cambio Ubicazione
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body pt-2">
+                
+                <div class="rounded mb-2">
+                    <div class="d-flex align-items-center justify-content-between">
+                        <div>
+                            <small class="text-muted d-block" style="font-size: 0.9rem;">Barcode</small>
+                            <span class="fw-bold text-primary fs-5">@Model.Barcode</span>
+                        </div>
+                        <div class="text-end">
+                            <small class="text-muted d-block" style="font-size: 0.9rem;">Posizione Attuale</small>
+
+                                <i class="fa-solid fa-location-dot text-primary me-1"></i>@Model.UbicazioneAttuale
+                   
+                        </div>
+                    </div>
+                </div>
+
+                @* Form *@
+                <form id="formSposta" asp-action="Sposta" asp-area="Magazzino" method="post">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="id" value="@Model.Id" />
+                    <div class="mb-3">
+                        <label class="form-label fw-bold small text-muted" for="nuovaUbicazioneId">Nuova Ubicazione</label>
+                        <div class="input-group">
+                            <select class="form-select @(ViewData.ModelState[nameof(Model.NuovaUbicazioneId)]?.Errors.Any() == true ? "is-invalid" : "")" id="nuovaUbicazioneId" asp-for="NuovaUbicazioneId" asp-items="Model.UbicazioniList" >
+                                <option value="">-- Seleziona --</option>
+                            </select>
+                        </div>
+                        <span asp-validation-for="NuovaUbicazioneId" class="text-danger small"></span>
+                    </div>
+
+                    <div class="d-flex justify-content-end gap-2">
+                        <button type="button" class="btn btn-secondary border" data-bs-dismiss="modal">Annulla</button>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fa-solid fa-right-left me-2"></i>Sposta
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

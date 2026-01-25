@@ -1,0 +1,103 @@
+@model LogiHub.Web.Areas.Magazzino.SemiLavorati.MovimentoSemiLavoratoViewModel
+@{
+    var originalUscito = ViewData["OriginalUscito"] as bool? ?? Model.Uscito;
+    var isSpedizioneEsterna = ViewData["IsSpedizioneEsterna"] as bool? ?? false;
+
+    var titolo = originalUscito 
+        ? "Rientro in Magazzino" 
+        : (isSpedizioneEsterna ? "Spedizione Esterna" : "Invio a Terzista");
+    
+    var testoStato = originalUscito ? "Uscito" : "In Magazzino";
+    var iconaStato = originalUscito ? "fa-truck-arrow-right" : "fa-warehouse";
+}
+
+<div class="modal fade" id="modalStato" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg">
+            <div class="modal-header border-bottom-0 pb-0">
+                <h5 class="modal-title fw-bold d-flex align-items-center gap-2">
+                    <span class="text-primary"><i class="fa-solid fa-dolly"></i></span>
+                    @titolo
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+
+            <div class="modal-body pt-2">
+                <div class="rounded mb-2">
+                    <div class="d-flex align-items-start justify-content-between">
+                        <div>
+                            <small class="text-muted d-block" style="font-size: 0.9rem;">Barcode</small>
+                            <span class="fw-bold text-primary fs-5">@Model.Barcode</span>
+                        </div>
+                        <div class="text-end">
+                            <small class="text-muted d-block" style="font-size: 0.9rem;">Ubicazione attuale</small>
+                            <span>
+                                <i class="fa-solid text-primary @iconaStato me-1"></i>
+                                @testoStato
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <form id="formStato"
+                      asp-action="CambiaStato"
+                      asp-controller="SemiLavorati"
+                      asp-area="Magazzino"
+                      method="post">
+
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" asp-for="Id" />
+                    
+                    @* FIX: Usiamo l'helper per iniettare il valore booleano corretto *@
+                    @Html.Hidden("Uscito", (!originalUscito).ToString().ToLower())
+
+                    <div id="msgUsaSposta" class="alert alert-info small mb-3 @(originalUscito ? "d-none" : "")">
+                        <i class="fa-solid fa-circle-info me-2"></i>
+                        Per spostamenti interni, utilizza il tasto <b>Sposta</b>.
+                    </div>
+
+                    @* Sezione Rientro *@
+                    <div id="divRientro" class="mb-3 @(originalUscito ? "" : "d-none")">
+                        <label class="form-label fw-bold small text-muted">Seleziona ubicazione</label>
+                        <select class="form-select @(ViewData.ModelState.ContainsKey("UbicazioneId") && ViewData.ModelState["UbicazioneId"].Errors.Any() ? "is-invalid" : "")" 
+                                id="statoUbicazioneId" 
+                                asp-for="UbicazioneId" 
+                                asp-items="Model.UbicazioniList">
+                            <option value="">-- Seleziona --</option>
+                        </select>
+                        <span asp-validation-for="UbicazioneId" class="text-danger"></span>
+                    </div>
+
+                    @* Sezione Uscita *@
+                    <div id="divUscita" class="mb-3 @(!originalUscito ? "" : "d-none")">
+                        <label class="form-label fw-bold small text-muted">Seleziona azienda</label>
+                        <select class="form-select @(ViewData.ModelState.ContainsKey("AziendaId") && ViewData.ModelState["AziendaId"].Errors.Any() ? "is-invalid" : "")" 
+                                id="statoAziendaId" 
+                                asp-for="AziendaId" 
+                                asp-items="Model.AziendeList">
+                            <option value="">-- Seleziona --</option>
+                        </select>
+                        <span asp-validation-for="AziendaId" class="text-danger"></span>
+                    </div>
+
+                    <div class="d-flex justify-content-end gap-2">
+                        <button type="button" class="btn btn-secondary border" data-bs-dismiss="modal">Annulla</button>
+
+                        @if (originalUscito)
+                        {
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fa-solid fa-right-from-bracket fa-rotate-180 me-2"></i>Entrata
+                            </button>
+                        }
+                        else
+                        {
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fa-solid fa-right-from-bracket me-2"></i>Uscita
+                            </button>
+                        }
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

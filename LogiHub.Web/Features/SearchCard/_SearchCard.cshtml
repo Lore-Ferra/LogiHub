@@ -1,141 +1,172 @@
 ﻿@using LogiHub.Services.Shared
 @using LogiHub.Web.Features.SearchCard
 @model LogiHub.Web.Features.SearchCard.SearchCardViewModel
-
-<div class="d-flex justify-content-between align-items-center p-2 p-md-3 mb-2">
-    @* GRUPPO TITOLO + INDIETRO *@
-    <div class="d-flex align-items-center">
-        @* Titolo *@
-        @if (!string.IsNullOrEmpty(Model.Title))
-        {
-            <h1 class="h3 mb-0 text-gray-800">@Model.Title</h1>
-        }
-    </div>
-
-    @* BOTTONI AZIONE (Destra) *@
-    @if (Model.HeaderButtons != null && Model.HeaderButtons.Any())
-    {
-        <div class="d-flex gap-2">
-            @foreach (var btn in Model.HeaderButtons)
+<div class="mb-3">
+    <div class="d-flex justify-content-between align-items-center p-2 p-md-3 pt-0 pt-md-0 mb-2 mb-md-0">
+        @* GRUPPO TITOLO *@
+        <div class="d-flex align-items-center">
+            @* Titolo *@
+            @if (!string.IsNullOrEmpty(Model.Title))
             {
-                string postUrl = null;
+                <h1 class="h3 mb-0 text-gray-800">@Model.Title</h1>
+            }
+        </div>
 
-                // Logica per gestire i bottoni POST vs GET/JS
-                var isPost = btn.HtmlAttributes != null
-                             && btn.HtmlAttributes.TryGetValue("data-post-action", out var postVal)
-                             && postVal == "true" // Verifica se è un'azione POST simulata
-                             && btn.HtmlAttributes.TryGetValue("data-url", out postUrl) // Estrae l'URL
-                             && !string.IsNullOrWhiteSpace(postUrl);
-
-                @if (isPost)
+        @* BOTTONI AZIONE (Destra) *@
+        @if (Model.HeaderButtons != null && Model.HeaderButtons.Any())
+        {
+            <div class="d-flex gap-2">
+                @foreach (var btn in Model.HeaderButtons)
                 {
-                    @if (btn.HtmlAttributes != null
-                         && btn.HtmlAttributes.TryGetValue("data-confirm", out var legacyConfirm)
-                         && !btn.HtmlAttributes.ContainsKey("data-message"))
-                    {
-                        btn.HtmlAttributes["data-message"] = legacyConfirm;
-                    }
+                    string postUrl = null;
 
-                    <button type="button"
-                            class="btn @btn.CssClass"
-                            data-confirm-trigger="true"
-                            data-url="@postUrl"
-                            data-method="POST"
-                            data-type="form"
-                            @if (btn.HtmlAttributes != null)
-                            {
-                                foreach (var attr in btn.HtmlAttributes)
+                    // Logica per gestire i bottoni POST vs GET/JS
+                    var isPost = btn.HtmlAttributes != null
+                                 && btn.HtmlAttributes.TryGetValue("data-post-action", out var postVal)
+                                 && postVal == "true" // Verifica se è un'azione POST simulata
+                                 && btn.HtmlAttributes.TryGetValue("data-url", out postUrl) // Estrae l'URL
+                                 && !string.IsNullOrWhiteSpace(postUrl);
+
+                    @if (isPost)
+                    {
+                        @if (btn.HtmlAttributes != null
+                             && btn.HtmlAttributes.TryGetValue("data-confirm", out var legacyConfirm)
+                             && !btn.HtmlAttributes.ContainsKey("data-message"))
+                        {
+                            btn.HtmlAttributes["data-message"] = legacyConfirm;
+                        }
+
+                        <button type="button"
+                                class="btn @btn.CssClass"
+                                data-confirm-trigger="true"
+                                data-url="@postUrl"
+                                data-method="POST"
+                                data-type="form"
+                                @if (btn.HtmlAttributes != null)
                                 {
-                                    if (attr.Key != "data-post-action" && attr.Key != "data-url")
+                                    foreach (var attr in btn.HtmlAttributes)
+                                    {
+                                        if (attr.Key != "data-post-action" && attr.Key != "data-url")
+                                        {
+                                            @Html.Raw($"{attr.Key}=\"{attr.Value}\" ")
+                                        }
+                                    }
+                                }>
+                            @if (!string.IsNullOrEmpty(btn.IconClass))
+                            {
+                                <i class="@btn.IconClass me-2"></i>
+                            }
+                            @btn.Text
+                        </button>
+                    }
+                    else
+                    {
+                        <button type="@btn.Type"
+                                class="btn @btn.CssClass"
+                                @if (btn.HtmlAttributes != null)
+                                {
+                                    foreach (var attr in btn.HtmlAttributes)
                                     {
                                         @Html.Raw($"{attr.Key}=\"{attr.Value}\" ")
                                     }
-                                }
-                            }>
-                        @if (!string.IsNullOrEmpty(btn.IconClass))
-                        {
-                            <i class="@btn.IconClass me-2"></i>
-                        }
-                        @btn.Text
-                    </button>
-                }
-                else
-                {
-                    <button type="@btn.Type"
-                            class="btn @btn.CssClass"
-                            @if (btn.HtmlAttributes != null)
+                                }>
+                            @if (!string.IsNullOrEmpty(btn.IconClass))
                             {
-                                foreach (var attr in btn.HtmlAttributes)
-                                {
-                                    @Html.Raw($"{attr.Key}=\"{attr.Value}\" ")
-                                }
-                            }>
-                        @if (!string.IsNullOrEmpty(btn.IconClass))
-                        {
-                            <i class="@btn.IconClass me-2"></i>
-                        }
-                        @btn.Text
-                    </button>
+                                <i class="@btn.IconClass me-2"></i>
+                            }
+                            @btn.Text
+                        </button>
+                    }
                 }
-            }
+            </div>
+        }
+    </div>
+    @if (Model.MessageType != SearchCardMessageType.None && !string.IsNullOrEmpty(Model.Message))
+    {
+        <div class="alert @Model.GetAlertClass() d-flex align-items-center p-2" role="alert">
+            <i class="@Model.GetAlertIcon() me-3 fa-lg"></i> 
+    
+            <div>
+                @if (!string.IsNullOrEmpty(Model.AlertTitle))
+                {
+                    <strong>@Model.AlertTitle</strong> 
+                }
+                @Model.Message
+            </div>
         </div>
     }
-</div>
 
+    <div class="card shadow-sm border-0"
+         data-searchcard
+         data-default-key="@Model.DefaultSearchInColumnKey">
+        <div class="card-body p-2 p-md-3">
+            <form method="get">
+                <div
+                    class="row g-2 align-items-end @(Model.ShowSearchInColumns || Model.ShowUscitoFilter ? "mb-3" : "")">
 
-<div class="card shadow-sm mb-3 border-0">
-    <div class="card-body p-2 p-md-3">
-        <form method="get">
-            <div class="row g-2 align-items-end @(Model.ShowSearchInColumns || Model.ShowUscitoFilter ? "mb-3" : "")">
-
-                @* Sezione Ricerca *@
-                <div class="col">
-                    <label for="searchQuery" class="form-label small fw-semibold text-muted">Ricerca</label>
-                    <div class="d-flex gap-2">
-                        <div class="input-group flex-grow-1">
+                    @* Sezione Ricerca *@
+                    <div class="col">
+                        <label for="searchQuery" class="form-label small fw-semibold text-muted">Ricerca</label>
+                        <div class="d-flex flex-column flex-md-row gap-2">
+                            <div class="input-group flex-grow-1">
                             <span class="input-group-text bg-transparent text-muted">
                                 <i class="fas fa-search"></i>
                             </span>
-                            <input name="Query" id="searchQuery" type="search"
-                                   value="@Model.Query" class="form-control" placeholder="Cerca...">
+
+                                <input name="Query" id="searchQuery" type="search"
+                                       value="@Model.Query" class="form-control" placeholder="Cerca..."
+                                       autocomplete="off">
+
+                                @* Filtro Uscito Integrato *@
+                                @if (Model.ShowUscitoFilter)
+                                {
+                                    <select class="form-select border-start-0 w-auto flex-grow-0" name="Filters.Uscito"
+                                            onchange="this.form.submit()">
+                                        <option value="0" selected="@(Model.Filters.Uscito == TriState.All)">Tutti
+                                        </option>
+                                        <option value="1" selected="@(Model.Filters.Uscito == TriState.True)">Esterni
+                                        </option>
+                                        <option value="2" selected="@(Model.Filters.Uscito == TriState.False)">In Sede
+                                        </option>
+                                    </select>
+                                }
+                            </div>
+                            <button type="submit" class="btn btn-primary flex-shrink-0">
+                                <i class="fas fa-search me-2"></i>Cerca
+                            </button>
                         </div>
-                        <button type="submit" class="btn btn-primary flex-shrink-0">
-                            <i class="fas fa-search me-2"></i>Cerca
-                        </button>
                     </div>
                 </div>
 
-                @* Filtro Uscito - Ora alto come la barra *@
-                @if (Model.ShowUscitoFilter)
+                @* Checkbox sotto *@
+                @if (Model.ShowSearchInColumns)
                 {
-                    <div class="col-auto">
-                        <label for="filterUscito" class="form-label small fw-semibold text-muted">Uscito</label>
-                        <select class="form-select" id="filterUscito" name="Filters.Uscito"
-                                style="min-width: 100px; cursor: pointer;"
-                                onchange="this.form.submit()">
-                            <option value="0" selected="@(Model.Filters.Uscito == TriState.All)">Tutti</option>
-                            <option value="1" selected="@(Model.Filters.Uscito == TriState.True)">Sì</option>
-                            <option value="2" selected="@(Model.Filters.Uscito == TriState.False)">No</option>
-                        </select>
+                    <div class="d-flex align-items-center flex-wrap gap-2">
+                        <span class="small text-uppercase text-muted fw-bold">Cerca in:</span>
+                        @foreach (var opt in Model.SearchInColumns ?? new List<SearchInColumnOption>())
+                        {
+                            var anySelected = Model.Filters.SearchInColumns != null && Model.Filters.SearchInColumns.Any();
+                            var defaultKey = Model.DefaultSearchInColumnKey ?? "Barcode";
+
+                            var isChecked = anySelected
+                                ? (Model.Filters.SearchInColumns?.Contains(opt.Key) ?? false)
+                                : (opt.Key?.Equals(defaultKey, StringComparison.OrdinalIgnoreCase) ?? false);
+
+                            var id = $"col_{opt.Key}";
+
+                            <input type="checkbox"
+                                   class="btn-check search-col-check"
+                                   id="@id"
+                                   name="Filters.SearchInColumns"
+                                   value="@opt.Key"
+                                   data-label="@opt.Label"
+                                   @(isChecked ? "checked" : "")>
+
+                            <label class="btn btn-outline-primary btn-sm rounded-pill" for="@id">@opt.Label</label>
+                        }
                     </div>
                 }
-            </div>
-
-            @* Checkbox sotto *@
-            @if (Model.ShowSearchInColumns)
-            {
-                <div class="d-flex align-items-center flex-wrap gap-2">
-                    <span class="small text-uppercase text-muted fw-bold">Cerca in:</span>
-                    @foreach (var opt in Model.SearchInColumns ?? new List<SearchInColumnOption>())
-                    {
-                        var isChecked = Model.Filters.SearchInColumns?.Contains(opt.Key) ?? false;
-                        var id = $"col_{opt.Key}";
-                        <input type="checkbox" class="btn-check" id="@id" name="Filters.SearchInColumns"
-                               value="@opt.Key" @(isChecked ? "checked" : "")>
-                        <label class="btn btn-outline-primary btn-sm rounded-pill" for="@id">@opt.Label</label>
-                    }
-                </div>
-            }
-        </form>
+            </form>
+        </div>
     </div>
 </div>

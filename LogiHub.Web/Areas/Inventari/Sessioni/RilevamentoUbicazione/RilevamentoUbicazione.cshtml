@@ -7,16 +7,6 @@
     ViewData["Title"] = "Rilevamento " + Model.NomeUbicazione;
 }
 
-@if (Model.IsSolaLettura)
-{
-    <div class="alert alert-warning opacity-100 border-0 shadow-sm mb-3 d-flex align-items-center">
-        <i class="fa-solid fa-lock me-3 fa-lg"></i>
-        <div>
-            <strong>Ubicazione Completata.</strong> Modalità sola lettura attiva.
-        </div>
-    </div>
-}
-
 <div>
     @await Html.PartialAsync("~/Features/SearchCard/_SearchCard.cshtml", Model.SearchCard)
 </div>
@@ -30,11 +20,11 @@
     var btnMancanteClass = Model.IsSolaLettura ? "btn btn-sm btn-secondary text-nowrap" : "btn btn-sm btn-outline-danger text-nowrap";
 }
 @* --- STATISTICHE --- *@
-<div id="stats-container" class="d-flex mb-3 flex-wrap gap-2">
+<div id="stats-container" class="d-flex mb-3 flex-wrap gap-2 sticky-top rounded">
 
     @* Card Avanzamento *@
-    <div class="card border-0 shadow-sm flex-grow-1 @(Model.IsSolaLettura ? "bg-light" : "")">
-        <div class="card-body p-2 p-md-3">
+    <div class="card rounded-top-0 rounded-bottom border-0 bg-light flex-grow-1 @(Model.IsSolaLettura ? "bg-light" : "")">
+        <div class="card-body px-2 py-3 p-md-3">
             <div class="d-flex flex-column">
                 
                 <div class="d-flex justify-content-between align-items-center mb-1">
@@ -67,21 +57,6 @@
             </div>
         </div>
     </div>
-
-    @* Card Bottone Extra mobile *@
-    @if (!Model.IsSolaLettura)
-    {
-        <div class="card border-0 shadow-sm flex-shrink-0 d-md-none">
-            <div class="card-body p-2 p-md-3">
-                <button type="button"
-                        class="btn btn-sm btn-primary w-100 fw-bold shadow-sm"
-                        data-bs-toggle="modal"
-                        data-bs-target="#modalAggiungiExtra">
-                    <i class="fa-solid fa-plus me-1"></i>Extra
-                </button>
-            </div>
-        </div>
-    }
 </div>
 
 
@@ -158,6 +133,25 @@
                             </tr>
                         }
                     }
+                    else
+                    {
+                        <tr>
+                            <td colspan="4" class="text-center py-5 text-muted">
+                                <i class="fas fa-box-open fa-3x mb-3"></i>
+                                @if (!string.IsNullOrWhiteSpace(Model.SearchCard?.Query))
+                                {
+                                    <p>Nessun risultato per "<strong>@Model.SearchCard.Query</strong>"</p>
+                                    <p class="small text-muted mt-2">
+                                        Prova ad <a href="@Url.Action("Index", new { sessioneId = Model.SessioneId, ubicazioneId = Model.UbicazioneId })" class="fw-bold text-decoration-none" onclick="window.location.replace(this.href); return false;">azzerare la ricerca</a>.
+                                    </p>
+                                }
+                                else
+                                {
+                                    <p>Nessun pezzo trovato in questa ubicazione.</p>
+                                }
+                            </td>
+                        </tr>
+                    }
                     </tbody>
                 </table>
             </div>
@@ -169,7 +163,7 @@
         @foreach (var pezzo in Model.Pezzi)
         {
             <div id="card-@pezzo.RigaId"
-                 class="card shadow-sm border-0 border-start border-5 mb-2 @(pezzo.Stato == StatoRigaInventario.Trovato ? "border-success" : pezzo.Stato == StatoRigaInventario.Mancante ? "border-danger" : "")">
+                 class="card border-0 border-start border-5 mb-2 @(pezzo.Stato == StatoRigaInventario.Trovato ? "border-success" : pezzo.Stato == StatoRigaInventario.Mancante ? "border-danger" : "")">
                 <div class="card-body p-2">
 
                     <div class="d-flex justify-content-between align-items-start">
@@ -225,27 +219,59 @@
             </div>
         }
 
-        <div class="mt-4 mb-3">
-            @if (Model.IsSolaLettura)
-            {
-                <button type="button"
-                        class="btn btn-secondary w-100 py-2 fw-bold shadow-sm disabled"
-                        title="Ubicazione già completata"
-                        style="cursor:not-allowed; pointer-events:auto !important;">
-                    <i class="fa-solid fa-lock me-2"></i>
-                    Concludi
-                </button>
-            }
-            else
-            {
-                <button type="button"
-                        id="btnConcludi"
-                        class="btn btn-primary w-100 py-2 fw-bold shadow-sm"
-                        onclick="gestisciClickConcludi(event)">
-                    <i id="iconConcludi" class="fa-solid @(inAttesa > 0 ? "fa-check" : "fa-check-double") me-2"></i>
-                    Concludi
-                </button>
-            }
+        @if (!Model.Pezzi.Any())
+        {
+            <div class="text-center py-5 text-muted">
+                <i class="fas fa-box-open fa-3x mb-3"></i>
+                @if (!string.IsNullOrWhiteSpace(Model.SearchCard?.Query))
+                {
+                    <p>Nessun risultato per "<strong>@Model.SearchCard.Query</strong>"</p>
+                    <p class="small text-muted mt-2">
+                        Prova ad <a href="@Url.Action("Index", new { sessioneId = Model.SessioneId, ubicazioneId = Model.UbicazioneId })" class="fw-bold text-decoration-none" onclick="window.location.replace(this.href); return false;">azzerare la ricerca</a>.
+                    </p>
+                }
+                else
+                {
+                    <p>Nessun pezzo trovato in questa ubicazione.</p>
+                }
+            </div>
+        }
+
+        <div class="mt-4 mb-3 d-md-none">
+            <div class="d-grid gap-2">
+                @if (!Model.IsSolaLettura)
+                {
+                    <button type="button"
+                            class="btn btn-outline-primary w-100 py-2 shadow-sm"
+                            data-bs-toggle="modal"
+                            data-bs-target="#modalAggiungiExtra">
+                        <i class="fa-solid fa-plus me-2"></i>
+                        Aggiungi Extra
+                    </button>
+                }
+
+                @if (Model.IsSolaLettura)
+                {
+                    <button type="button"
+                            class="btn btn-secondary w-100 py-2 shadow-sm"
+                            disabled>
+                        <i class="fa-solid fa-lock me-2"></i>
+                        Concludi
+                    </button>
+                }
+                else
+                {
+                    <button type="button"
+                            id="btnConcludi"
+                            class="btn btn-primary w-100 py-2 shadow-sm"
+                            onclick="gestisciClickConcludi(event)">
+                        <i id="iconConcludi"
+                           class="fa-solid @(inAttesa > 0 ? "fa-check" : "fa-check-double") me-2"></i>
+                        Concludi
+                    </button>
+                }
+
+            </div>
         </div>
     </div>
 
@@ -306,29 +332,28 @@
                     <input type="hidden" name="sessioneId" value="@Model.SessioneId"/>
                     <input type="hidden" name="ubicazioneId" value="@Model.UbicazioneId"/>
 
-                    <div class="mb-3">
+                    <div>
                         <label class="form-label fw-bold">Barcode</label>
                         <div class="input-group">
                             <input type="text" class="form-control" name="barcode" id="inputBarcodeExtra" required
                                    placeholder="Scansiona o inserisci..."/>
-                            @* Bottone Scan QR *@
                             <button type="button" class="btn btn-secondary" onclick="simulaScanQR()"
                                     title="Simula Scansione">
                                 <i class="fa-solid fa-qrcode"></i>
                             </button>
                         </div>
-                        <div class="form-text">Se il barcode esiste già, verrà segnato come spostamento.</div>
+                        
+                        <div class="alert alert-info mt-2 py-1 px-2 d-inline-flex align-items-center border-0 small shadow-sm">
+                            <i class="fa-solid fa-circle-info me-2"></i>
+                            <span>I barcode già presenti verranno registrati come <strong>spostamenti</strong>.</span>
+                        </div>
                     </div>
 
-                    <div class="mb-3">
+                    <div>
                         <label class="form-label fw-bold">Descrizione (Opzionale)</label>
                         <textarea class="form-control" name="descrizione" rows="2"
                                   placeholder="Inserisci descrizione..."></textarea>
-                        <div class="form-text text-muted">
-                            <i class="fa-solid fa-circle-info me-1"></i>
-                            Se lasciata vuota, verrà mantenuta quella esistente (se presente). Se compilata,
-                            sovrascriverà quella vecchia alla risoluzione.
-                        </div>
+                        
                     </div>
                 </div>
                 <div class="modal-footer border-0 pt-0">
@@ -341,11 +366,35 @@
         </div>
     </div>
 </div>
-
 @section Scripts {
     <script src="~/js/Features/Modals/ConfirmModal.js"></script>
 
     <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            const input = document.getElementById("searchQuery");
+            if (!input) return;
+
+            const desktopPlaceholder = "Cerca in Barcode, Descrizione...";
+            const mobilePlaceholder  = "Cerca in Barcode, Descrizione...";
+
+            const apply = () => {
+            input.placeholder = (window.innerWidth < 768)
+            ? mobilePlaceholder
+            : desktopPlaceholder;
+        };
+
+            requestAnimationFrame(apply);
+            setTimeout(apply, 0);
+
+            window.addEventListener("resize", apply);
+
+            document.addEventListener("change", (e) => {
+            if (e.target && e.target.classList && e.target.classList.contains("search-col-check")) {
+            setTimeout(apply, 0);
+        }
+        }, true);
+        });
+        
         let rilevati = @Model.PezziRilevati;
         const totali = @Model.TotaliPezzi;
         const urlConcludi = '@Html.Raw(urlConcludi)';
@@ -548,7 +597,7 @@
             if (e) e.preventDefault();
             const inAttesa = totali - rilevati;
             if (inAttesa > 0) {
-                const msg = `Attenzione: ci sono ${inAttesa} pezzi non rilevati. Verranno segnati come MANCANTI. Vuoi procedere?`;
+                const msg = `${inAttesa} pezzi non rilevati saranno segnati come mancanti. Confermi?`;
                 mostraModaleConfermaChiusura(msg);
             } else {
                 eseguiChiusura();

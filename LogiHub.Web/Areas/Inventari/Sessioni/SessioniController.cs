@@ -42,10 +42,13 @@ public partial class SessioniController : AuthenticatedBaseController
         bool isBloccato = await _bloccoService.IsBloccatoAsync();
         
         if (Filters == null)
-        {
             Filters = new SearchCardFiltersViewModel();
+        if ((Filters.SearchInColumns == null || !Filters.SearchInColumns.Any())
+            && page == 1
+            && string.IsNullOrWhiteSpace(Query))
+        {
+            Filters.SearchInColumns = new List<string> { "NomeSessione" };
         }
-        Filters.SearchInColumns ??= new List<string> { "NomeSessione", "DataCreazione", "DataCompletamento" };
         
         bool inventarioAttivo = await _context.SessioniInventario.AnyAsync(s => !s.Chiuso);
 
@@ -85,12 +88,13 @@ public partial class SessioniController : AuthenticatedBaseController
 
             ShowUscitoFilter = false,
             ShowSearchInColumns = true,
+            DefaultSearchInColumnKey = "NomeSessione",
 
             SearchInColumns = new()
             {
-                new() { Key = "NomeSessione", Label = "Nome sessione", DefaultSelected = true },
-                new() { Key = "DataCreazione", Label = "Data creazione", DefaultSelected = true },
-                new() { Key = "DataCompletamento", Label = "Data completamento", DefaultSelected = false }
+                new() { Key = "NomeSessione", Label = "Nome sessione"},
+                new() { Key = "DataCreazione", Label = "Data creazione"},
+                new() { Key = "DataCompletamento", Label = "Data completamento"}
             },
 
             HeaderButtons = new List<SearchCardButton>

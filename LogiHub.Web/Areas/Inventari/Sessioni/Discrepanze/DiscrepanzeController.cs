@@ -34,6 +34,19 @@ public partial class DiscrepanzeController : AuthenticatedBaseController
         Filters ??= new SearchCardFiltersViewModel();
 
         var tutte = await _service.OttieniDiscrepanzeAsync(id);
+        if (!string.IsNullOrWhiteSpace(query))
+        {
+            var q = query.Trim();
+
+            tutte = tutte.Where(x =>
+                (!string.IsNullOrWhiteSpace(x.Barcode)            && x.Barcode.Contains(q, StringComparison.OrdinalIgnoreCase))
+                || (!string.IsNullOrWhiteSpace(x.Descrizione)        && x.Descrizione.Contains(q, StringComparison.OrdinalIgnoreCase))
+                || (!string.IsNullOrWhiteSpace(x.UbicazioneSnapshot) && x.UbicazioneSnapshot.Contains(q, StringComparison.OrdinalIgnoreCase))
+                || (!string.IsNullOrWhiteSpace(x.UbicazioneRilevata) && x.UbicazioneRilevata.Contains(q, StringComparison.OrdinalIgnoreCase))
+                || (!string.IsNullOrWhiteSpace(x.GestitaDa)          && x.GestitaDa.Contains(q, StringComparison.OrdinalIgnoreCase))
+            ).ToList();
+        }
+
         var sessione = await _service.OttieniDettaglioSessioneAsync(id);
 
         bool isSolaLettura = sessione.Ubicazioni.Any(u => !u.Completata);
@@ -57,7 +70,8 @@ public partial class DiscrepanzeController : AuthenticatedBaseController
                 { "data-url", Url.Action("RisolviTutto", "Discrepanze", new { area = "Inventari", id }) },
                 { "data-url-original", Url.Action("RisolviTutto", "Discrepanze", new { area = "Inventari", id }) },
                 { "data-is-readonly", isSolaLettura.ToString().ToLower() },
-                { "data-message", "Sei sicuro di voler allineare tutto il magazzino?" }
+                { "data-message", "Sei sicuro di voler allineare tutto il magazzino?" },
+                { "onclick", "avviaRisoluzione(this, this.getAttribute('data-url'), this.getAttribute('data-message'), { reloadOnSuccess: true })" }
             }
         };
 
@@ -74,7 +88,20 @@ public partial class DiscrepanzeController : AuthenticatedBaseController
             ShowSearchInColumns = false,
             HeaderButtons = headerButtons
         };
+        int totalOpen = tutte.Count(x => x.Stato == StatoDiscrepanza.Aperta);
 
+        if (totalOpen == 0 && (string.IsNullOrWhiteSpace(query) || isSolaLettura))
+        {
+            searchCard.AlertTitle = "Ottimo lavoro!";
+            searchCard.Message = "Tutte le discrepanze sono state allineate.";
+            searchCard.MessageType = SearchCardMessageType.Success;
+        }
+        else if (isSolaLettura && totalOpen > 0)
+        {
+            searchCard.AlertTitle = "Risoluzione Bloccata:";
+            searchCard.Message = "Terminare il controllo prima di allineare il magazzino.";
+            searchCard.MessageType = SearchCardMessageType.Warning;
+        }
         var model = new DiscrepanzeViewModel
         {
             SessioneId = id,

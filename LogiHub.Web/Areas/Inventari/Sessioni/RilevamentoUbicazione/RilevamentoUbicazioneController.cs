@@ -70,7 +70,7 @@ public partial class RilevamentoUbicazioneController : AuthenticatedBaseControll
         
         var bottoneEsci = new SearchCardButton
         {
-            Text = "Rilascia e Esci",
+            Text = "Rilascia ed Esci",
             CssClass = "btn-secondary",
             IconClass = "fa-solid fa-door-open",
             Type = "button",
@@ -139,9 +139,22 @@ public partial class RilevamentoUbicazioneController : AuthenticatedBaseControll
 
         headerButtons.Add(isSolaLettura ? bottoneBloccato : bottoneConcludi);
 
+        var searchCard = new SearchCardViewModel
+        {
+            Title = $"📝 Rilevamento: {infoUbicazione.Nome}",
+            Placeholder = "Cerca barcode...",
+            Query = query,
+            ShowFilters = false,
+            ShowUscitoFilter = false,
+            ShowSearchInColumns = false,
+            HeaderButtons = headerButtons
+        };
+        
         if (isSolaLettura)
         {
-            TempData["WarningMessage"] = "Ubicazione completata. Sola lettura.";
+            searchCard.AlertTitle = "Ubicazione Completata.";
+            searchCard.Message = "Modalità sola lettura attiva.";
+            searchCard.MessageType = SearchCardMessageType.Warning;
         }
 
         var model = new RilevamentoUbicazioneViewModel
@@ -154,17 +167,8 @@ public partial class RilevamentoUbicazioneController : AuthenticatedBaseControll
             TotaliPezzi = status.Totali,
             PezziRilevati = status.Rilevati,
             ConteggioExtra = status.ConteggioExtra,
-
-            SearchCard = new SearchCardViewModel
-            {
-                Title = $"Rilevamento: {infoUbicazione.Nome}",
-                Placeholder = "Cerca barcode...",
-                Query = query,
-                ShowFilters = false,
-                ShowUscitoFilter = false,
-                ShowSearchInColumns = false,
-                HeaderButtons = headerButtons
-            },
+            SearchCard = searchCard,
+            
             Pezzi = datiPezzi
                 .Where(p => string.IsNullOrEmpty(query) || p.Barcode.Contains(query) ||
                             p.Descrizione.Contains(query, StringComparison.OrdinalIgnoreCase))
@@ -246,7 +250,6 @@ public partial class RilevamentoUbicazioneController : AuthenticatedBaseControll
     public virtual async Task<IActionResult> ConcludiUbicazione(Guid sessioneId, Guid ubicazioneId)
     {
         await _service.CompletaUbicazioneAsync(sessioneId, ubicazioneId);
-        TempData["SuccessMessage"] = "Ubicazione chiusa con successo.";
 
         return Json(new { success = true, redirectUrl = Url.Action("Index", "Dettaglio", new { area = "Inventari", id = sessioneId }) });
     }

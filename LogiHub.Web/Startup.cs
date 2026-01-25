@@ -69,6 +69,11 @@ namespace LogiHub.Web
                 options.AreaViewLocationFormats.Clear();
                 options.AreaViewLocationFormats.Add("/Areas/Inventari/Sessioni/Dettagli/{0}.cshtml");
                 options.AreaViewLocationFormats.Add("/Areas/Inventari/Sessioni/RilevamentoUbicazione/{0}.cshtml");
+                options.AreaViewLocationFormats.Add("/Areas/Magazzino/SemiLavorati/Movimento/{0}.cshtml");
+                options.AreaViewLocationFormats.Add("/Areas/Magazzino/SemiLavorati/Sposta/{0}.cshtml");
+                options.AreaViewLocationFormats.Add("/Areas/Magazzino/SemiLavorati/Aggiungi/{0}.cshtml");
+                options.AreaViewLocationFormats.Add("/Areas/Magazzino/SemiLavorati/Modifica/{0}.cshtml");
+                options.AreaViewLocationFormats.Add("/Areas/Magazzino/SemiLavorati/Dettagli/{0}.cshtml");
                 options.AreaViewLocationFormats.Add("/Areas/Inventari/Sessioni/{1}/{0}.cshtml");
                 options.AreaViewLocationFormats.Add("/Areas/{2}/{1}/{0}.cshtml");
                 options.AreaViewLocationFormats.Add("/Areas/{2}/Views/{1}/{0}.cshtml");
