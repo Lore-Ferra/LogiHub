@@ -3,10 +3,9 @@
     var originalUscito = ViewData["OriginalUscito"] as bool? ?? Model.Uscito;
     var isSpedizioneEsterna = ViewData["IsSpedizioneEsterna"] as bool? ?? false;
 
-    var titolo =
-        originalUscito
-            ? "Rientro da Terzista"
-            : (isSpedizioneEsterna ? "Spedizione Esterna" : "Invio a Terzista");
+    var titolo = originalUscito 
+        ? "Rientro da Terzista" 
+        : (isSpedizioneEsterna ? "Spedizione Esterna" : "Invio a Terzista");
     var testoStato = originalUscito ? "Uscito" : "In Magazzino";
     var badgeStato = originalUscito ? "bg-danger" : "bg-success";
 }
@@ -28,12 +27,8 @@
                         <div>
                             <small class="text-muted d-block">Barcode</small>
                             <span class="fw-bold text-primary fs-5">@Model.Barcode</span>
-
-                            <div class="text-muted small mt-1">
-                                @Model.Descrizione
-                            </div>
+                            <div class="text-muted small mt-1">@Model.Descrizione</div>
                         </div>
-
                         <div class="text-end">
                             <small class="text-muted d-block">Stato attuale</small>
                             <span class="badge @badgeStato">@testoStato</span>
@@ -45,32 +40,32 @@
                       asp-action="CambiaStato"
                       asp-controller="SemiLavorati"
                       asp-area="Magazzino"
-                      method="post"
-                      data-original-uscito="@originalUscito.ToString().ToLower()">
+                      method="post">
 
                     @Html.AntiForgeryToken()
                     <input type="hidden" asp-for="Id" />
-
-                    <input type="hidden" name="Uscito" value="@(!originalUscito).ToString().ToLower()" />
+                    
+                    @* FIX: Usiamo l'helper per iniettare il valore booleano corretto *@
+                    @Html.Hidden("Uscito", (!originalUscito).ToString().ToLower())
 
                     <div id="msgUsaSposta" class="alert alert-info small mb-3 @(originalUscito ? "d-none" : "")">
                         <i class="fa-solid fa-circle-info me-2"></i>
-                        Per spostamenti interni, utilizza il tasto <b><i class="fa-solid fa-right-left mx-1"></i>Sposta</b> nella tabella.
+                        Per spostamenti interni, utilizza il tasto <b>Sposta</b>.
                     </div>
 
+                    @* Sezione Rientro *@
                     <div id="divRientro" class="mb-3 @(originalUscito ? "" : "d-none")">
                         <label class="form-label fw-bold small text-muted">Seleziona ubicazione</label>
-                        <select class="form-select @(ViewData.ModelState[nameof(Model.UbicazioneId)]?.Errors.Any() == true ? "is-invalid" : "")"
-                                id="statoUbicazioneId" asp-for="UbicazioneId" asp-items="Model.UbicazioniList">
-                            <option value="">-- Seleziona Ubicazione di Rientro --</option>
+                        <select class="form-select" id="statoUbicazioneId" asp-for="UbicazioneId" asp-items="Model.UbicazioniList">
+                            <option value="">-- Seleziona Ubicazione --</option>
                         </select>
                         <span asp-validation-for="UbicazioneId" class="text-danger"></span>
                     </div>
 
+                    @* Sezione Uscita *@
                     <div id="divUscita" class="mb-3 @(!originalUscito ? "" : "d-none")">
                         <label class="form-label fw-bold small text-muted">Seleziona azienda</label>
-                        <select class="form-select @(ViewData.ModelState[nameof(Model.AziendaId)]?.Errors.Any() == true ? "is-invalid" : "")"
-                                id="statoAziendaId" asp-for="AziendaId" asp-items="Model.AziendeList">
+                        <select class="form-select" id="statoAziendaId" asp-for="AziendaId" asp-items="Model.AziendeList">
                             <option value="">-- Seleziona Azienda --</option>
                         </select>
                         <span asp-validation-for="AziendaId" class="text-danger"></span>

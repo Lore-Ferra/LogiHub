@@ -486,48 +486,38 @@ else
         function initMovimentaModal() {
             const form = document.getElementById('formStato');
             if (!form) return;
-            
+
             const ubiSelect = document.getElementById('statoUbicazioneId');
             const azSelect = document.getElementById('statoAziendaId');
-            
-            if (!ubiSelect.hasAttribute('data-initial')) ubiSelect.setAttribute('data-initial', ubiSelect.value);
-            if (!azSelect.hasAttribute('data-initial')) azSelect.setAttribute('data-initial', azSelect.value);
-            
-            const inputs = form.querySelectorAll('input[type="radio"], select');
-            inputs.forEach(el => el.addEventListener('change', updateMovimentaUI));
-            
+
+            if(ubiSelect) ubiSelect.addEventListener('change', updateMovimentaUI);
+            if(azSelect) azSelect.addEventListener('change', updateMovimentaUI);
+
             updateMovimentaUI();
         }
-
         function updateMovimentaUI() {
             const form = document.getElementById('formStato');
             if (!form) return;
-            
-            const originalUscito = form.getAttribute('data-original-uscito') === 'true';
-            
-            const radioOut = document.getElementById('radioOut');
-            const isUscito = radioOut.checked;
-            
+
+            const inputUscito = form.querySelector('input[name="Uscito"]');
+            if (!inputUscito) return;
+
+            const isUscendo = inputUscito.value === 'true';
+
             const divRientro = document.getElementById('divRientro');
             const divUscita = document.getElementById('divUscita');
             const msgSposta = document.getElementById('msgUsaSposta');
 
-            if (isUscito) {
-                divRientro.classList.add('d-none');
-                divUscita.classList.remove('d-none');
+            if (isUscendo) {
+                if(divUscita) divUscita.classList.remove('d-none');
+                if(divRientro) divRientro.classList.add('d-none');
                 if(msgSposta) msgSposta.classList.add('d-none');
             } else {
-                divUscita.classList.add('d-none');
-                
-                if (originalUscito) {
-                    divRientro.classList.remove('d-none');
-                    if(msgSposta) msgSposta.classList.add('d-none');
-                } else {
-                    divRientro.classList.add('d-none');
-                    if(msgSposta) msgSposta.classList.remove('d-none');
-                }
+                if(divUscita) divUscita.classList.add('d-none');
+                if(divRientro) divRientro.classList.remove('d-none');
+                if(msgSposta) msgSposta.classList.add('d-none');
             }
-        }
+}
 
         document.addEventListener('submit', async function (e) {
             const form = e.target;
