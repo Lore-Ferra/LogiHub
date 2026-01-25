@@ -70,7 +70,8 @@ public partial class DiscrepanzeController : AuthenticatedBaseController
                 { "data-url", Url.Action("RisolviTutto", "Discrepanze", new { area = "Inventari", id }) },
                 { "data-url-original", Url.Action("RisolviTutto", "Discrepanze", new { area = "Inventari", id }) },
                 { "data-is-readonly", isSolaLettura.ToString().ToLower() },
-                { "data-message", "Sei sicuro di voler allineare tutto il magazzino?" }
+                { "data-message", "Sei sicuro di voler allineare tutto il magazzino?" },
+                { "onclick", "avviaRisoluzione(this, this.getAttribute('data-url'), this.getAttribute('data-message'), { reloadOnSuccess: true })" }
             }
         };
 
