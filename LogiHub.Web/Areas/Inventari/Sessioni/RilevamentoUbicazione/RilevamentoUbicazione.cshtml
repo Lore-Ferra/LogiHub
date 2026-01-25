@@ -599,7 +599,7 @@
             if (e) e.preventDefault();
             const inAttesa = totali - rilevati;
             if (inAttesa > 0) {
-                const msg = `Attenzione: ci sono ${inAttesa} pezzi non rilevati. Verranno segnati come MANCANTI. Vuoi procedere?`;
+                const msg = `${inAttesa} pezzi non rilevati saranno segnati come mancanti. Confermi?`;
                 mostraModaleConfermaChiusura(msg);
             } else {
                 eseguiChiusura();

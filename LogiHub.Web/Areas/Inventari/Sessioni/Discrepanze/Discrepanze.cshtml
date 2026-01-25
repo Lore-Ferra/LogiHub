@@ -70,7 +70,7 @@
                                 <td class="info-cell text-nowrap @(item.Stato != StatoDiscrepanza.Aperta ? "text-muted" : "")">
                                     @if (item.Tipo == TipoDiscrepanzaOperativa.Spostato)
                                     {
-                                        <p class="m-0">Da <b>@item.UbicazioneSnapshot</b> &rarr; Trovato in
+                                        <p class="m-0">Da <b>@item.UbicazioneSnapshot</b> &rarr; Spostato in
                                             <b>@item.UbicazioneRilevata</b></p>
                                     }
                                     else if (item.Tipo == TipoDiscrepanzaOperativa.Extra)
