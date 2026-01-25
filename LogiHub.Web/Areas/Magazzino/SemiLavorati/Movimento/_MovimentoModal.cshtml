@@ -4,7 +4,7 @@
     var isSpedizioneEsterna = ViewData["IsSpedizioneEsterna"] as bool? ?? false;
 
     var titolo = originalUscito 
-        ? "Rientro da Terzista" 
+        ? "Rientro in Magazzino" 
         : (isSpedizioneEsterna ? "Spedizione Esterna" : "Invio a Terzista");
     var testoStato = originalUscito ? "Uscito" : "In Magazzino";
     var badgeStato = originalUscito ? "bg-danger" : "bg-success";
@@ -56,8 +56,11 @@
                     @* Sezione Rientro *@
                     <div id="divRientro" class="mb-3 @(originalUscito ? "" : "d-none")">
                         <label class="form-label fw-bold small text-muted">Seleziona ubicazione</label>
-                        <select class="form-select" id="statoUbicazioneId" asp-for="UbicazioneId" asp-items="Model.UbicazioniList">
-                            <option value="">-- Seleziona Ubicazione --</option>
+                        <select class="form-select @(ViewData.ModelState.ContainsKey("UbicazioneId") && ViewData.ModelState["UbicazioneId"].Errors.Any() ? "is-invalid" : "")" 
+                                id="statoUbicazioneId" 
+                                asp-for="UbicazioneId" 
+                                asp-items="Model.UbicazioniList">
+                            <option value="">-- Seleziona --</option>
                         </select>
                         <span asp-validation-for="UbicazioneId" class="text-danger"></span>
                     </div>
@@ -65,8 +68,11 @@
                     @* Sezione Uscita *@
                     <div id="divUscita" class="mb-3 @(!originalUscito ? "" : "d-none")">
                         <label class="form-label fw-bold small text-muted">Seleziona azienda</label>
-                        <select class="form-select" id="statoAziendaId" asp-for="AziendaId" asp-items="Model.AziendeList">
-                            <option value="">-- Seleziona Azienda --</option>
+                        <select class="form-select @(ViewData.ModelState.ContainsKey("AziendaId") && ViewData.ModelState["AziendaId"].Errors.Any() ? "is-invalid" : "")" 
+                                id="statoAziendaId" 
+                                asp-for="AziendaId" 
+                                asp-items="Model.AziendeList">
+                            <option value="">-- Seleziona --</option>
                         </select>
                         <span asp-validation-for="AziendaId" class="text-danger"></span>
                     </div>
@@ -76,7 +82,7 @@
 
                         @if (originalUscito)
                         {
-                            <button type="submit" class="btn btn-success">
+                            <button type="submit" class="btn btn-primary">
                                 <i class="fa-solid fa-right-from-bracket fa-rotate-180 me-2"></i>Entrata
                             </button>
                         }
