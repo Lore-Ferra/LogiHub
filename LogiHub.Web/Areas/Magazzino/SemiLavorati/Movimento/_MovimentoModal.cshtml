@@ -1,6 +1,14 @@
 @model LogiHub.Web.Areas.Magazzino.SemiLavorati.MovimentoSemiLavoratoViewModel
 @{
     var originalUscito = ViewData["OriginalUscito"] as bool? ?? Model.Uscito;
+    var isSpedizioneEsterna = ViewData["IsSpedizioneEsterna"] as bool? ?? false;
+
+    var titolo =
+        originalUscito
+            ? "Rientro da Terzista"
+            : (isSpedizioneEsterna ? "Spedizione Esterna" : "Invio a Terzista");
+    var testoStato = originalUscito ? "Uscito" : "In Magazzino";
+    var badgeStato = originalUscito ? "bg-danger" : "bg-success";
 }
 
 <div class="modal fade" id="modalStato" tabindex="-1" aria-hidden="true">
@@ -8,57 +16,61 @@
         <div class="modal-content border-0 shadow-lg">
             <div class="modal-header border-bottom-0 pb-0">
                 <h5 class="modal-title fw-bold d-flex align-items-center gap-2">
-                    <span class="text-warning"><i class="fa-solid fa-dolly"></i></span>
-                    Movimenta Semilavorato
+                    <span class="text-primary"><i class="fa-solid fa-dolly"></i></span>
+                    @titolo
                 </h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
+
             <div class="modal-body pt-2">
                 <div class="rounded mb-2">
                     <div class="d-flex align-items-start justify-content-between">
                         <div>
                             <small class="text-muted d-block">Barcode</small>
                             <span class="fw-bold text-primary fs-5">@Model.Barcode</span>
+
+                            <div class="text-muted small mt-1">
+                                @Model.Descrizione
+                            </div>
                         </div>
+
                         <div class="text-end">
-                            <small class="text-muted d-block">Descrizione</small>
-                            <span class="text-dark">@Model.Descrizione</span>
+                            <small class="text-muted d-block">Stato attuale</small>
+                            <span class="badge @badgeStato">@testoStato</span>
                         </div>
                     </div>
                 </div>
-                
-                <form id="formStato" asp-action="CambiaStato" asp-area="Magazzino" method="post" data-original-uscito="@originalUscito.ToString().ToLower()">
+
+                <form id="formStato"
+                      asp-action="CambiaStato"
+                      asp-controller="SemiLavorati"
+                      asp-area="Magazzino"
+                      method="post"
+                      data-original-uscito="@originalUscito.ToString().ToLower()">
+
                     @Html.AntiForgeryToken()
-                    <input type="hidden" name="id" value="@Model.Id" />
+                    <input type="hidden" asp-for="Id" />
 
-                    <label class="d-block small fw-bold text-muted mb-2">Stato Attuale:</label>
-                    <div class="btn-group w-100" role="group">
-                        <input type="radio" class="btn-check" asp-for="Uscito" value="false" id="radioIn">
-                        <label class="btn btn-outline-success w-50" for="radioIn"><i class="fas fa-warehouse me-2"></i>In Magazzino</label>
+                    <input type="hidden" name="Uscito" value="@(!originalUscito).ToString().ToLower()" />
 
-                        <input type="radio" class="btn-check" asp-for="Uscito" value="true" id="radioOut">
-                        <label class="btn btn-outline-danger w-50" for="radioOut"><i class="fas fa-truck-arrow-right me-2"></i>Uscito</label>
-                    </div>
-                    <span asp-validation-for="Uscito" class="text-danger d-block text-center mb-3"></span>
-
-                    @* Messaggio per usare Sposta (visibile solo se In Magazzino) *@
-                    <div id="msgUsaSposta" class="alert alert-info small mb-3 @(!Model.Uscito && !originalUscito ? "" : "d-none")">
-                        <i class="fa-solid fa-circle-info me-2"></i>Per spostamenti interni, utilizza il tasto <b><i class="fa-solid fa-right-left mx-1"></i>Sposta</b> nella tabella.
+                    <div id="msgUsaSposta" class="alert alert-info small mb-3 @(originalUscito ? "d-none" : "")">
+                        <i class="fa-solid fa-circle-info me-2"></i>
+                        Per spostamenti interni, utilizza il tasto <b><i class="fa-solid fa-right-left mx-1"></i>Sposta</b> nella tabella.
                     </div>
 
-                    @* Sezione Rientro *@
-                    <div id="divRientro" class="mb-3 @(!Model.Uscito && originalUscito ? "" : "d-none")">
-                        @* <label class="form-label fw-bold small text-muted">Ubicazione di Rientro</label> *@
-                        <select class="form-select @(ViewData.ModelState[nameof(Model.UbicazioneId)]?.Errors.Any() == true ? "is-invalid" : "")" id="statoUbicazioneId" asp-for="UbicazioneId" asp-items="Model.UbicazioniList">
+                    <div id="divRientro" class="mb-3 @(originalUscito ? "" : "d-none")">
+                        <label class="form-label fw-bold small text-muted">Seleziona ubicazione</label>
+                        <select class="form-select @(ViewData.ModelState[nameof(Model.UbicazioneId)]?.Errors.Any() == true ? "is-invalid" : "")"
+                                id="statoUbicazioneId" asp-for="UbicazioneId" asp-items="Model.UbicazioniList">
                             <option value="">-- Seleziona Ubicazione di Rientro --</option>
                         </select>
                         <span asp-validation-for="UbicazioneId" class="text-danger"></span>
                     </div>
 
-                    @* Sezione Uscita *@
-                    <div id="divUscita" class="mb-3 @(!Model.Uscito ? "d-none" : "")">
-                        @* <label class="form-label fw-bold small text-muted">Destinazione (Azienda)</label> *@
-                        <select class="form-select @(ViewData.ModelState[nameof(Model.AziendaId)]?.Errors.Any() == true ? "is-invalid" : "")" id="statoAziendaId" asp-for="AziendaId" asp-items="Model.AziendeList">
+                    <div id="divUscita" class="mb-3 @(!originalUscito ? "" : "d-none")">
+                        <label class="form-label fw-bold small text-muted">Seleziona azienda</label>
+                        <select class="form-select @(ViewData.ModelState[nameof(Model.AziendaId)]?.Errors.Any() == true ? "is-invalid" : "")"
+                                id="statoAziendaId" asp-for="AziendaId" asp-items="Model.AziendeList">
                             <option value="">-- Seleziona Azienda --</option>
                         </select>
                         <span asp-validation-for="AziendaId" class="text-danger"></span>
@@ -66,7 +78,19 @@
 
                     <div class="d-flex justify-content-end gap-2">
                         <button type="button" class="btn btn-secondary border" data-bs-dismiss="modal">Annulla</button>
-                        <button type="submit" class="btn btn-primary">Conferma</button>
+
+                        @if (originalUscito)
+                        {
+                            <button type="submit" class="btn btn-success">
+                                <i class="fa-solid fa-right-from-bracket fa-rotate-180 me-2"></i>Entrata
+                            </button>
+                        }
+                        else
+                        {
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fa-solid fa-right-from-bracket me-2"></i>Uscita
+                            </button>
+                        }
                     </div>
                 </form>
             </div>
