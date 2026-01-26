@@ -259,11 +259,15 @@
             <p>Nessun risultato per "<strong>@Model.SearchCard.Query</strong>"</p>
             <p class="small text-muted mt-2">
                 Prova ad <a href="@Url.Action("Index", new { id = Model.SessioneId })"
-                           class="fw-bold text-decoration-none"
-                           onclick="window.location.replace(this.href); return false;">
+                            class="fw-bold text-decoration-none"
+                            onclick="window.location.replace(this.href); return false;">
                     azzerare la ricerca
                 </a> per vedere tutti gli elementi.
             </p>
+        }
+        else
+        {
+            <p>Nessuna discrepanza rilevata.</p>
         }
     </div>
 }
@@ -347,8 +351,8 @@ else
             ));
             if (inputs.length === 0) return;
     
-            const desktopPlaceholder = "Cerca per Barcode, Descrizione, Info, Dettagli Gestione...";
-            const mobilePlaceholder  = "Cerca per Barcode, Descrizione, Info, Dettagli Gestione...";
+            const desktopPlaceholder = "Cerca in Barcode, Descrizione, Info, Dettagli Gestione...";
+            const mobilePlaceholder  = "Cerca...";
     
             const apply = () => {
                 const ph = (window.innerWidth < 768) ? mobilePlaceholder : desktopPlaceholder;
