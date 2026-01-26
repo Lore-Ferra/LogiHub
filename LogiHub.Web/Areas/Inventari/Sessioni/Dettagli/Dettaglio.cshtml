@@ -5,12 +5,10 @@
     ViewData["Title"] = Model.NomeSessione;
     var currentUserId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
 
-    // Suddivisione per stato
     var ubiInAttesa = Model.UbicazioniFiltrate.Where(u => !u.Completata && !u.InLavorazione).ToList();
     var ubiInCorso = Model.UbicazioniFiltrate.Where(u => !u.Completata && u.InLavorazione).ToList();
     var ubiCompletate = Model.UbicazioniFiltrate.Where(u => u.Completata).ToList();
 
-    // Calcolo se mostrare i separatori (solo se c'è più di uno stato attivo)
     int sezioniAttive = (ubiInAttesa.Any() ? 1 : 0) + (ubiInCorso.Any() ? 1 : 0) + (ubiCompletate.Any() ? 1 : 0);
     bool mostraSeparatori = sezioniAttive > 1;
 }

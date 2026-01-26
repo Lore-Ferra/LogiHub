@@ -140,7 +140,7 @@ public partial class SessioniController : AuthenticatedBaseController
                 isNumeric &&
                 (
                     numericValue >= 1900 && numericValue <= 2100
-                    || (numericValue >= 0 && numericValue <= 99) // per 25 → 2025
+                    || (numericValue >= 0 && numericValue <= 99)
                 );
 
             int resolvedYear =

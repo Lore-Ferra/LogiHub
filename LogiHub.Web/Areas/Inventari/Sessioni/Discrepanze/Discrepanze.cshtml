@@ -31,7 +31,6 @@
         _ => "bg-warning text-dark shadow-sm fw-bold"
     };
 
-    // Renderizza la tabella (o le card su mobile)
     async Task RenderTabella(IEnumerable<DiscrepanzaDTO> items, string colorClass, TipoRisoluzione tipoDefault)
     {
         @if (items == null || !items.Any())
@@ -315,7 +314,7 @@ else
 
 @Html.AntiForgeryToken()
 
-@* --- MODALE CONFERMA AJAX (Stile: Annulla Grigio, Conferma Blu) --- *@
+@* --- MODALE CONFERMA --- *@
 @await Html.PartialAsync(
     "~/Features/Modals/_ConfirmModal.cshtml",
     new LogiHub.Web.Features.Modals.ConfirmModalViewModel
@@ -324,7 +323,7 @@ else
         Title = "Conferma operazione",
         Message = "",
         ConfirmButtonText = "Conferma",
-        ConfirmButtonClass = "btn-primary", // BLU
+        ConfirmButtonClass = "btn-primary",
         IconClass = "fa-solid fa-circle-question text-primary"
     })
 
@@ -397,10 +396,8 @@ else
 
                         if (!data || data.success) {
 
-                            // 1) Messaggio specifico: dal backend se possibile
                             let toastMsg = (data && data.message) ? data.message : null;
 
-                            // Fallback: capisco l'azione dall'URL se il backend non manda message
                             if (!toastMsg) {
                                 if (url.includes("AnnullaDiscrepanza")) toastMsg = "Discrepanza annullata con successo.";
                                 else if (url.includes("RisolviTutto")) toastMsg = "Tutte le discrepanze allineate con successo.";
@@ -487,8 +484,6 @@ else
                 data.stato === 'Annullata' ? 'border border-danger text-danger bg-white' :
                     'bg-warning text-dark shadow-sm fw-bold';
 
-            // --- 1. COSTRUZIONE HTML SEPARATA ---
-            // Struttura Desktop: Nome sopra, Data (con anno) sotto
             const gestioneDesktopHtml = !isAperta
                 ? `<div class="text-muted">
                <div class="fw-semibold">${data.gestitaDa}</div>
@@ -496,19 +491,16 @@ else
            </div>`
                 : `<span class="text-dark">---</span>`;
 
-            // Struttura Mobile: Linea singola "Gestita da: Nome il Data"
             const gestioneMobileHtml = !isAperta
                 ? `<div class="small text-muted"><strong>Gestita da:</strong> ${data.gestitaDa} il ${data.dataGestione}</div>`
                 : `<div class="small text-muted"><strong>Gestione:</strong> <span class="fst-italic opacity-50">In attesa...</span></div>`;
 
             const statoHtml = `<span class="badge ${badgeClass}">${data.stato}</span>`;
 
-            // --- 2. UPDATE DESKTOP ---
             if (tr) {
                 tr.querySelector('.gestione-cell').innerHTML = gestioneDesktopHtml;
                 tr.querySelector('.stato-cell').innerHTML = statoHtml;
 
-                // Mute testo barcode e riga
                 const barcodeDiv = tr.querySelector('.text-primary');
                 if (barcodeDiv) barcodeDiv.className = 'fw-bold text-muted';
                 tr.classList.add('bg-light', 'text-muted');
@@ -520,15 +512,12 @@ else
             </div>`;
             }
 
-            // --- 3. UPDATE MOBILE ---
             if (card) {
                 card.querySelector('.gestione-cell').innerHTML = gestioneMobileHtml;
                 card.querySelector('.stato-cell').innerHTML = statoHtml;
 
-                // Mute testo barcode card
                 const cardBarcode = card.querySelector('.text-primary');
                 if (cardBarcode) cardBarcode.className = 'fw-bold fs-5 m-0 text-muted';
-                @* card.classList.add('bg-light'); *@
 
                 const actionEl = card.querySelector('.action-cell');
                 if (actionEl) {

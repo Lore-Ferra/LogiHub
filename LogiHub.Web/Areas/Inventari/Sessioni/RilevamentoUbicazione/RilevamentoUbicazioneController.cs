@@ -66,7 +66,6 @@ public partial class RilevamentoUbicazioneController : AuthenticatedBaseControll
             UbicazioneId = ubicazioneId
         });
 
-        // --- COSTRUZIONE BOTTONI ---
         
         var bottoneEsci = new SearchCardButton
         {

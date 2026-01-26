@@ -155,7 +155,6 @@ public partial class SemiLavoratiController : AuthenticatedBaseController
             SemiLavorati = dto.Items
         };
 
-        // Carico le liste per i modali di azione rapida (Sposta / Movimenta)
         ViewData["UbicazioniList"] = await _context.Ubicazioni
             .OrderBy(u => u.Posizione)
             .Select(u => new SelectListItem { Value = u.UbicazioneId.ToString(), Text = u.Posizione })
@@ -500,7 +499,6 @@ public partial class SemiLavoratiController : AuthenticatedBaseController
         if (sl == null)
             return Json(new { success = false, message = "Semilavorato non trovato." });
 
-        // Validazione
         if (model.NuovaUbicazioneId == Guid.Empty || model.NuovaUbicazioneId == null)
             ModelState.AddModelError(nameof(model.NuovaUbicazioneId), "Seleziona un'ubicazione valida.");
         
@@ -533,7 +531,7 @@ public partial class SemiLavoratiController : AuthenticatedBaseController
             Barcode = sl.Barcode,
             Descrizione = sl.Descrizione,
             UbicazioneId = model.NuovaUbicazioneId,
-            AziendaEsternaId = null, // Se sposto internamente, non è uscito
+            AziendaEsternaId = null,
             Uscito = false,
             UserId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier))
         };
@@ -557,7 +555,6 @@ public partial class SemiLavoratiController : AuthenticatedBaseController
         if (sl == null)
             return Json(new { success = false, message = "Semilavorato non trovato." });
 
-        // Validazione
         if (model.Uscito)
         {
             if (model.AziendaId == null || model.AziendaId == Guid.Empty)

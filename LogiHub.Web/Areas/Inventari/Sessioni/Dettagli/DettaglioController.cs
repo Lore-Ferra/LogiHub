@@ -50,14 +50,12 @@ public partial class DettaglioController : AuthenticatedBaseController
                 ).ToList();
         }
 
-        // Calcola la paginazione
         var totalItems = ubicazioniFiltrate.Count();
         var ubicazioniPaginate = ubicazioniFiltrate
             .Skip((page - 1) * pageSize)
             .Take(pageSize)
             .ToList();
 
-        // Costruzione della SearchCard
         var searchCardModel = new SearchCardViewModel
         {
             Title = "📋 "+ data.NomeSessione,
@@ -97,12 +95,10 @@ public partial class DettaglioController : AuthenticatedBaseController
                 searchCardModel.Message = "Allinea le discrepanze rimaste per sbloccare l'azione Completa.";
             }
         }
-        // Se la sessione non è chiusa, aggiungi il pulsante di chiusura
         if (!data.Chiuso)
         {
             if (ciSonoDiscrepanzeAperte || ciSonoUbicazioniAperte)
             {
-                // BOTTONE DISABILITATO
                 searchCardModel.HeaderButtons.Add(new SearchCardButton
                 {
                     Text = "Completa",
@@ -119,7 +115,6 @@ public partial class DettaglioController : AuthenticatedBaseController
             }
             else
             {
-                // BOTTONE ABILITATO
                 searchCardModel.HeaderButtons.Add(new SearchCardButton
                 {
                     Text = "Completa",

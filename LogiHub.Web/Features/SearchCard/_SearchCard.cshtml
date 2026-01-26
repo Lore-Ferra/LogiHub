@@ -3,16 +3,13 @@
 @model LogiHub.Web.Features.SearchCard.SearchCardViewModel
 <div class="mb-3">
     <div class="d-flex justify-content-between align-items-center p-2 p-md-3 pt-0 pt-md-0 mb-2 mb-md-0">
-        @* GRUPPO TITOLO *@
         <div class="d-flex align-items-center">
-            @* Titolo *@
             @if (!string.IsNullOrEmpty(Model.Title))
             {
                 <h1 class="h3 mb-0 text-gray-800">@Model.Title</h1>
             }
         </div>
 
-        @* BOTTONI AZIONE (Destra) *@
         @if (Model.HeaderButtons != null && Model.HeaderButtons.Any())
         {
             <div class="d-flex gap-2">
@@ -20,11 +17,10 @@
                 {
                     string postUrl = null;
 
-                    // Logica per gestire i bottoni POST vs GET/JS
                     var isPost = btn.HtmlAttributes != null
                                  && btn.HtmlAttributes.TryGetValue("data-post-action", out var postVal)
-                                 && postVal == "true" // Verifica se è un'azione POST simulata
-                                 && btn.HtmlAttributes.TryGetValue("data-url", out postUrl) // Estrae l'URL
+                                 && postVal == "true" 
+                                 && btn.HtmlAttributes.TryGetValue("data-url", out postUrl) 
                                  && !string.IsNullOrWhiteSpace(postUrl);
 
                     @if (isPost)
@@ -117,7 +113,6 @@
                                        value="@Model.Query" class="form-control" placeholder="Cerca..."
                                        autocomplete="off">
 
-                                @* Filtro Uscito Integrato *@
                                 @if (Model.ShowUscitoFilter)
                                 {
                                     <select class="form-select border-start-0 w-auto flex-grow-0" name="Filters.Uscito"
@@ -138,7 +133,6 @@
                     </div>
                 </div>
 
-                @* Checkbox sotto *@
                 @if (Model.ShowSearchInColumns)
                 {
                     <div class="d-flex align-items-center flex-wrap gap-2">
