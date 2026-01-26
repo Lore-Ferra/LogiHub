@@ -298,21 +298,20 @@
         <div class="modal-content border-0 shadow-lg text-center p-4">
 
             <div class="mb-3">
-                <div
-                    class="rounded-circle bg-danger bg-opacity-10 d-inline-flex align-items-center justify-content-center"
-                    style="width:64px;height:64px;">
-                    <i class="fa-solid fa-xmark text-danger fs-3"></i>
+                <div class="rounded-circle bg-primary bg-opacity-10 d-inline-flex align-items-center justify-content-center"
+                     style="width:64px;height:64px;">
+                    <i class="fa-solid fa-circle-exclamation text-danger fs-3"></i>
                 </div>
             </div>
 
-            <h4 class="fw-bold mb-2">Errore</h4>
+            <h4 class="fw-bold text-dark mb-2">Barcode già rilevato</h4>
 
-            <p id="msgErroreExtraText" class="text-muted mb-4"></p>
+            <p id="msgErroreExtraText" class="text-muted mb-4 small"></p>
 
             <button type="button"
-                    class="btn btn-danger w-100 py-2"
+                    class="btn btn-primary w-100 py-2 fw-bold"
                     data-bs-dismiss="modal">
-                OK
+                Ho capito
             </button>
 
         </div>
@@ -561,7 +560,7 @@
             const modal = new bootstrap.Modal(modalEl);
 
             modalEl.querySelector('.modal-title').innerHTML = '<i class="fa-solid fa-triangle-exclamation text-warning me-2"></i>Conflitto Rilevato';
-            modalEl.querySelector('[data-confirm-message]').innerText = "Esiste già un pezzo EXTRA con questo barcode. Vuoi eliminarlo e segnare questo come presente?";
+            modalEl.querySelector('[data-confirm-message]').innerText = "Il pezzo risulta come EXTRA altrove. Vuoi eliminarlo dalla vecchia posizione e segnarlo come PRESENTE qui?";
 
             const btn = modalEl.querySelector('[data-confirm-btn]');
             const newBtn = btn.cloneNode(true);
