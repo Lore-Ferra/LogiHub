@@ -112,11 +112,11 @@
                                     {
                                         <div class="d-inline-flex gap-1">
                                             <button class="btn btn-sm btn-outline-success" type="button"
-                                                    onclick="avviaRisoluzione(this, '@Url.Action("Risolvi", "Discrepanze", new { area = "Inventari", id = Model.SessioneId, barcode = item.Barcode, tipo = tipoDefault })', 'Confermi la risoluzione (aggiornamento magazzino)?')">
+                                                    onclick="avviaRisoluzione(this, '@Url.Action("Risolvi", "Discrepanze", new { area = "Inventari", id = Model.SessioneId, barcode = item.Barcode, tipo = tipoDefault })', 'Risolvere la discrepanza? Il magazzino sarà aggiornato')">
                                                 <i class="fa-solid fa-check-double me-2"></i>Risolvi
                                             </button>
                                             <button class="btn btn-sm btn-outline-danger" type="button"
-                                                    onclick="avviaRisoluzione(this, '@Url.Action("AnnullaDiscrepanza", "Discrepanze", new { area = "Inventari", id = Model.SessioneId, barcode = item.Barcode })', 'Vuoi annullare la segnalazione? Non verrà fatta alcuna modifica fisica.')">
+                                                    onclick="avviaRisoluzione(this, '@Url.Action("AnnullaDiscrepanza", "Discrepanze", new { area = "Inventari", id = Model.SessioneId, barcode = item.Barcode })', 'Annullare la discrepanza? Il magazzino rimarrà invariato.')">
                                                 <i class="fa-solid fa-ban me-2"></i>Annulla
                                             </button>
                                         </div>
