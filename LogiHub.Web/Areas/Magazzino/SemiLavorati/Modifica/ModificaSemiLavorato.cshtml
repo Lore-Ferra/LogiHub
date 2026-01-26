@@ -12,17 +12,21 @@
 
     <div class="mb-3">
         <label asp-for="Barcode" class="small text-muted d-block mb-1">Barcode *</label>
-        <input asp-for="Barcode" class="form-control" required/>
+        <input asp-for="Barcode" class="form-control" placeholder="es. #0001" required/>
         <div class="invalid-feedback">Codice Barcode obbligatorio</div>
     </div>
 
-    <div class="mb-4">
+    <div class="mb-3">
         <label asp-for="Descrizione" class="small text-muted d-block mb-1">Descrizione *</label>
-        <input asp-for="Descrizione" class="form-control" placeholder="Inserisci descrizione..." required/>
+        <textarea asp-for="Descrizione" 
+                  class="form-control" 
+                  placeholder="es. Tipologia, Materiale, colore." 
+                  rows="3" 
+                  required></textarea>
         <div class="invalid-feedback">Descrizione obbligatoria</div>
     </div>
 
-    <div class="row mb-4">
+    <div class="row mb-3">
         <div class="col-md-6">
             <label class="small text-muted d-block mb-1">Ubicazione <span id="astUb" class="@(Model.Uscito ? "d-none" : "")">*</span></label>
             <select asp-for="UbicazioneId" required asp-items="Model.UbicazioniList" class="form-select" id="UbicazioneId" disabled="@(Model.Uscito ? "disabled" : null)">
@@ -57,7 +61,7 @@
         </button>
         <div class="d-flex gap-2">
             <button type="button" class="btn btn-secondary" data-bs-dismiss="offcanvas">Annulla</button>
-            <button type="submit" class="btn btn-primary"><i class="fas fa-save me-2"></i>Salva Modifiche</button>
+            <button type="submit" class="btn btn-primary fw-bold"><i class="fas fa-save me-2"></i>Salva Modifiche</button>
         </div>
     </div>
 </form>
