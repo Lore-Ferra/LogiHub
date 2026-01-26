@@ -27,7 +27,6 @@
                     </div>
                 </div>
 
-                @* Form *@
                 <form id="formSposta" asp-action="Sposta" asp-area="Magazzino" method="post">
                     @Html.AntiForgeryToken()
                     <input type="hidden" name="id" value="@Model.Id" />

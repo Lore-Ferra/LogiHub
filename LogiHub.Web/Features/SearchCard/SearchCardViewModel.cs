@@ -33,7 +33,6 @@ public class SearchCardViewModel
     public string Message { get; set; }
     public SearchCardMessageType MessageType { get; set; } = SearchCardMessageType.None;
 
-    // Helper per le classi CSS di Bootstrap
     public string GetAlertClass() => MessageType switch
     {
         SearchCardMessageType.Success => "alert-success bg-success-subtle text-success-emphasis border-0 shadow-sm",
@@ -42,7 +41,6 @@ public class SearchCardViewModel
         _ => "alert-info bg-info-subtle text-info-emphasis border-0 shadow-sm"
     };
 
-    // Helper per l'icona
     public string GetAlertIcon() => MessageType switch
     {
         SearchCardMessageType.Success => "fa-check-circle",

@@ -156,7 +156,6 @@
                     </tr>
                 }
 
-                @* GRUPPO IN CORSO *@
                 @foreach (var item in sessioniAperte)
                 {
                     <tr style="cursor:pointer" onclick="window.location.href='@Url.Action("Index", "Dettaglio", new { id = item.Id })'">
@@ -181,7 +180,6 @@
                     </tr>
                 }
 
-                @* GRUPPO CHIUSE *@
                 @foreach (var item in sessioniChiuse)
                 {
                     <tr class="text-muted" style="cursor:pointer" onclick="window.location.href='@Url.Action("Index", "Dettaglio", new { id = item.Id })'">

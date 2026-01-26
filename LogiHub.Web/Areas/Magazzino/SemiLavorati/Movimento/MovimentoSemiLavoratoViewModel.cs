@@ -12,8 +12,8 @@ public class MovimentoSemiLavoratoViewModel
     
     public bool Uscito { get; set; }
     
-    public Guid? UbicazioneId { get; set; } // Per il rientro
-    public Guid? AziendaId { get; set; }    // Per l'uscita
+    public Guid? UbicazioneId { get; set; }
+    public Guid? AziendaId { get; set; }
     
     public List<SelectListItem> UbicazioniList { get; set; } = new();
     public List<SelectListItem> AziendeList { get; set; } = new();

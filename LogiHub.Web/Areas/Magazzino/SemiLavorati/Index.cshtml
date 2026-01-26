@@ -309,7 +309,6 @@ else
 
 <partial name="~/Features/Modals/_ConfirmModal.cshtml" model="confirmModel"/>
 
-@* Container per modali caricati via AJAX *@
 <div id="modalContainer"></div>
 
 @section Scripts {
@@ -367,18 +366,17 @@ else
 
         document.addEventListener('submit', function (e) {
             const form = e.target;
-
-            // 1. Capisce se siamo in "Aggiungi" o "Dettagli/Modifica"
+            
             const offcanvasAggiungi = form.closest('#offcanvasAggiungi');
             const offcanvasDettagli = form.closest('#offcanvasDettagli');
 
             if (!offcanvasAggiungi && !offcanvasDettagli) return;
 
-            // 2. Blocca l'invio standard
+            // 1. Blocco invio
             e.preventDefault();
             e.stopPropagation();
 
-            // 3. Gestione Bottone (feedback visivo)
+            // 2. Gestione Bottone
             const btn = form.querySelector('button[type="submit"]');
             const originalText = btn ? btn.innerHTML : '';
 
@@ -401,19 +399,19 @@ else
             })
                 .then(async response => {
                     if (response.redirected) {
-                        // 4. Notifica dinamica
+                        // 3. Notifica dinamica
                         const msg = offcanvasAggiungi ? "Semilavorato aggiunto con successo!" : "Semilavorato modificato con successo!";
                         sessionStorage.setItem("pendingToast", JSON.stringify({ msg, type: "success" }));
 
-                        // 5. Chiudi l'offcanvas attivo (Aggiungi o Dettagli)
+                        // 4. Chiudi l'offcanvas attivo (Aggiungi o Dettagli)
                         const activeOffcanvas = offcanvasAggiungi || offcanvasDettagli;
                         const instance = bootstrap.Offcanvas.getInstance(activeOffcanvas);
                         if (instance) instance.hide();
 
-                        // 6. Ricarica la tabella
+                        // 5. Ricarica la tabella
                         window.location.reload();
                     } else if (response.ok) {
-                        // 7. Gestione Errore (Ricarica la partial con gli errori)
+                        // 6. Gestione Errore
                         const html = await response.text();
                         const contentDiv = (offcanvasAggiungi || offcanvasDettagli).querySelector('[data-offcanvas-content]');
 

@@ -118,7 +118,6 @@ public class SessioniService : ISessioniService
 
     public async Task ChiudiSessioneAsync(Guid sessioneId, Guid userId)
     {
-        // 1. Controllo Ubicazioni (esistente)
         var ubicazioniConRighe = _context.RigheInventario
             .Where(r => r.SessioneInventarioId == sessioneId && r.UbicazioneSnapshotId != null)
             .Select(r => r.UbicazioneSnapshotId!.Value)
@@ -135,7 +134,6 @@ public class SessioniService : ISessioniService
             throw new InvalidOperationException("Ci sono ancora ubicazioni non completate.");
 
 
-        // 2. Controllo Discrepanze Aperte (Fondamentale)
         var ciSonoDiscrepanzeAperte = await _context.RigheInventario
             .AnyAsync(r => r.SessioneInventarioId == sessioneId
                            && r.StatoDiscrepanza == StatoDiscrepanza.Aperta
@@ -144,7 +142,6 @@ public class SessioniService : ISessioniService
         if (ciSonoDiscrepanzeAperte)
             throw new InvalidOperationException("Impossibile chiudere: ci sono discrepanze non gestite.");
 
-        // 3. Chiusura Sessione
         var sessione = await _context.SessioniInventario.FindAsync(sessioneId);
         if (sessione != null)
         {
@@ -195,11 +192,9 @@ public class SessioniService : ISessioniService
 
         if (statoUbi == null) throw new InvalidOperationException("Ubicazione non trovata.");
 
-        // Se è già completata, restituiamo lo stato attuale senza fare nulla
         if (statoUbi.Completata)
             return await OttieniStatusUbicazioneAsync(sessioneId, ubicazioneId);
 
-        // 1. Troviamo le righe che sono ancora "InAttesa" e le segnamo come "Mancanti"
         var righeResidue = await _context.RigheInventario
             .Where(r => r.SessioneInventarioId == sessioneId &&
                         r.UbicazioneSnapshotId == ubicazioneId &&
@@ -210,19 +205,16 @@ public class SessioniService : ISessioniService
         {
             riga.Stato = StatoRigaInventario.Mancante;
             riga.DataRilevamento = DateTime.Now;
-            // Assegniamo il rilevamento all'operatore che stava lavorando sull'ubicazione
             if (statoUbi.OperatoreCorrenteId.HasValue)
                 riga.RilevatoDaUserId = statoUbi.OperatoreCorrenteId.Value;
         }
 
-        // 2. Aggiorniamo lo stato dell'ubicazione nella sessione
         statoUbi.Completata = true;
         statoUbi.DataCompletamento = DateTime.Now;
-        statoUbi.OperatoreCorrenteId = null; // Fondamentale per rilasciare il lock
+        statoUbi.OperatoreCorrenteId = null;
 
         await _context.SaveChangesAsync();
 
-        // 3. Restituiamo il DTO aggiornato
         return await OttieniStatusUbicazioneAsync(sessioneId, ubicazioneId);
     }
 
@@ -258,7 +250,6 @@ public class SessioniService : ISessioniService
         var statoUbi = await _context.SessioniUbicazioni
             .FirstOrDefaultAsync(u => u.SessioneInventarioId == sessioneId && u.UbicazioneId == ubicazioneId);
 
-        // Filtriamo i due gruppi
         var previsti = righe.Where(r => r.UbicazioneSnapshotId == ubicazioneId && r.Stato != StatoRigaInventario.Extra).ToList();
         var extraQui = righe.Where(r => r.UbicazioneRilevataId == ubicazioneId && 
                                         r.Stato == StatoRigaInventario.Extra).ToList();
@@ -299,23 +290,21 @@ public class SessioniService : ISessioniService
 
     public async Task<EsitoAggiuntaExtra> AggiungiExtraAsync(Guid sessioneId, Guid ubicazioneId, string barcode, string descrizione, Guid userId)
 {
-    // 1. Recuperiamo tutte le righe associate a questo barcode nella sessione
+    var barcodeNorm = (barcode ?? "").Trim();
+
     var righeSessione = await _context.RigheInventario
+        .IgnoreQueryFilters()
         .Include(r => r.SemiLavorato)
-        .Where(r => r.SessioneInventarioId == sessioneId && r.SemiLavorato.Barcode == barcode)
+        .Where(r => r.SessioneInventarioId == sessioneId &&
+                    r.SemiLavorato.Barcode == barcodeNorm)
         .ToListAsync();
 
-    // --- FIX BUG 1: IL PEZZO È GIÀ PREVISTO IN QUESTA UBICAZIONE? ---
-    // Verifichiamo se esiste una riga il cui Snapshot corrisponde all'ubicazione dove siamo ora
     var rigaPrevistaQui = righeSessione.FirstOrDefault(r => r.UbicazioneSnapshotId == ubicazioneId);
 
     if (rigaPrevistaQui != null)
     {
-        // Se è già segnato come Trovato, non facciamo nulla (Idempotenza)
             if (rigaPrevistaQui.Stato == StatoRigaInventario.Trovato) return EsitoAggiuntaExtra.TrovatoInSede;
 
-        // Se era "In Attesa" o "Mancante", lo trasformiamo in "Trovato" nella sua sede corretta.
-        // In questo modo evitiamo di creare un duplicato "Extra" inutile.
         rigaPrevistaQui.Stato = StatoRigaInventario.Trovato;
         rigaPrevistaQui.UbicazioneRilevataId = ubicazioneId;
         rigaPrevistaQui.RilevatoDaUserId = userId;
@@ -325,23 +314,19 @@ public class SessioniService : ISessioniService
             return EsitoAggiuntaExtra.TrovatoInSede;
     }
 
-    // --- LOGICA PER EXTRA EFFETTIVI ---
     if (righeSessione.Any())
     {
-        // Caso: Già segnato come Presente in UN'ALTRA ubicazione -> BLOCCO
         if (righeSessione.Any(r => r.Stato == StatoRigaInventario.Trovato))
         {
             throw new InvalidOperationException("Questo barcode è già stato rilevato nella sua posizione corretta.");
         }
 
-        // Caso: Già inserito come EXTRA (in questa o altre ubicazioni) -> SILENT RETURN
         if (righeSessione.Any(r => r.Stato == StatoRigaInventario.Extra))
         {
                 return EsitoAggiuntaExtra.GiaPresenteComeExtraAltrove;
         }
     }
 
-    // 2. Recupero o Creazione del SemiLavorato (se non esiste nel sistema)
     var sl = await _context.SemiLavorati.IgnoreQueryFilters().FirstOrDefaultAsync(s => s.Barcode == barcode);
 
     if (sl == null)
@@ -354,7 +339,7 @@ public class SessioniService : ISessioniService
             UbicazioneId = null,
             DataCreazione = DateTime.Now,
             UltimaModifica = DateTime.Now,
-            Eliminato = true // Lo creiamo nascosto finché non viene confermato nella risoluzione discrepanze
+            Eliminato = true 
         };
         _context.SemiLavorati.Add(sl);
 
@@ -369,15 +354,13 @@ public class SessioniService : ISessioniService
         });
     }
 
-    // 3. Creazione riga Extra effettiva
-    // Arriviamo qui solo se il pezzo non era previsto in questa ubicazione
     var extra = new RigaInventario
     {
         Id = Guid.NewGuid(),
         SessioneInventarioId = sessioneId,
         SemiLavoratoId = sl.Id,
-        UbicazioneSnapshotId = sl.UbicazioneId, // Posizione teorica (poteva essere in un'altra zona)
-        UbicazioneRilevataId = ubicazioneId,    // Posizione dove l'abbiamo trovato ora
+        UbicazioneSnapshotId = sl.UbicazioneId,
+        UbicazioneRilevataId = ubicazioneId,   
         Stato = StatoRigaInventario.Extra,
         RilevatoDaUserId = userId,
         DataRilevamento = DateTime.Now,
@@ -423,7 +406,6 @@ public class SessioniService : ISessioniService
 
    public async Task<List<DiscrepanzaDTO>> OttieniDiscrepanzeAsync(Guid sessioneId)
 {
-    // 1. Prendiamo tutte le righe che sono state segnalate come anomalie
     var righeGrezze = await _context.RigheInventario
         .IgnoreQueryFilters()
         .Include(r => r.SemiLavorato)
@@ -443,12 +425,9 @@ public class SessioniService : ISessioniService
     {
         var righe = gruppo.ToList();
 
-        // Determiniamo quali anomalie esistono per questo barcode
         var haMancante = righe.Any(r => r.Stato == StatoRigaInventario.Mancante);
         var haExtra = righe.Any(r => r.Stato == StatoRigaInventario.Extra);
 
-        // La riga di riferimento deve essere quella "Aperta". 
-        // Se sono tutte chiuse, prendiamo l'ultima gestita.
         var rif = righe.FirstOrDefault(r => r.StatoDiscrepanza == StatoDiscrepanza.Aperta)
                   ?? righe.OrderByDescending(r => r.DataRisoluzione).First();
 
@@ -470,13 +449,9 @@ public class SessioniService : ISessioniService
                 : null
         };
 
-        // --- NUOVA LOGICA STRICT ---
-        // Uno spostamento esiste SOLO se abbiamo confermato sia l'assenza (Mancante) 
-        // che la nuova presenza (Extra).
         
         if (haMancante && haExtra)
         {
-            // CASO 1: SPOSTATO
             dto.Tipo = TipoDiscrepanzaOperativa.Spostato;
             
             dto.UbicazioneSnapshot = rigaMancante.UbicazioneSnapshot?.Posizione ?? "N/D";
@@ -485,20 +460,15 @@ public class SessioniService : ISessioniService
         }
         else if (haExtra)
         {
-            // CASO 2: EXTRA
-            // Anche se il pezzo aveva un UbicazioneSnapshotId, finché quella vecchia posizione 
-            // non viene dichiarata "Mancante" (è ancora InAttesa), questo rimane un Extra puro.
             dto.Tipo = TipoDiscrepanzaOperativa.Extra;
             
             dto.UbicazioneRilevata = rigaExtra.UbicazioneRilevata?.Posizione ?? "N/D";
             dto.UbicazioneRilevataId = rigaExtra.UbicazioneRilevataId;
             
-            // Non impostiamo UbicazioneSnapshot per non confondere l'utente nel Tab Extra
             dto.UbicazioneSnapshot = null; 
         }
         else
         {
-            // CASO 3: MANCANTE
             dto.Tipo = TipoDiscrepanzaOperativa.Mancante;
             
             dto.UbicazioneSnapshot = rigaMancante.UbicazioneSnapshot?.Posizione ?? "N/D";
@@ -528,9 +498,6 @@ public class SessioniService : ISessioniService
 
     public async Task RisolviDiscrepanzaAsync(Guid sessioneId, DiscrepanzaDTO d, TipoRisoluzione tipo, Guid userId)
     {
-        // 1. RECUPERO TUTTE LE RIGHE PER QUEL BARCODE
-        // Invece di FirstOrDefault (una sola), usiamo Where + ToListAsync (tutte)
-        // Usiamo il Barcode come chiave di ricerca perché è l'elemento comune tra Missing ed Extra
         var righeCoinvolte = await _context.RigheInventario
             .IgnoreQueryFilters()
             .Include(r => r.SemiLavorato)
@@ -538,11 +505,9 @@ public class SessioniService : ISessioniService
                         r.SemiLavorato.Barcode == d.Barcode)
             .ToListAsync();
 
-        // Se non trovo nulla e non è un'aggiunta (nuovo pezzo), errore
         if (!righeCoinvolte.Any() && tipo != TipoRisoluzione.Aggiungi)
             throw new InvalidOperationException("Nessuna riga inventario trovata per questo barcode.");
 
-        // Cerchiamo se in una delle righe (quella rilevata) c'è una nuova descrizione
         var rigaConNuovaDesc = righeCoinvolte
             .Where(r => r.Stato == StatoRigaInventario.Extra && !string.IsNullOrEmpty(r.DescrizioneRilevata))
             .FirstOrDefault();
@@ -577,11 +542,8 @@ public class SessioniService : ISessioniService
                 break;
 
             case TipoRisoluzione.Aggiungi:
-                // Se il semilavorato esiste già (perché creato in AggiungiExtra o esistente), 
-                // dobbiamo solo confermare la sua posizione (come se fosse uno spostamento/conferma).
                 if (d.SemiLavoratoId.HasValue && d.UbicazioneRilevataId.HasValue)
                 {
-                    // Recuperiamo i dati attuali per il DTO
                     var slEsistente = await _context.SemiLavorati.FindAsync(d.SemiLavoratoId.Value);
                     if (slEsistente != null)
                     {
@@ -612,10 +574,8 @@ public class SessioniService : ISessioniService
                 break;
         }
 
-        // Ciclo su tutte le righe trovate (Mancante + Extra) e le chiudo tutte.
         foreach (var riga in righeCoinvolte)
         {
-            // Aggiorno solo se è ancora aperta
             if (riga.StatoDiscrepanza == StatoDiscrepanza.Aperta)
             {
                 riga.StatoDiscrepanza = StatoDiscrepanza.Risolta;

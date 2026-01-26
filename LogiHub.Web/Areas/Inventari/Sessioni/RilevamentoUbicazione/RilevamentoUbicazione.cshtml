@@ -475,7 +475,6 @@
                 }
             }
 
-            // Aggiorna UI bottone Concludi
             const btnConcludi = document.getElementById('btnConcludi');
             const iconConcludi = document.getElementById('iconConcludi');
             if (btnConcludi && iconConcludi) {
@@ -488,14 +487,12 @@
         }
 
         function aggiornaUIElementiRiga(rigaId, tipo) {
-            // Aggiorna bordo Card (Mobile)
             const card = document.getElementById('card-' + rigaId);
             if (card) {
                 card.classList.remove('border-success', 'border-danger');
                 card.classList.add(tipo === 'presente' ? 'border-success' : 'border-danger');
             }
 
-            // Aggiorna Badge (Desktop e Mobile)
             const bD = document.getElementById('badge-d-' + rigaId);
             const bM = document.getElementById('badge-m-' + rigaId);
 

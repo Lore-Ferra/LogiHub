@@ -48,7 +48,6 @@
                     @Html.AntiForgeryToken()
                     <input type="hidden" asp-for="Id" />
                     
-                    @* FIX: Usiamo l'helper per iniettare il valore booleano corretto *@
                     @Html.Hidden("Uscito", (!originalUscito).ToString().ToLower())
 
                     <div id="msgUsaSposta" class="alert alert-info small mb-3 @(originalUscito ? "d-none" : "")">
