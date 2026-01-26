@@ -763,20 +763,25 @@ else
                 checks[0].checked = true;
             }
         }
-    
+
         const buildPlaceholder = () => {
             const selected = checks.filter(c => c.checked);
             const labels = selected.map(c => (c.dataset.label || c.value || "").trim()).filter(Boolean);
-    
-            // --- LOGICA MOBILE (< 768px) ---
-            if (window.innerWidth < 768) {
-                if (labels.length === checks.length) return "Cerca..."; // Tutti attivi -> Testo pulito
-                if (labels.length > 1) return `Cerca in ${labels.length} colonne...`; // Multipli -> Mostra solo il numero
-                // Se è 1 solo, lasciamo che cada nella logica standard qui sotto (es. "Cerca in Barcode...")
+
+            // Determina il termine corretto in base al layout
+            const isMobile = window.innerWidth < 768;
+            const termine = isMobile ? "campi" : "colonne";
+
+            // --- LOGICA MOBILE ---
+            if (isMobile) {
+                if (labels.length === checks.length) return "Cerca in tutti i campi";
+                if (labels.length > 1) return `Cerca in ${labels.length} ${termine}...`;
             }
 
+            // --- LOGICA DESKTOP ---
             if (labels.length === 1) return `Cerca in ${labels[0]}…`;
-            if (labels.length === checks.length) return "Cerca in tutte le colonne…";
+            if (labels.length === checks.length) return `Cerca in tutte le ${termine}…`;
+
             return `Cerca in ${labels.join(", ")}…`;
         };
     
