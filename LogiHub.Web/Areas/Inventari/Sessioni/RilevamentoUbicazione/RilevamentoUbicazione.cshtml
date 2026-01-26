@@ -23,10 +23,11 @@
 <div id="stats-container" class="d-flex mb-3 flex-wrap gap-2 sticky-top rounded">
 
     @* Card Avanzamento *@
-    <div class="card rounded-top-0 rounded-bottom border-0 bg-light flex-grow-1 @(Model.IsSolaLettura ? "bg-light" : "")">
+    <div
+        class="card rounded-top-0 rounded-bottom border-0 bg-light flex-grow-1 @(Model.IsSolaLettura ? "bg-light" : "")">
         <div class="card-body px-2 py-3 p-md-3">
             <div class="d-flex flex-column">
-                
+
                 <div class="d-flex justify-content-between align-items-center mb-1">
                     <span class="fw-bold text-muted small">AVANZAMENTO</span>
                     <div class="d-flex align-items-center">
@@ -101,7 +102,7 @@
                                                 data-url="@Url.Action("SegnaPresente", "RilevamentoUbicazione", new { rigaId = pezzo.RigaId })"
                                                 @(Model.IsSolaLettura ? "disabled" : "")
                                                 style="@(Model.IsSolaLettura ? "cursor: not-allowed; pointer-events: auto !important;" : "")">
-                                            @if (Model.IsSolaLettura && pezzo.Stato == StatoRigaInventario.Trovato)
+                                            @if (Model.IsSolaLettura)
                                             {
                                                 <i class="fa-solid fa-lock"></i>
                                             }
@@ -117,7 +118,7 @@
                                                 data-url="@Url.Action("SegnaMancante", "RilevamentoUbicazione", new { rigaId = pezzo.RigaId })"
                                                 @(Model.IsSolaLettura ? "disabled" : "")
                                                 style="@(Model.IsSolaLettura ? "cursor: not-allowed; pointer-events: auto !important;" : "")">
-                                            @if (Model.IsSolaLettura && pezzo.Stato == StatoRigaInventario.Mancante)
+                                            @if (Model.IsSolaLettura)
                                             {
                                                 <i class="fa-solid fa-lock"></i>
                                             }
@@ -142,7 +143,11 @@
                                 {
                                     <p>Nessun risultato per "<strong>@Model.SearchCard.Query</strong>"</p>
                                     <p class="small text-muted mt-2">
-                                        Prova ad <a href="@Url.Action("Index", new { sessioneId = Model.SessioneId, ubicazioneId = Model.UbicazioneId })" class="fw-bold text-decoration-none" onclick="window.location.replace(this.href); return false;">azzerare la ricerca</a>.
+                                        Prova ad <a
+                                            href="@Url.Action("Index", new { sessioneId = Model.SessioneId, ubicazioneId = Model.UbicazioneId })"
+                                            class="fw-bold text-decoration-none"
+                                            onclick="window.location.replace(this.href); return false;">azzerare la
+                                            ricerca</a>.
                                     </p>
                                 }
                                 else
@@ -177,42 +182,42 @@
                     <p class="mb-0">@pezzo.Descrizione</p>
                     <div class="row g-2 mt-1 ">
 
-                            <div class="d-flex gap-2" role="group">
+                        <div class="d-flex gap-2" role="group">
 
-                                <button class="@btnPresenteClass flex-fill"
-                                        onclick="aggiornaStato(this, '@pezzo.RigaId', 'presente')"
-                                        data-url="@Url.Action("SegnaPresente", "RilevamentoUbicazione", new { rigaId = pezzo.RigaId })"
-                                        @(Model.IsSolaLettura ? "disabled" : "")
-                                        style="@(Model.IsSolaLettura ? "cursor: not-allowed; pointer-events: auto !important;" : "")">
-                                    @if (Model.IsSolaLettura && pezzo.Stato == StatoRigaInventario.Trovato)
-                                    {
-                                        <i class="fa-solid fa-lock"></i>
-                                    }
-                                    else
-                                    {
-                                        <i class="fa-solid fa-check"></i>
-                                    }
-                                    <span class="ms-1">Presente</span>
-                                </button>
+                            <button class="@btnPresenteClass flex-fill"
+                                    onclick="aggiornaStato(this, '@pezzo.RigaId', 'presente')"
+                                    data-url="@Url.Action("SegnaPresente", "RilevamentoUbicazione", new { rigaId = pezzo.RigaId })"
+                                    @(Model.IsSolaLettura ? "disabled" : "")
+                                    style="@(Model.IsSolaLettura ? "cursor: not-allowed; pointer-events: auto !important;" : "")">
+                                @if (Model.IsSolaLettura)
+                                {
+                                    <i class="fa-solid fa-lock"></i>
+                                }
+                                else
+                                {
+                                    <i class="fa-solid fa-check"></i>
+                                }
+                                <span class="ms-1">Presente</span>
+                            </button>
 
-                                <button class="@btnMancanteClass flex-fill"
-                                        onclick="aggiornaStato(this, '@pezzo.RigaId', 'mancante')"
-                                        data-url="@Url.Action("SegnaMancante", "RilevamentoUbicazione", new { rigaId = pezzo.RigaId })"
-                                        @(Model.IsSolaLettura ? "disabled" : "")
-                                        style="@(Model.IsSolaLettura ? "cursor: not-allowed; pointer-events: auto !important;" : "")">
-                                    @if (Model.IsSolaLettura && pezzo.Stato == StatoRigaInventario.Mancante)
-                                    {
-                                        <i class="fa-solid fa-lock"></i>
-                                    }
-                                    else
-                                    {
-                                        <i class="fa-solid fa-xmark"></i>
-                                    }
-                                    <span class="ms-1">Mancante</span>
-                                </button>
+                            <button class="@btnMancanteClass flex-fill"
+                                    onclick="aggiornaStato(this, '@pezzo.RigaId', 'mancante')"
+                                    data-url="@Url.Action("SegnaMancante", "RilevamentoUbicazione", new { rigaId = pezzo.RigaId })"
+                                    @(Model.IsSolaLettura ? "disabled" : "")
+                                    style="@(Model.IsSolaLettura ? "cursor: not-allowed; pointer-events: auto !important;" : "")">
+                                @if (Model.IsSolaLettura)
+                                {
+                                    <i class="fa-solid fa-lock"></i>
+                                }
+                                else
+                                {
+                                    <i class="fa-solid fa-xmark"></i>
+                                }
+                                <span class="ms-1">Mancante</span>
+                            </button>
 
-                            </div>
-                   
+                        </div>
+
                     </div>
 
                 </div>
@@ -227,7 +232,10 @@
                 {
                     <p>Nessun risultato per "<strong>@Model.SearchCard.Query</strong>"</p>
                     <p class="small text-muted mt-2">
-                        Prova ad <a href="@Url.Action("Index", new { sessioneId = Model.SessioneId, ubicazioneId = Model.UbicazioneId })" class="fw-bold text-decoration-none" onclick="window.location.replace(this.href); return false;">azzerare la ricerca</a>.
+                        Prova ad <a
+                            href="@Url.Action("Index", new { sessioneId = Model.SessioneId, ubicazioneId = Model.UbicazioneId })"
+                            class="fw-bold text-decoration-none"
+                            onclick="window.location.replace(this.href); return false;">azzerare la ricerca</a>.
                     </p>
                 }
                 else
@@ -298,8 +306,9 @@
         <div class="modal-content border-0 shadow-lg text-center p-4">
 
             <div class="mb-3">
-                <div class="rounded-circle bg-primary bg-opacity-10 d-inline-flex align-items-center justify-content-center"
-                     style="width:64px;height:64px;">
+                <div
+                    class="rounded-circle bg-primary bg-opacity-10 d-inline-flex align-items-center justify-content-center"
+                    style="width:64px;height:64px;">
                     <i class="fa-solid fa-circle-exclamation text-danger fs-3"></i>
                 </div>
             </div>
@@ -341,8 +350,9 @@
                                 <i class="fa-solid fa-qrcode"></i>
                             </button>
                         </div>
-                        
-                        <div class="alert alert-info mt-2 py-1 px-2 d-inline-flex align-items-center border-0 small shadow-sm">
+
+                        <div
+                            class="alert alert-info mt-2 py-1 px-2 d-inline-flex align-items-center border-0 small shadow-sm">
                             <i class="fa-solid fa-circle-info me-2"></i>
                             <span>I barcode già presenti verranno registrati come <strong>spostamenti</strong>.</span>
                         </div>
@@ -352,7 +362,7 @@
                         <label class="form-label fw-bold">Descrizione (Opzionale)</label>
                         <textarea class="form-control" name="descrizione" rows="2"
                                   placeholder="Inserisci descrizione..."></textarea>
-                        
+
                     </div>
                 </div>
                 <div class="modal-footer border-0 pt-0">
@@ -365,6 +375,7 @@
         </div>
     </div>
 </div>
+
 @section Scripts {
     <script src="~/js/Features/Modals/ConfirmModal.js"></script>
 
@@ -374,13 +385,13 @@
             if (!input) return;
 
             const desktopPlaceholder = "Cerca in Barcode, Descrizione...";
-            const mobilePlaceholder  = "Cerca in Barcode, Descrizione...";
+            const mobilePlaceholder = "Cerca in Barcode, Descrizione...";
 
             const apply = () => {
-            input.placeholder = (window.innerWidth < 768)
-            ? mobilePlaceholder
-            : desktopPlaceholder;
-        };
+                input.placeholder = (window.innerWidth < 768)
+                    ? mobilePlaceholder
+                    : desktopPlaceholder;
+            };
 
             requestAnimationFrame(apply);
             setTimeout(apply, 0);
@@ -388,12 +399,12 @@
             window.addEventListener("resize", apply);
 
             document.addEventListener("change", (e) => {
-            if (e.target && e.target.classList && e.target.classList.contains("search-col-check")) {
-            setTimeout(apply, 0);
-        }
-        }, true);
+                if (e.target && e.target.classList && e.target.classList.contains("search-col-check")) {
+                    setTimeout(apply, 0);
+                }
+            }, true);
         });
-        
+
         let rilevati = @Model.PezziRilevati;
         const totali = @Model.TotaliPezzi;
         const urlConcludi = '@Html.Raw(urlConcludi)';
@@ -542,7 +553,7 @@
                 } else {
                     const modalAggiungi = bootstrap.Modal.getInstance(document.getElementById('modalAggiungiExtra'));
                     if (modalAggiungi) modalAggiungi.hide();
-                    
+
                     document.getElementById('msgErroreExtraText').innerText = data.message;
                     new bootstrap.Modal(document.getElementById('modalErroreExtra')).show();
                 }
@@ -609,7 +620,7 @@
 
             modalEl.querySelector('.modal-title').innerHTML = '<i class="fa-solid fa-triangle-exclamation text-warning me-2"></i>Conferma operazione';
             const msgEl = modalEl.querySelector('[data-confirm-message]');
-            if(msgEl) msgEl.innerText = msg;
+            if (msgEl) msgEl.innerText = msg;
 
             const confirmBtn = modalEl.querySelector('[data-confirm-btn]');
             const newBtn = confirmBtn.cloneNode(true);
@@ -625,7 +636,7 @@
 
         async function eseguiChiusura() {
             const btn = document.getElementById('btnConcludi');
-            if(btn) {
+            if (btn) {
                 btn.disabled = true;
                 btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-2"></i>Attendere...';
             }
@@ -635,7 +646,7 @@
             if (tokenInput) formData.append('__RequestVerificationToken', tokenInput.value);
 
             try {
-                const res = await fetch(urlConcludi, { method: 'POST', body: formData });
+                const res = await fetch(urlConcludi, {method: 'POST', body: formData});
                 if (res.ok) {
                     const data = await res.json();
                     if (data.success && data.redirectUrl) {
@@ -653,7 +664,7 @@
                                 window.location.replace(data.redirectUrl);
                             }
                         }, 150);
-                } else {
+                    } else {
                         location.reload();
                     }
                 } else {
@@ -667,21 +678,21 @@
             }
         }
 
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', function () {
             aggiornaInterfacciaStats();
         });
     </script>
     <script>
-    document.addEventListener("DOMContentLoaded", () => {
-        const pending = sessionStorage.getItem("pendingToast");
-        if (!pending) return;
-    
-        try {
-            const { msg, type } = JSON.parse(pending);
-            notify(msg, type || "success");
-        } finally {
-            sessionStorage.removeItem("pendingToast");
-        }
-            });
+        document.addEventListener("DOMContentLoaded", () => {
+            const pending = sessionStorage.getItem("pendingToast");
+            if (!pending) return;
+
+            try {
+                const {msg, type} = JSON.parse(pending);
+                notify(msg, type || "success");
+            } finally {
+                sessionStorage.removeItem("pendingToast");
+            }
+        });
     </script>
 }
